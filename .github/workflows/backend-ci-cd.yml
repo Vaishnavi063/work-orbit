@@ -1,21 +1,20 @@
-name: Backend Deployment
+name: Backend CI & CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'backend/**'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'backend/**'
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy Backend
+    name: Build, Test, and Deploy Backend
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,8 +30,6 @@ jobs:
       - name: Build and Run Tests
         run: cd backend && mvn -B verify --file pom.xml
 
-      - name: Trigger Render Deployment
+      - name: Trigger Production Deployment on Render
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}

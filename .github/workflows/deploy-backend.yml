@@ -28,8 +28,8 @@ jobs:
           cache: 'maven'
           cache-dependency-path: 'backend/pom.xml'
 
-      - name: Build and Package Application
-        run: cd backend && mvn -B package --file pom.xml -DskipTests
+      - name: Build and Run Tests
+        run: cd backend && mvn -B verify --file pom.xml
 
       - name: Trigger Render Deployment
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -15,6 +15,9 @@ jobs:
   build-and-deploy:
     name: Build, Test, and Deploy Backend
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,7 +31,7 @@ jobs:
           cache-dependency-path: 'backend/pom.xml'
 
       - name: Build and Run Tests
-        run: cd backend && mvn -B verify --file pom.xml
+        run: mvn -B verify --file pom.xml
 
       - name: Trigger Production Deployment on Render
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -1,0 +1,9 @@
+[build]
+  command = "pnpm build"
+
+  publish = "dist"
+
+  base = "frontend"
+
+[build.environment]
+  PNPM_VERSION = "10"

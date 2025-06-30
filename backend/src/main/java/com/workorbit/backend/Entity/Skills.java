@@ -1,7 +1,14 @@
 package com.workorbit.backend.Entity;
 import java.util.*;
 import jakarta.persistence.*;
+import lombok.*;
 
+
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 @Entity
 public class Skills {
 
@@ -13,13 +20,4 @@ public class Skills {
 
     @ManyToMany(mappedBy = "freelancerSkill")
     private Set<Freelancer> freelancers = new HashSet<>();
-
-    @Override
-    public String toString() {
-        return "Skills{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", freelancers=" + freelancers +
-                '}';
-    }
 }

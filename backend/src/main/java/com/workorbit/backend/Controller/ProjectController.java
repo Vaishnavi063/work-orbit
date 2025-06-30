@@ -1,6 +1,6 @@
 package com.workorbit.backend.Controller;
 
-import com.workorbit.backend.Entity.ProjectEntity;
+import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Service.project.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,8 +13,8 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @PostMapping("/project")
-    public ProjectEntity createProject(@RequestBody ProjectEntity projectEntity) {
-        return projectService.createProject(projectEntity);
+    public Project createProject(@RequestBody Project project) {
+        return projectService.createProject(project);
     }
 
 }

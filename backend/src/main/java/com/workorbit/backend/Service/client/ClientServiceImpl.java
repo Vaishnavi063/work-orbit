@@ -1,15 +1,15 @@
-package com.workorbit.backend.Service.client;
+package com.workorbit.backend.Service.Client;
 
-import com.workorbit.backend.Repository.ClientRepo;
+import com.workorbit.backend.Repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ClientServiceImpl implements ClientService {
-    private  final ClientRepo clientRepo;
+    private  final ClientRepository clientRepository;
 
     @Autowired
-    public ClientServiceImpl(ClientRepo clientRepo) {
-        this.clientRepo = clientRepo;
+    public ClientServiceImpl(ClientRepository clientRepository) {
+        this.clientRepository = clientRepository;
     }
 }

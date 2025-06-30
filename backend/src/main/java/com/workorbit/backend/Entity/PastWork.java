@@ -1,7 +1,14 @@
 package com.workorbit.backend.Entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
+
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 @Entity
 public class PastWork {
 
@@ -16,15 +23,4 @@ public class PastWork {
     @ManyToOne
     @JoinColumn(name = "freelancer_id", referencedColumnName="id")
     private Freelancer freelancer;
-
-    @Override
-    public String toString() {
-        return "PastWork{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", link='" + link + '\'' +
-                ", description='" + description + '\'' +
-                ", freelancer=" + freelancer +
-                '}';
-    }
 }

@@ -1,8 +1,8 @@
 package com.workorbit.backend.Service.project;
 
 
-import com.workorbit.backend.Entity.ProjectEntity;
+import com.workorbit.backend.Entity.Project;
 
 public interface ProjectService {
-     ProjectEntity createProject(ProjectEntity projectEntity);
+     Project createProject(Project project);
 }

@@ -1,4 +1,4 @@
 package com.workorbit.backend.Service.Client;
 
-public class Service {
+public interface ClientService {
 }

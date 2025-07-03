@@ -2,11 +2,17 @@ package com.workorbit.backend.Entity;
 import java.time.LocalDateTime;
 import java.util.*;
 import jakarta.persistence.*;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 @EntityListeners(AuditingEntityListener.class)
 public class Freelancer {
 
@@ -39,19 +45,4 @@ public class Freelancer {
 
     @OneToMany(mappedBy = "freelancer")
     private List<PastWork> pastWorks = new ArrayList<>();
-
-    @Override
-    public String toString() {
-        return "Freelancer{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", rating=" + rating +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", freelancerSkill=" + freelancerSkill +
-                ", pastWorks=" + pastWorks +
-                '}';
-    }
 }

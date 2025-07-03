@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.LocalDateTime;
 
@@ -21,19 +22,23 @@ public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
+
     private String description;
+
     private Long budget;
+
     private LocalDateTime deadline;
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
+    @JsonBackReference
     private Client client;
 
-    private ProjectStatus status=ProjectStatus.OPEN;
-    private String Domain;
+    private ProjectStatus status = ProjectStatus.OPEN;
 
-    public enum ProjectStatus{
+    public enum ProjectStatus {
         OPEN,
         CLOSED
     }

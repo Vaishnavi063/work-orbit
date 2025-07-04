@@ -43,6 +43,10 @@ public class Freelancer {
     )
     private Set<Skills>freelancerSkill = new HashSet<>();
 
-    @OneToMany(mappedBy = "freelancer")
+    @OneToMany(mappedBy = "freelancer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PastWork> pastWorks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "freelancer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Bids> bids = new ArrayList<>();
+
 }

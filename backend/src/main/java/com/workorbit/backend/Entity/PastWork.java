@@ -21,6 +21,6 @@ public class PastWork {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "freelancer_id", referencedColumnName="id")
+    @JoinColumn(name = "freelancer_id")
     private Freelancer freelancer;
 }

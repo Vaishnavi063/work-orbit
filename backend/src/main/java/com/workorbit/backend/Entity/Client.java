@@ -22,7 +22,9 @@ public class Client {
 
 	@Id
 	@GeneratedValue
+	@Column(nullable = false)
 	private Long id;
+	@Column(nullable = false)
 	private String name;
 	@Column(unique = true, nullable = false)
 	private String email;

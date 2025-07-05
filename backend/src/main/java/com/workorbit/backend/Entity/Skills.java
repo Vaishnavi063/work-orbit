@@ -15,7 +15,7 @@ public class Skills {
     @Id
     @GeneratedValue
     private Long id;
-
+    @Column(nullable = false)
     private String name;
 
     @ManyToMany(mappedBy = "freelancerSkill")

@@ -24,13 +24,13 @@ public class Project {
     @Id
     @GeneratedValue
     private Long id;
-
+    @Column(nullable = false)
     private String title;
-
+    @Column(nullable = false)
     private String description;
-
+    @Column(nullable = false)
     private Long budget;
-
+    @Column(nullable = false)
     private LocalDateTime deadline;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

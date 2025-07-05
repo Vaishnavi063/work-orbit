@@ -19,7 +19,9 @@ public class Bids {
     private Long id;
 
     private String proposal;
+    @Column(nullable = false)
     private double bidAmount;
+    @Column(nullable = false)
     private long durationDays;
 
     @Enumerated(EnumType.STRING)

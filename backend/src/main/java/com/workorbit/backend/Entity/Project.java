@@ -33,8 +33,8 @@ public class Project {
 
     private LocalDateTime deadline;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
     @JsonBackReference
     private Client client;
 

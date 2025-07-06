@@ -43,8 +43,8 @@ public class Contract {
     }
     
     @CreatedDate
-    private LocalDateTime startedAt;
+    private LocalDateTime createdAt;
     
     @LastModifiedDate
-    private LocalDateTime completedAt;
+    private LocalDateTime updatedAt;
 }

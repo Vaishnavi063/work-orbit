@@ -1,7 +1,6 @@
 package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.ProjectDTO;
-import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.ClientRepository;
@@ -9,10 +8,9 @@ import com.workorbit.backend.Repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

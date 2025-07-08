@@ -6,7 +6,6 @@ import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.ClientRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

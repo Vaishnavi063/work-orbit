@@ -1,7 +1,6 @@
 package com.workorbit.backend.Controller;
 
 import com.workorbit.backend.DTO.ProjectDTO;
-import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Service.project.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

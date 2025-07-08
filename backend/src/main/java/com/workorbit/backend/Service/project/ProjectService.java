@@ -1,7 +1,6 @@
 package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.ProjectDTO;
-import com.workorbit.backend.DTO.ProjectDTO;
 
 import java.util.List;
 

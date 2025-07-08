@@ -1,13 +1,13 @@
 package com.workorbit.backend.Service.project;
 
-
-import com.workorbit.backend.Entity.Project;
+import com.workorbit.backend.DTO.ProjectDTO;
+import com.workorbit.backend.DTO.ProjectDTO;
 
 import java.util.List;
 
 public interface ProjectService {
-     Project createProject(Project project);
-     List<Project> getAllProjects();
-     Project getProjectById(Long id);
+     ProjectDTO createProject(ProjectDTO dto);
+     List<ProjectDTO> getAllProjects();
+     ProjectDTO getProjectById(Long id);
      boolean deleteProjectById(Long id);
 }

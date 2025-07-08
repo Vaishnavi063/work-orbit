@@ -1,9 +1,10 @@
 package com.workorbit.backend.Service.client;
 
-import com.workorbit.backend.Entity.Client;
+import com.workorbit.backend.DTO.ClientCreateDTO;
+import com.workorbit.backend.DTO.ClientDTO;
 
 public interface ClientService {
-    Client createClient(Client client);
-    Client getClient(Long clientId);
+    void createClient(ClientCreateDTO dto);
+    ClientDTO getClientDTOById(Long clientId);
     boolean deleteClient(Long clientId);
 }

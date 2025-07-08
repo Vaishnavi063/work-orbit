@@ -24,17 +24,17 @@ public class Project {
     @Id
     @GeneratedValue
     private Long id;
-
+    @Column(nullable = false)
     private String title;
-
+    @Column(nullable = false)
     private String description;
-
+    @Column(nullable = false)
     private Long budget;
-
+    @Column(nullable = false)
     private LocalDateTime deadline;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
     @JsonBackReference
     private Client client;
 

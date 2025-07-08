@@ -15,9 +15,11 @@ public class PastWork {
     @Id
     @GeneratedValue
     private Long id;
-
+    @Column(nullable = false)
     private String title;
+    @Column(nullable = false)
     private String link;
+    @Column(nullable = false)
     private String description;
 
     @ManyToOne

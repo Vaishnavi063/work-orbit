@@ -1,16 +1,11 @@
 package com.workorbit.backend.Service.client;
 
-import com.workorbit.backend.Auth.Entity.AppUser;
-import com.workorbit.backend.Auth.Entity.Role;
-import com.workorbit.backend.Auth.Repository.AppUserRepository;
-import com.workorbit.backend.DTO.ClientCreateDTO;
 import com.workorbit.backend.DTO.ClientDTO;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,29 +16,6 @@ import java.util.List;
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
-    private final AppUserRepository appUserRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    @Override
-    public void createClient(ClientCreateDTO dto) {
-
-        if (appUserRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists.");
-        }
-
-        AppUser appUser = new AppUser();
-        appUser.setEmail(dto.getEmail());
-        appUser.setPassword(passwordEncoder.encode(dto.getPassword()));
-        appUser.setRole(Role.ROLE_CLIENT);
-
-        Client client = new Client();
-        client.setName(dto.getName());
-        client.setAppUser(appUser);
-
-        appUser.setClientProfile(client);
-
-        clientRepository.save(client);
-    }
 
     @Override
     public ClientDTO getClientDTOById(Long id) {

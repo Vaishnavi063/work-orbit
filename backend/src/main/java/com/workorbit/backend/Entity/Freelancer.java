@@ -1,6 +1,8 @@
 package com.workorbit.backend.Entity;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import com.workorbit.backend.Auth.Entity.AppUser;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -17,17 +19,15 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class Freelancer {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Column(nullable = false)
-    private String password;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "app_user_id", referencedColumnName = "id")
+    private AppUser appUser;
 
     private Double rating;
 

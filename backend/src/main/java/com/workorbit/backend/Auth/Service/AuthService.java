@@ -7,6 +7,7 @@ import com.workorbit.backend.Auth.DTO.RegistrationRequest;
 import com.workorbit.backend.Auth.Entity.AppUser;
 import com.workorbit.backend.Auth.Entity.Role;
 import com.workorbit.backend.Auth.Repository.AppUserRepository;
+import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Freelancer;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public AuthResponse login(LoginRequest request) {
+    public ApiResponse<AuthResponse> login(LoginRequest request) {
 
         // authenticating using the manager, currently Auth obj is unauthenticated
         Authentication authentication = authenticationManager.authenticate(
@@ -40,22 +41,22 @@ public class AuthService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtService.generateToken(userDetails);
 
-        return AuthResponse.builder()
+        AuthResponse authResponse = AuthResponse.builder()
                 .token(token)
                 .build();
+
+        return ApiResponse.success(authResponse);
     }
 
-    public AuthResponse registerClient(RegistrationRequest request) {
-
+    public ApiResponse<AuthResponse> registerClient(RegistrationRequest request) {
         return register(request, Role.ROLE_CLIENT);
     }
 
-    public AuthResponse registerFreelancer(RegistrationRequest request) {
-
+    public ApiResponse<AuthResponse> registerFreelancer(RegistrationRequest request) {
         return register(request, Role.ROLE_FREELANCER);
     }
 
-    private AuthResponse register(RegistrationRequest request, Role role) {
+    private ApiResponse<AuthResponse> register(RegistrationRequest request, Role role) {
 
         if (appUserRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("user already exists");
@@ -85,8 +86,10 @@ public class AuthService {
         // generate a token for immediate login
         String token = jwtService.generateToken(new AppUserDetails(savedUser));
 
-        return AuthResponse.builder()
+        AuthResponse authResponse = AuthResponse.builder()
                 .token(token)
                 .build();
+
+        return ApiResponse.success(authResponse);
     }
 }

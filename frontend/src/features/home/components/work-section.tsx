@@ -40,7 +40,11 @@ const WorkSection = () => {
               <CardHeader>
                 <div className="flex flex-col items-center justify-center text-center">
                   {flow.icon && (
-                    <flow.icon className="w-10 h-10 text-primary mb-4" />
+                    <flow.icon
+                      className={`w-10 h-10 mb-4 ${
+                        flow.color ?? "text-primary"
+                      }`}
+                    />
                   )}
                   <p className="text-lg font-medium mb-2">{flow.name}</p>
                 </div>

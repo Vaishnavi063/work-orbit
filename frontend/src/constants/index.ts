@@ -1,4 +1,4 @@
-import { Briefcase, UserCheck, ShieldCheck } from "lucide-react";
+import { Briefcase, ShieldCheck, Users } from "lucide-react";
 
 const WorkFlow = [
   {
@@ -10,16 +10,18 @@ const WorkFlow = [
       text: "Get Started",
       variant: "default" as const,
     },
+    color: "text-purple-500",
   },
   {
-    name: "Hire Freelancer",
+    name: "Hire Freelancers",
     description:
       "Browse through freelancer profiles, review proposals, and choose the right expert for your project.",
-    icon: UserCheck,
+    icon: Users,
     button: {
       text: "Get Started",
       variant: "default" as const,
     },
+    color: "text-indigo-500",
   },
   {
     name: "Make Secure Payment",
@@ -30,6 +32,7 @@ const WorkFlow = [
       text: "Get Started",
       variant: "default" as const,
     },
+    color: "text-cyan-500",
   },
 ];
 

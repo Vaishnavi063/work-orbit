@@ -1,3 +1,4 @@
+import AuthButtons from "./auth-buttons";
 import LogoLink from "./logo-link";
 
 const SiteHeader = () => {
@@ -9,7 +10,7 @@ const SiteHeader = () => {
           {/* <NavLinks links={NAV_LINKS} /> */}
         </div>
         <div className="flex items-center justify-center space-x-2">
-          {/* <AuthButtons /> */}
+          <AuthButtons />
         </div>
       </div>
     </header>

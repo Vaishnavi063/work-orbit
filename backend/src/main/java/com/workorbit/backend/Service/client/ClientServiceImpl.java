@@ -1,6 +1,5 @@
 package com.workorbit.backend.Service.client;
 
-import com.workorbit.backend.DTO.ClientCreateDTO;
 import com.workorbit.backend.DTO.ClientDTO;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Client;
@@ -15,21 +14,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
+
     private final ClientRepository clientRepository;
-
-    @Override
-    public void createClient(ClientCreateDTO dto) {
-        if (clientRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("Email already exists.");
-        }
-
-        Client client = new Client();
-        client.setName(dto.getName());
-        client.setEmail(dto.getEmail());
-        client.setPassword(dto.getPassword());
-
-        clientRepository.save(client);
-    }
 
     @Override
     public ClientDTO getClientDTOById(Long id) {
@@ -53,10 +39,9 @@ public class ClientServiceImpl implements ClientService {
             projectDTOs.add(dto);
         }
 
-        return new ClientDTO(client.getName(), client.getEmail(), projectDTOs);
+        String email = client.getAppUser() != null ? client.getAppUser().getEmail() : null;
+        return new ClientDTO(client.getName(), email, projectDTOs);
     }
-
-
 
     @Override
     public boolean deleteClient(Long clientId) {

@@ -1,5 +1,6 @@
 package com.workorbit.backend.Entity;
 
+import com.workorbit.backend.Auth.Entity.AppUser;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -21,15 +22,16 @@ import java.util.List;
 public class Client {
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(nullable = false)
 	private Long id;
+
 	@Column(nullable = false)
 	private String name;
-	@Column(unique = true, nullable = false)
-	private String email;
-	@Column(nullable = false)
-	private String password;
+
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "app_user_id", referencedColumnName = "id")
+	private AppUser appUser;
 
 	@CreatedDate
 	private LocalDateTime createdAt;

@@ -9,6 +9,7 @@ import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.ContractResponse;
 import com.workorbit.backend.DTO.CreateContractRequest;
 import com.workorbit.backend.Entity.Bids;
+import com.workorbit.backend.Entity.Bids.bidStatus;
 import com.workorbit.backend.Entity.Contract;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
@@ -32,7 +33,7 @@ public class ContractServiceImpl implements ContractService {
 		Bids bid = bidRepository.findById(request.getBidId())
 				   .orElseThrow(() -> new RuntimeException("Bid not found"));
 		
-		 if (bid.getStatus() == null || !"ACCEPTED".equals(bid.getStatus())) {
+		 if (bid.getStatus() == null || !bidStatus.Accepted.name().equals(bid.getStatus())) {
 		        throw new RuntimeException("Only accepted bids can be used to create a contract.");
 		 }
 		

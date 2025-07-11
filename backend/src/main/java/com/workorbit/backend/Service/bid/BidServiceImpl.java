@@ -1,0 +1,80 @@
+package com.workorbit.backend.Service.bid;
+
+import com.workorbit.backend.DTO.BidDTO;
+import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.Entity.Bids;
+import com.workorbit.backend.Entity.Freelancer;
+import com.workorbit.backend.Entity.Project;
+import com.workorbit.backend.Repository.BidRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class BidServiceImpl implements BidService {
+
+    @Autowired
+    private BidRepository bidRepo;
+    @Autowired
+    private BidRepository bidRepository;
+
+    @Override
+    public Bids placeBid(BidDTO dto) {
+        Bids bid = new Bids();
+
+        Freelancer freelancer = new Freelancer();
+        freelancer.setId(dto.getFreelancerId());
+        bid.setFreelancer(freelancer);
+
+        Project project = new Project();
+        project.setId(dto.getProjectId());
+        bid.setProject(project);
+
+        bid.setProposal(dto.getProposal());
+        bid.setBidAmount(dto.getBidAmount());
+        bid.setDurationDays(dto.getDurationDays());
+        bid.setStatus(Bids.bidStatus.Pending);
+        bid.setCreatedAt(LocalDateTime.now());
+
+        return bidRepo.save(bid);
+    }
+
+
+    @Override
+    public List<BidResponseDTO> getBidsByProjectId(Long projectId) {
+        return bidRepo.findByProject_Id(projectId).stream().map(this::mapToDTO).toList();
+    }
+
+    @Override
+    public List<BidResponseDTO> getBidsByFreelancerId(Long freelancerId) {
+        return bidRepo.findByFreelancer_Id(freelancerId).stream().map(this::mapToDTO).toList();
+    }
+
+    @Override
+    public void deleteBid(Long bidId, Long freelancerId) {
+        Bids bid = bidRepo.findById(bidId).orElseThrow(() -> new RuntimeException("Bid not found"));
+        if (!bid.getFreelancer().getId().equals(freelancerId)) {
+            throw new RuntimeException("You can only delete your own bids.");
+        }
+        if (!bid.getStatus().equals(Bids.bidStatus.Pending)) {
+            throw new RuntimeException("Only pending bids can be deleted.");
+        }
+        bidRepo.deleteById(bidId);
+    }
+
+    private BidResponseDTO mapToDTO(Bids bid) {
+        BidResponseDTO dto = new BidResponseDTO();
+        dto.setBidId(bid.getId());
+        dto.setFreelancerId(bid.getFreelancer().getId());
+        dto.setProjectId(bid.getProject().getId());
+        dto.setProposal(bid.getProposal());
+        dto.setBidAmount(bid.getBidAmount());
+        dto.setDurationDays(bid.getDurationDays());
+        dto.setStatus(bid.getStatus().toString());
+        dto.setCreatedAt(bid.getCreatedAt());
+        return dto;
+    }
+
+}

@@ -5,7 +5,7 @@ import WorkSection from "./components/work-section";
 
 const HomePage = () => {
   return (
-    <div className="relative mx-auto container">
+    <div className="relative">
       <Hero />
       <DeveloperIllustration />
       <WorkSection />

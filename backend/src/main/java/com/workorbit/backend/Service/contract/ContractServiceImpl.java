@@ -35,7 +35,6 @@ public class ContractServiceImpl implements ContractService {
 		Contract contract = new Contract();
 		contract.setProject(project);
 		contract.setBid(bid);
-		contract.setContractStatus(Contract.ContractStatus.valueOf(request.getContractStatus()));
 		
 		Contract savedContract = contractRepository.save(contract);
 		

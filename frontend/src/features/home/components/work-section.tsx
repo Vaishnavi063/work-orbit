@@ -36,7 +36,7 @@ const WorkSection = () => {
       <div className="grid md:grid-cols-3 gap-10">
         {WorkFlow.map((flow) => (
           <div key={flow.name} className="flex">
-            <Card className="relative flex flex-col w-full transition-all duration-300 hover:shadow-xl hover:scale-105">
+            <Card className="relative flex flex-col w-full transition-all duration-300 hover:shadow-xs hover:scale-105">
               <CardHeader>
                 <div className="flex flex-col items-center justify-center text-center">
                   {flow.icon && (

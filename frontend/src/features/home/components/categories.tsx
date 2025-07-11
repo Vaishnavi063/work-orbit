@@ -5,7 +5,7 @@ import CategoryCard from "./category-card";
 
 const Categories = () => {
   return (
-    <section className="py-8 md:py-10 md:mt-8">
+    <section className="py-8 md:py-10 md:mt-8 mx-auto container">
       <div className="container mx-auto px-4 sm:px-0">
         <div className="text-center mb-16">
           <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">

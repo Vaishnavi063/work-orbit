@@ -32,13 +32,14 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // private endpoints
+                        .requestMatchers("/client/**").hasRole("CLIENT")
+                        .requestMatchers("/freelancer/**").hasRole("FREELANCER")
+                        .requestMatchers("/projects/**").hasAnyRole("CLIENT", "FREELANCER")
                         // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        // private endpoints
-                        .requestMatchers("/clients/**").authenticated()
-                        .requestMatchers("/projects/**").authenticated()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 // jwt sessions are stateless
                 .sessionManagement(session -> session

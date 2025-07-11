@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/freelancer/**").hasRole("FREELANCER")
                         .requestMatchers("/projects/**").hasAnyRole("CLIENT", "FREELANCER")
+                        .requestMatchers("/contracts/**").hasAnyRole("CLIENT", "FREELANCER")
                         // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()

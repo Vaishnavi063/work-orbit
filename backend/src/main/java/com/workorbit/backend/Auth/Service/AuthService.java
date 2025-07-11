@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,18 @@ public class AuthService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtService.generateToken(userDetails);
 
+        AppUserDetails appUserDetails = (AppUserDetails) userDetails;
+        String name = appUserDetails.getName();
+        String email = appUserDetails.getUsername();
+        String role = appUserDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("UNKNOWN_ROLE");
+
         AuthResponse authResponse = AuthResponse.builder()
+                .name(name)
+                .email(email)
+                .role(role)
                 .token(token)
                 .build();
 

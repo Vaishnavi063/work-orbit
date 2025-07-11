@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/clients")
+@RequestMapping("/client")
 public class ClientController {
     private final ClientService clientService;
 

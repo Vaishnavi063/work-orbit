@@ -5,64 +5,60 @@ import com.workorbit.backend.Entity.Freelancer;
 import com.workorbit.backend.Entity.Skills;
 import com.workorbit.backend.Repository.FreelancerRepository;
 import com.workorbit.backend.Repository.SkillRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.util.HashSet;
+
 import java.util.List;
-import java.util.Set;
 
 @Service
-public class SkillsServiceImpl implements SkillsService{
+@RequiredArgsConstructor
+public class SkillsServiceImpl implements SkillsService {
 
-    @Autowired
-    private SkillRepository skillRepo;
+    private final SkillRepository skillRepo;
+    private final FreelancerRepository freelancerRepo;
 
-    @Autowired
-    private FreelancerRepository freelancerRepo;
 
     @Override
-    public Skills addSkill(SkillDTO dto) {
+    public SkillDTO addSkill(SkillDTO dto) {
+        // Find the freelancer by ID
         Freelancer freelancer = freelancerRepo.findById(dto.getFreelancerId())
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
 
-        //Check if skill already exists in DB
-        Skills existingSkill = skillRepo.findByNameIgnoreCase(dto.getSkillName());
-
-        Skills skillToUse;
-
-        if (existingSkill != null) {
-            skillToUse = existingSkill;
-        } else {
-            //Create new skill if not found
-            skillToUse = new Skills();
-            skillToUse.setName(dto.getSkillName());
-            skillRepo.save(skillToUse); // save once to get ID
+        // Find or create the skill by name
+        Skills skill = skillRepo.findByNameIgnoreCase(dto.getSkillName());
+        if (skill == null) {
+            skill = new Skills();
+            skill.setName(dto.getSkillName());
+            skill = skillRepo.save(skill);
         }
 
-        //Link freelancer to skill
-        skillToUse.getFreelancers().add(freelancer);
+        // Add the skill to the freelancer (owning side of the relationship)
+        freelancer.getFreelancerSkill().add(skill);
+        // Also add the freelancer to the skill (inverse side, for in-memory consistency)
+        skill.getFreelancers().add(freelancer);
 
-        //Save relation
-        return skillRepo.save(skillToUse);
-    }
+        // Save the freelancer to persist the relationship in the join table
+        freelancerRepo.save(freelancer);
 
-
-    @Override
-    public List<Skills> getSkillsByFreelancerId(Long freelancerId) {
-        return skillRepo.findByFreelancerId(freelancerId);
+        return new SkillDTO(skill.getId(), skill.getName(), dto.getFreelancerId());
     }
 
     @Override
     public void removeSkillFromFreelancer(Long freelancerId, String skillName) {
+        // Find the skill by name
         Skills skill = skillRepo.findByNameIgnoreCase(skillName);
         if (skill == null) throw new RuntimeException("Skill not found");
 
+        // Find the freelancer by ID
         Freelancer freelancer = freelancerRepo.findById(freelancerId)
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
 
+        // Remove the skill from the freelancer (owning side)
+        freelancer.getFreelancerSkill().remove(skill);
+        // Also remove the freelancer from the skill (inverse side, for in-memory consistency)
         skill.getFreelancers().remove(freelancer);
-        skillRepo.save(skill); // update join table
+
+        // Save the freelancer to persist the removal in the join table
+        freelancerRepo.save(freelancer);
     }
-
 }
-

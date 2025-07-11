@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Collectors;
+
 
 @Service
 public class FreelancerServiceImpl implements FreelancerService {
@@ -38,34 +40,39 @@ public class FreelancerServiceImpl implements FreelancerService {
 
     @Override
     public FreelancerDTO getFreelancerProfile(Long freelancerId) {
+        // Fetch the freelancer entity by ID
         Freelancer freelancer = freelancerRepo.findById(freelancerId)
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
 
         AppUser appUser = freelancer.getAppUser();
 
-        List<Skills> skills = skillRepo.findByFreelancerId(freelancerId);
+        // Fetch skills and past works for the freelancer
+        List<Skills> skills = skillRepo.findByFreelancers_Id(freelancerId);
         List<PastWork> pastWorks = pastWorkRepo.findByFreelancerId(freelancerId);
 
+        // Build the FreelancerDTO response
         FreelancerDTO profile = new FreelancerDTO();
         profile.setName(freelancer.getName());
         profile.setEmail(appUser.getEmail());
         profile.setRating(freelancer.getRating());
 
-
-        skills.stream()
-                .map(Skills::getName)
-                .collect(Collectors.toList());
-
-        profile.setPastWorks(
-                pastWorks.stream().map(p -> {
-                    PastWorkDTO dto = new PastWorkDTO();
-                    dto.setTitle(p.getTitle());
-                    dto.setLink(p.getLink());
-                    dto.setDescription(p.getDescription());
-                    return dto;
-                }).toList()
+        // Map skills to a list of skill names
+        profile.setSkills(
+                skills.stream()
+                        .map(Skills::getName)
+                        .collect(Collectors.toList())
         );
 
+        // Map past works to DTOs (excluding freelancerId for profile response)
+        profile.setPastWorks(
+            pastWorks.stream().map(p -> {
+                PastWorkDTO dto = new PastWorkDTO();
+                dto.setTitle(p.getTitle());
+                dto.setLink(p.getLink());
+                dto.setDescription(p.getDescription());
+                return dto;
+            }).toList()
+        );
         return profile;
     }
 

@@ -7,6 +7,6 @@ import java.util.List;
 
 @Repository
 public interface SkillRepository extends JpaRepository<Skills, Long> {
-    List<Skills> findByFreelancerId(Long freelancerId);
+    List<Skills> findByFreelancers_Id(Long freelancerId);
     Skills findByNameIgnoreCase(String skillName);
 }

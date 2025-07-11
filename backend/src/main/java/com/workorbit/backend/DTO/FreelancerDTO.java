@@ -14,7 +14,7 @@ public class FreelancerDTO {
     private String name;
     private String email;
     private Double rating;
-    private Set<String> skills;
+    private List<String> skills;
     private List<PastWorkDTO> pastWorks;
 
 }

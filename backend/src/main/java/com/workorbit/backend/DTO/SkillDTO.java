@@ -4,9 +4,10 @@ import lombok.*;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class SkillDTO {
+    private Long id;
     private String skillName;
     private Long freelancerId;
 }

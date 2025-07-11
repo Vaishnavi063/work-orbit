@@ -1,4 +1,5 @@
 package com.workorbit.backend.Entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -41,10 +42,12 @@ public class Bids {
 
     @ManyToOne
     @JoinColumn(name = "freelancer_id", nullable = false)
+    @JsonBackReference
     private Freelancer freelancer;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
+    @JsonBackReference
     private Project project;
 }
 

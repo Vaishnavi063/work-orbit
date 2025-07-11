@@ -9,14 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/pastworks")
+@RequestMapping("freelancer/pastworks")
 public class PastWorkController {
 
     @Autowired
     private PastWorkService pastWorkService;
 
     @PostMapping
-    public ResponseEntity<PastWork> addPastWork(@RequestBody PastWorkDTO dto) {
+    public ResponseEntity<PastWorkDTO> addPastWork(@RequestBody PastWorkDTO dto) {
         return new ResponseEntity<>(pastWorkService.addPastWork(dto), HttpStatus.CREATED);
     }
 

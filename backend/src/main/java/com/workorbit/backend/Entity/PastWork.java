@@ -1,5 +1,7 @@
 package com.workorbit.backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,5 +26,7 @@ public class PastWork {
 
     @ManyToOne
     @JoinColumn(name = "freelancer_id")
+    @JsonIgnore
+    @JsonBackReference
     private Freelancer freelancer;
 }

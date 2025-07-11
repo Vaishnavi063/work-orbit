@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class ContractDTO {
+public class ContractResponse {
 	private Long contractId;
 	private Long projectId;
 	private Long bidId;

@@ -1,7 +1,5 @@
-/** @type {import('tailwindcss').Config} */
-const plugin = require('tailwindcss/plugin');
-const tailwindcssAnimate = require('tailwindcss-animate');
-const tailwindcssTypography = require('@tailwindcss/typography');
+import tailwindcssAnimate from "tailwindcss-animate";
+import tailwindcssTypography from "@tailwindcss/typography";
 
 module.exports = {
   darkMode: ['class'],
@@ -14,7 +12,6 @@ module.exports = {
         mono: ['"Azeret Mono"', 'monospace'],
       },
       colors: {
-        // Light mode values
         background: '#ffffff',
         foreground: '#09090b',
         card: '#ffffff',
@@ -90,22 +87,6 @@ module.exports = {
           },
         },
       },
-      borderRadius: {
-        lg: '0.625rem',
-        md: '0.5rem',
-        sm: '0.375rem',
-        xl: '1rem',
-      },
-      boxShadow: {
-        '2xs': '0 1px 3.5px 0px #000000',
-        xs: '0 1px 3.5px 0px #000000',
-        sm: '0 1px 3.5px 0px #000000, 0 1px 2px -1px #000000',
-        DEFAULT: '0 1px 3.5px 0px #000000, 0 1px 2px -1px #000000',
-        md: '0 1px 3.5px 0px #000000, 0 2px 4px -1px #000000',
-        lg: '0 1px 3.5px 0px #000000, 0 4px 6px -1px #000000',
-        xl: '0 1px 3.5px 0px #000000, 0 8px 10px -1px #000000',
-        '2xl': '0 1px 3.5px 0px #000000',
-      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -124,16 +105,6 @@ module.exports = {
   },
   plugins: [
     tailwindcssAnimate,
-    tailwindcssTypography,
-    plugin(function ({ addBase }) {
-      addBase({
-        ':root': {
-          '--radius-sm': '0.375rem',
-          '--radius-md': '0.5rem',
-          '--radius-lg': '0.625rem',
-          '--radius-xl': '1rem',
-        },
-      });
-    }),
+    tailwindcssTypography
   ],
 };

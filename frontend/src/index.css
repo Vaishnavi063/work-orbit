@@ -8,19 +8,6 @@
   font-family: "Montserrat", sans-serif;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
 :root {
   --background: #ffffff;
   --foreground: #09090b;
@@ -60,14 +47,15 @@
 
   --radius: 0.625rem;
   
-  --shadow-2xs: 0 1px 3.5px 0px #000000;
-  --shadow-xs: 0 1px 3.5px 0px #000000;
-  --shadow-sm: 0 1px 3.5px 0px #000000, 0 1px 2px -1px #000000;
-  --shadow: 0 1px 3.5px 0px #000000, 0 1px 2px -1px #000000;
-  --shadow-md: 0 1px 3.5px 0px #000000, 0 2px 4px -1px #000000;
-  --shadow-lg: 0 1px 3.5px 0px #000000, 0 4px 6px -1px #000000;
-  --shadow-xl: 0 1px 3.5px 0px #000000, 0 8px 10px -1px #000000;
-  --shadow-2xl: 0 1px 3.5px 0px #000000;
+--shadow-2xs: 0 0.5px 1px 0px rgba(0, 0, 0, 0.1);
+--shadow-xs: 0 0.5px 1px 0px rgba(0, 0, 0, 0.1);
+--shadow-sm: 0 0.5px 1px 0px rgba(0, 0, 0, 0.1), 0 0.5px 1.5px -0.5px rgba(0, 0, 0, 0.1);
+--shadow: 0 0.5px 1px 0px rgba(0, 0, 0, 0.1), 0 0.5px 1.5px -0.5px rgba(0, 0, 0, 0.1);
+--shadow-md: 0 1px 2px 0px rgba(0, 0, 0, 0.12), 0 1.5px 3px -0.5px rgba(0, 0, 0, 0.12);
+--shadow-lg: 0 1px 2px 0px rgba(0, 0, 0, 0.12), 0 3px 4px -0.5px rgba(0, 0, 0, 0.12);
+--shadow-xl: 0 1px 2px 0px rgba(0, 0, 0, 0.12), 0 6px 8px -0.5px rgba(0, 0, 0, 0.12);
+--shadow-2xl: 0 1px 2px 0px rgba(0, 0, 0, 0.1);
+
   
 }
 

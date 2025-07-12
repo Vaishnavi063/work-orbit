@@ -146,6 +146,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.10
         version: 4.1.10
+      types:
+        specifier: link:@radix-ui/react-icons/dist/types
+        version: link:@radix-ui/react-icons/dist/types
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)

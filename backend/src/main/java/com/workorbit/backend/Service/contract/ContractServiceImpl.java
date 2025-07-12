@@ -33,9 +33,9 @@ public class ContractServiceImpl implements ContractService {
 		Bids bid = bidRepository.findById(request.getBidId())
 				   .orElseThrow(() -> new RuntimeException("Bid not found"));
 		
-		 if (bid.getStatus() == null || !bidStatus.Accepted.name().equals(bid.getStatus())) {
+		if (bid.getStatus() == null || bidStatus.Accepted != bid.getStatus()) {
 		        throw new RuntimeException("Only accepted bids can be used to create a contract.");
-		 }
+		}
 		
 		Contract contract = new Contract();
 		contract.setProject(project);

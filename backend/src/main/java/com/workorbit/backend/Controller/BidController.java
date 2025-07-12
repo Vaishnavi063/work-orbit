@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.workorbit.backend.DTO.ApiResponse;
 
 @RestController
 @RequestMapping("/bids")
@@ -19,23 +20,23 @@ public class BidController {
     private BidService bidService;
 
     @PostMapping
-    public ResponseEntity<Bids> placeBid(@RequestBody BidDTO dto) {
-        return new ResponseEntity<>(bidService.placeBid(dto), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<Bids>> placeBid(@RequestBody BidDTO dto) {
+        return new ResponseEntity<>(ApiResponse.success(bidService.placeBid(dto)), HttpStatus.CREATED);
     }
 
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<BidResponseDTO>> getBidsByProject(@PathVariable Long projectId) {
-        return ResponseEntity.ok(bidService.getBidsByProjectId(projectId));
+    public ResponseEntity<ApiResponse<List<BidResponseDTO>>> getBidsByProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(ApiResponse.success(bidService.getBidsByProjectId(projectId)));
     }
 
     @GetMapping("/freelancer/{freelancerId}")
-    public ResponseEntity<List<BidResponseDTO>> getBidsByFreelancer(@PathVariable Long freelancerId) {
-        return ResponseEntity.ok(bidService.getBidsByFreelancerId(freelancerId));
+    public ResponseEntity<ApiResponse<List<BidResponseDTO>>> getBidsByFreelancer(@PathVariable Long freelancerId) {
+        return ResponseEntity.ok(ApiResponse.success(bidService.getBidsByFreelancerId(freelancerId)));
     }
 
     @DeleteMapping("/{bidId}/freelancer/{freelancerId}")
-    public ResponseEntity<String> deleteBid(@PathVariable Long bidId, @PathVariable Long freelancerId) {
+    public ResponseEntity<ApiResponse<String>> deleteBid(@PathVariable Long bidId, @PathVariable Long freelancerId) {
         bidService.deleteBid(bidId, freelancerId);
-        return ResponseEntity.ok("Bid deleted successfully.");
+        return ResponseEntity.ok(ApiResponse.success("Bid deleted successfully."));
     }
 }

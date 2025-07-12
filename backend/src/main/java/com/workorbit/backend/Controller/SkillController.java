@@ -1,6 +1,7 @@
 package com.workorbit.backend.Controller;
 
 
+import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.SkillDTO;
 import com.workorbit.backend.Entity.Skills;
 import com.workorbit.backend.Service.Skills.SkillsService;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("freelancer/skills")
@@ -19,16 +22,16 @@ public class SkillController {
     private final SkillsService skillService;
 
     @PostMapping
-    public ResponseEntity<SkillDTO> addSkill(@RequestBody SkillDTO dto) {
+    public ResponseEntity<ApiResponse<SkillDTO>> addSkill(@RequestBody SkillDTO dto) {
         SkillDTO saved = skillService.addSkill(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(saved));
     }
 
     @DeleteMapping("/{freelancerId}/{skillName}")
-    public ResponseEntity<String> removeSkill(
+    public ResponseEntity<ApiResponse<String>> removeSkill(
             @PathVariable Long freelancerId,
             @PathVariable String skillName) {
         skillService.removeSkillFromFreelancer(freelancerId, skillName);
-        return ResponseEntity.ok("Skill removed");
+        return ResponseEntity.ok(ApiResponse.success("Skill removed"));
     }
 }

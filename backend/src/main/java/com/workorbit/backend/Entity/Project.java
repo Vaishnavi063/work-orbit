@@ -38,6 +38,7 @@ public class Project {
     @JsonBackReference
     private Client client;
 
+    @Enumerated(EnumType.STRING)
     private ProjectStatus status = ProjectStatus.OPEN;
 
     public enum ProjectStatus {

@@ -20,7 +20,6 @@ import lombok.*;
 @RequiredArgsConstructor
 public class ContractServiceImpl implements ContractService {
 	private final ContractRepository contractRepository;
-	private final ProjectRepository projectRepository;
 	private final BidRepository bidRepository;
 	
 	@Override

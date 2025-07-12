@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import illustration from "/assests/working-man.png";
 
 const DeveloperIllustration = () => {
@@ -21,9 +22,9 @@ const DeveloperIllustration = () => {
           time. Whether you're a developer, designer, or writer, get paid for
           what you do best.
         </p>
-        <button className="bg-primary text-white py-3 px-6 rounded-lg text-base hover:bg-primary/80 transition">
+        <Button className="bg-primary text-white py-3 px-6 rounded-lg text-base hover:bg-primary/80 transition cursor-pointer">
           Become a Freelancer
-        </button>
+        </Button>
       </div>
     </section>
   );

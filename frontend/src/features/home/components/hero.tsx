@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const Hero = () => {
   return (
     <div className="relative pt-4 pb-8 sm:pb-16 sm:pt-10 px-4 sm:px-8 sm:mt-8">
-      <div className="relative flex items-center justify-center flex-col sm:block sm:container z-[10]">
+      <div className="relative flex items-center justify-center flex-col sm:block sm:container">
         <p className="text-md text-foreground">
           Welcome to{" "}
           <span className="text-black font-semibold">{siteConfigs.name}</span>

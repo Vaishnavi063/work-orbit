@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.ContractResponse;
-import com.workorbit.backend.DTO.CreateContractRequest;
 import com.workorbit.backend.Entity.Bids;
-import com.workorbit.backend.Entity.Bids.bidStatus;
 import com.workorbit.backend.Entity.Contract;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
@@ -26,24 +24,25 @@ public class ContractServiceImpl implements ContractService {
 	private final BidRepository bidRepository;
 	
 	@Override
-	public ApiResponse<ContractResponse> createContract(CreateContractRequest request) {
-		Project project = projectRepository.findById(request.getProjectId())
-						  .orElseThrow(() -> new RuntimeException("Project not found"));
-		
-		Bids bid = bidRepository.findById(request.getBidId())
-				   .orElseThrow(() -> new RuntimeException("Bid not found"));
-		
-		if (bid.getStatus() == null || bidStatus.Accepted != bid.getStatus()) {
-		        throw new RuntimeException("Only accepted bids can be used to create a contract.");
-		}
-		
-		Contract contract = new Contract();
-		contract.setProject(project);
-		contract.setBid(bid);
-		
-		Contract savedContract = contractRepository.save(contract);
-		
-		return ApiResponse.success(toDTO(savedContract));
+	public ApiResponse<ContractResponse> createContract(Long bidId) {
+		// Fetch the bid by ID
+	    Bids bid = bidRepository.findById(bidId)
+	               .orElseThrow(() -> new RuntimeException("Bid not found"));
+
+
+	    // Fetch the associated project from the bid
+	    Project project = bid.getProject();
+	    if (project == null) {
+	        throw new RuntimeException("Project associated with the bid not found.");
+	    }
+
+	    Contract contract = new Contract();
+	    contract.setProject(project);
+	    contract.setBid(bid);
+
+	    Contract savedContract = contractRepository.save(contract);
+
+	    return ApiResponse.success(toDTO(savedContract));
 	}
 	
 	@Override

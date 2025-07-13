@@ -43,21 +43,8 @@ public class AuthService {
         String token = jwtService.generateToken(userDetails);
 
         AppUserDetails appUserDetails = (AppUserDetails) userDetails;
-        String name = appUserDetails.getName();
-        String email = appUserDetails.getUsername();
-        String role = appUserDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse("UNKNOWN_ROLE");
 
-        AuthResponse authResponse = AuthResponse.builder()
-                .name(name)
-                .email(email)
-                .role(role)
-                .token(token)
-                .build();
-
-        return ApiResponse.success(authResponse);
+        return ApiResponse.success(createAuthResponse(appUserDetails, token));
     }
 
     public ApiResponse<AuthResponse> registerClient(RegistrationRequest request) {
@@ -94,14 +81,25 @@ public class AuthService {
         }
 
         AppUser savedUser = appUserRepository.save(appUser);
+        AppUserDetails appUserDetails = new AppUserDetails(savedUser);
 
         // generate a token for immediate login
         String token = jwtService.generateToken(new AppUserDetails(savedUser));
 
-        AuthResponse authResponse = AuthResponse.builder()
+        return ApiResponse.success(createAuthResponse(appUserDetails, token));
+    }
+
+    private AuthResponse createAuthResponse(AppUserDetails userDetails, String token) {
+        String role = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("UNKNOWN_ROLE");
+
+        return AuthResponse.builder()
+                .name(userDetails.getName())
+                .email(userDetails.getUsername())
+                .role(role)
                 .token(token)
                 .build();
-
-        return ApiResponse.success(authResponse);
     }
 }

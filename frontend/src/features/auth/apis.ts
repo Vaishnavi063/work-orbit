@@ -9,6 +9,18 @@ const apis = {
       method: "POST",
       url: urls.login,
       data
+    }),
+  registerClient: ({data}: RequestType) =>
+    request({
+      method: "POST",
+      url: urls.registerClient,
+      data
+    }),
+  registerFreelancer: ({data}: RequestType) => 
+    request({
+      method: "POST",
+      url: urls.registerFreelancer,
+      data
     })
 }
 

@@ -66,7 +66,7 @@ const SignUpForm = () => {
         >
           <FormField
             control={form.control}
-            name="fullName"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Full Name</FormLabel>
@@ -93,6 +93,25 @@ const SignUpForm = () => {
                     type="email"
                     placeholder="example@workorbit.com"
                     className="focus-visible:ring-1 border-black"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Enter your password"
+                    className="focus-visible:ring-1"
                     {...field}
                   />
                 </FormControl>

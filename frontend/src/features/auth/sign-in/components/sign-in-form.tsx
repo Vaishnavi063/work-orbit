@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,10 +14,12 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { signInFormSchema, type SignInFormValues } from "./sign-in-schema";
+import useSignIn from "./use-sign-in";
 
 const SignInForm = () => {
+  const { isLoading, mutate } = useSignIn();
   const onSubmit = (data: SignInFormValues) => {
-    console.log("Sign in Data => ", data);
+    mutate({ data });
   };
 
   const form = useForm<SignInFormValues>({
@@ -74,11 +76,11 @@ const SignInForm = () => {
           // disabled={isLoading}
         >
           Login An Account
-          {/* {isLoading ? (
+          {isLoading ? (
             <LoaderCircle className="ml-2 size-4 animate-spin" />
-          ) : ( */}
-          <ArrowRight className="ml-2 size-4" />
-          {/* )}{" "} */}
+          ) : (
+            <ArrowRight className="ml-2 size-4" />
+          )}{" "}
         </Button>
       </form>
     </Form>

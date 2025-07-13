@@ -1,5 +1,6 @@
 const urls = {
-  register: "/auth/api/register",
+  registerClient: "/auth/api/register/client",
+  registerFreelancer: "/auth/api/register/freelancer",
   login: "/auth/api/login",
 };
 

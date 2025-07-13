@@ -6,7 +6,7 @@ const DeveloperIllustration = () => {
   const navigate = useNavigate();
   const redirect = (url: string) => navigate(url);
   return (
-    <div className="mx-auto bg-white overflow-hidden p-4 md:p-8 shadow-sm relative">
+    <div className="mx-auto overflow-hidden p-2 md:p-4 shadow-sm relative">
       <section className="flex flex-col md:flex-row items-center justify-between px-6 py-8 dark:bg-slate-900">
         <div className="mt-8 md:mt-0 md:mr-20">
           <img

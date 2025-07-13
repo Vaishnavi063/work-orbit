@@ -12,8 +12,6 @@ import com.workorbit.backend.Entity.Contract;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
 import com.workorbit.backend.Repository.ContractRepository;
-import com.workorbit.backend.Repository.ProjectRepository;
-
 import lombok.*;
 
 @Service
@@ -23,11 +21,7 @@ public class ContractServiceImpl implements ContractService {
 	private final BidRepository bidRepository;
 	
 	@Override
-	public ApiResponse<ContractResponse> createContract(Long bidId) {
-		// Fetch the bid by ID
-	    Bids bid = bidRepository.findById(bidId)
-	               .orElseThrow(() -> new RuntimeException("Bid not found"));
-
+	public ContractResponse createContract(Bids bid) {
 
 	    // Fetch the associated project from the bid
 	    Project project = bid.getProject();
@@ -41,7 +35,7 @@ public class ContractServiceImpl implements ContractService {
 
 	    Contract savedContract = contractRepository.save(contract);
 
-	    return ApiResponse.success(toDTO(savedContract));
+	    return toDTO(savedContract);
 	}
 	
 	@Override

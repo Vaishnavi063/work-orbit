@@ -1,4 +1,4 @@
-import { siteConfigs } from "@/config";
+import { siteConfigs } from "@/apis";
 
 const SiteFooter = () => {
   return (

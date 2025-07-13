@@ -1,4 +1,4 @@
-import { siteConfigs } from "@/config";
+import { siteConfigs } from "@/apis";
 import { BadgeDollarSign, PanelsTopLeft, SquareCheckBig } from "lucide-react";
 import { Link } from "react-router-dom";
 

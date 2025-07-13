@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import Logo from "./logo";
-import { siteConfigs } from "@/config";
+import { siteConfigs } from "@/apis";
 
 const LogoLink = () => {
   return (

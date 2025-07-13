@@ -6,6 +6,7 @@ import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Freelancer;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
+import com.workorbit.backend.Repository.FreelancerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,18 +21,24 @@ public class BidServiceImpl implements BidService {
     @Autowired
     private BidRepository bidRepository;
 
+    @Autowired
+    private FreelancerRepository freelancerRepo;
+    @Autowired
+    private com.workorbit.backend.Repository.ProjectRepository projectRepo;
+    
     @Override
     public Bids placeBid(BidDTO dto) {
         // Create a new bid entity and set its fields
         Bids bid = new Bids();
 
-        // Set the freelancer and project by their IDs (assumes existence)
-        Freelancer freelancer = new Freelancer();
-        freelancer.setId(dto.getFreelancerId());
+        // Validate freelancer existence
+        Freelancer freelancer = freelancerRepo.findById(dto.getFreelancerId())
+                .orElseThrow(() -> new RuntimeException("Freelancer not found"));
         bid.setFreelancer(freelancer);
 
-        Project project = new Project();
-        project.setId(dto.getProjectId());
+        // Validate project existence
+        Project project = projectRepo.findById(dto.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
         bid.setProject(project);
 
         bid.setProposal(dto.getProposal());

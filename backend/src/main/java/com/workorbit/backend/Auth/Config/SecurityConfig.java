@@ -5,6 +5,7 @@ import com.workorbit.backend.Auth.Service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -35,8 +36,11 @@ public class SecurityConfig {
                         // private endpoints
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/freelancer/**").hasRole("FREELANCER")
-                        .requestMatchers("/projects/**").hasAnyRole("CLIENT", "FREELANCER")
-                        .requestMatchers("/bids/**").hasAnyRole("CLIENT", "FREELANCER")
+                        .requestMatchers("/projects/**").hasAnyRole("CLIENT")
+                        .requestMatchers(HttpMethod.POST, "/bids").hasRole("FREELANCER")
+                        .requestMatchers(HttpMethod.DELETE, "/bids/*/freelancer/*").hasRole("FREELANCER")
+                        .requestMatchers("/bids/project/**").hasRole("CLIENT")
+                        .requestMatchers("/bids/freelancer/**").hasRole("FREELANCER")
                         .requestMatchers("/api/contracts/**").hasAnyRole("CLIENT", "FREELANCER")
                         // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()

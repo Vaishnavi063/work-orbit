@@ -26,17 +26,29 @@ public class BidController {
 
     @GetMapping("/project/{projectId}")
     public ResponseEntity<ApiResponse<List<BidResponseDTO>>> getBidsByProject(@PathVariable Long projectId) {
-        return ResponseEntity.ok(ApiResponse.success(bidService.getBidsByProjectId(projectId)));
+        List<BidResponseDTO> bids = bidService.getBidsByProjectId(projectId);
+        if (bids == null || bids.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.error("No bids present for this project."));
+        }
+        return ResponseEntity.ok(ApiResponse.success(bids));
     }
 
     @GetMapping("/freelancer/{freelancerId}")
     public ResponseEntity<ApiResponse<List<BidResponseDTO>>> getBidsByFreelancer(@PathVariable Long freelancerId) {
-        return ResponseEntity.ok(ApiResponse.success(bidService.getBidsByFreelancerId(freelancerId)));
+        List<BidResponseDTO> bids = bidService.getBidsByFreelancerId(freelancerId);
+        if (bids == null || bids.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.error("No bids raised by this freelancer."));
+        }
+        return ResponseEntity.ok(ApiResponse.success(bids));
     }
 
     @DeleteMapping("/{bidId}/freelancer/{freelancerId}")
     public ResponseEntity<ApiResponse<String>> deleteBid(@PathVariable Long bidId, @PathVariable Long freelancerId) {
-        bidService.deleteBid(bidId, freelancerId);
-        return ResponseEntity.ok(ApiResponse.success("Bid deleted successfully."));
+        try {
+            bidService.deleteBid(bidId, freelancerId);
+            return ResponseEntity.ok(ApiResponse.success("Bid deleted successfully."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+        }
     }
 }

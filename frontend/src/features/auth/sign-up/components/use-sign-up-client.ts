@@ -8,7 +8,7 @@ const useSignUpClient = () => {
       data,
     }: {
       data: { email: string; name: string; password: string };
-    }) => apis.registerFreelancer({ data }),
+    }) => apis.registerClient({ data }),
     onSuccess: ({ data }) => {
       toast.success("Register Freelancer Success");
       console.log("RESIGTER FREELANCER DATA => ", data);

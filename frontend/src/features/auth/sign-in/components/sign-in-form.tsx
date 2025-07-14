@@ -71,10 +71,7 @@ const SignInForm = () => {
           )}
         />
 
-        <Button
-          type="submit"
-          // disabled={isLoading}
-        >
+        <Button type="submit" disabled={isLoading}>
           Login An Account
           {isLoading ? (
             <LoaderCircle className="ml-2 size-4 animate-spin" />

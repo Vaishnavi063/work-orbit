@@ -2,13 +2,13 @@ import { useMutation } from "react-query";
 import apis from "../../apis";
 import toast from "react-hot-toast";
 
-const useSignUpClient = () => {
+const useSignUpFreelancer = () => {
   const { isLoading, mutate } = useMutation({
     mutationFn: ({
       data,
     }: {
       data: { email: string; name: string; password: string };
-    }) => apis.registerClient({ data }),
+    }) => apis.registerFreelancer({ data }),
     onSuccess: ({ data }) => {
       toast.success("Register Client Success");
       console.log("RESIGTER CLIENT DATA => ", data);
@@ -22,4 +22,4 @@ const useSignUpClient = () => {
   return { isLoading, mutate };
 };
 
-export default useSignUpClient;
+export default useSignUpFreelancer;

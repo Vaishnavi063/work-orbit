@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +14,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import useSignUpClient from "./use-sign-up-client";
+import useSignUpFreelancer from "./use-sign-up-freelancer";
 import { signUpFormSchema, type SignUpFormValues } from "./sign-up-schema";
 
 const SignUpForm = () => {
+  const { isLoading, mutate: mutateAsClient } = useSignUpClient();
+  const { isLoading: loading, mutate: mutateAsFreelancer } =
+    useSignUpFreelancer();
+
   const [userType, setUserType] = useState<"freelancer" | "client">(
     "freelancer"
   );
@@ -27,7 +33,11 @@ const SignUpForm = () => {
   });
 
   const onSubmit = (data: SignUpFormValues) => {
-    console.log("DATA =>", { ...data, userType });
+    if (userType === "client") {
+      mutateAsClient({ data });
+    } else {
+      mutateAsFreelancer({ data });
+    }
   };
 
   return (
@@ -111,7 +121,7 @@ const SignUpForm = () => {
                   <Input
                     type="password"
                     placeholder="Enter your password"
-                    className="focus-visible:ring-1"
+                    className="focus-visible:ring-1 border-black"
                     {...field}
                   />
                 </FormControl>
@@ -120,9 +130,13 @@ const SignUpForm = () => {
             )}
           />
 
-          <Button type="submit">
+          <Button type="submit" disabled={loading || isLoading}>
             Create An Account
-            <ArrowRight className="ml-2 size-4" />
+            {isLoading || loading ? (
+              <LoaderCircle className="ml-2 size-4 animate-spin" />
+            ) : (
+              <ArrowRight className="ml-2 size-4" />
+            )}{" "}
           </Button>
         </form>
       </Form>

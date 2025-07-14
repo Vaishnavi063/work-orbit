@@ -27,7 +27,7 @@ public class Bids {
     @Enumerated(EnumType.STRING)
     private bidStatus status = bidStatus.Pending;
 
-    private enum bidStatus{
+    public enum bidStatus{
         Pending,
         Accepted,
         Rejected

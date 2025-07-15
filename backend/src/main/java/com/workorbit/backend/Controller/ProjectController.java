@@ -1,5 +1,6 @@
 package com.workorbit.backend.Controller;
 
+import com.workorbit.backend.DTO.BidResponseDTO;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Service.project.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,11 @@ public class ProjectController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
+
+    @GetMapping("/bid/{projectId}")
+    public List<BidResponseDTO> getBidsByProject(@PathVariable Long projectId) {
+        return projectService.getBidsByProjectId(projectId);
     }
 
     @DeleteMapping("/{id}")

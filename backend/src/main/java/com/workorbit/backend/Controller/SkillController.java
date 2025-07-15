@@ -3,15 +3,11 @@ package com.workorbit.backend.Controller;
 
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.SkillDTO;
-import com.workorbit.backend.Entity.Skills;
 import com.workorbit.backend.Service.Skills.SkillsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RequiredArgsConstructor

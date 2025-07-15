@@ -26,15 +26,12 @@ public class BidServiceImpl implements BidService {
     
     @Override
     public Bids placeBid(BidDTO dto) {
-        // Create a new bid entity and set its fields
         Bids bid = new Bids();
 
-        // Validate freelancer existence
         Freelancer freelancer = freelancerRepo.findById(dto.getFreelancerId())
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
         bid.setFreelancer(freelancer);
 
-        // Validate project existence
         Project project = projectRepo.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         bid.setProject(project);
@@ -45,7 +42,6 @@ public class BidServiceImpl implements BidService {
         bid.setStatus(Bids.bidStatus.Pending);
         bid.setCreatedAt(LocalDateTime.now());
 
-        // Save the bid to the database
         return bidRepo.save(bid);
     }
 
@@ -66,7 +62,6 @@ public class BidServiceImpl implements BidService {
         if (!bid.getStatus().equals(Bids.bidStatus.Pending)) {
             throw new RuntimeException("Only pending bids can be deleted.");
         }
-        // Delete the bid
         bidRepo.deleteById(bidId);
     }
 

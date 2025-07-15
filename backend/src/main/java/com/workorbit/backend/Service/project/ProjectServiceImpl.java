@@ -9,7 +9,6 @@ import com.workorbit.backend.Repository.BidRepository;
 import com.workorbit.backend.Repository.ClientRepository;
 import com.workorbit.backend.Repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

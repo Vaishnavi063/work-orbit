@@ -24,15 +24,6 @@ public class BidController {
         return new ResponseEntity<>(ApiResponse.success(bidService.placeBid(dto)), HttpStatus.CREATED);
     }
 
-    @GetMapping("/project/{projectId}")
-    public ResponseEntity<ApiResponse<List<BidResponseDTO>>> getBidsByProject(@PathVariable Long projectId) {
-        List<BidResponseDTO> bids = bidService.getBidsByProjectId(projectId);
-        if (bids == null || bids.isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.error("No bids present for this project."));
-        }
-        return ResponseEntity.ok(ApiResponse.success(bids));
-    }
-
     @GetMapping("/freelancer/{freelancerId}")
     public ResponseEntity<ApiResponse<List<BidResponseDTO>>> getBidsByFreelancer(@PathVariable Long freelancerId) {
         List<BidResponseDTO> bids = bidService.getBidsByFreelancerId(freelancerId);

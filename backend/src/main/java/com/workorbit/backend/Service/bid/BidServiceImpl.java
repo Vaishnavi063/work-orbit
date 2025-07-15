@@ -18,8 +18,6 @@ public class BidServiceImpl implements BidService {
 
     @Autowired
     private BidRepository bidRepo;
-    @Autowired
-    private BidRepository bidRepository;
 
     @Autowired
     private FreelancerRepository freelancerRepo;
@@ -51,11 +49,6 @@ public class BidServiceImpl implements BidService {
         return bidRepo.save(bid);
     }
 
-    @Override
-    public List<BidResponseDTO> getBidsByProjectId(Long projectId) {
-        // Fetch and map all bids for a project to DTOs
-        return bidRepo.findByProject_Id(projectId).stream().map(this::mapToDTO).toList();
-    }
 
     @Override
     public List<BidResponseDTO> getBidsByFreelancerId(Long freelancerId) {

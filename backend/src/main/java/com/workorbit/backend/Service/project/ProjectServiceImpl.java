@@ -1,11 +1,15 @@
 package com.workorbit.backend.Service.project;
 
+import com.workorbit.backend.DTO.BidResponseDTO;
 import com.workorbit.backend.DTO.ProjectDTO;
+import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Project;
+import com.workorbit.backend.Repository.BidRepository;
 import com.workorbit.backend.Repository.ClientRepository;
 import com.workorbit.backend.Repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -17,6 +21,7 @@ import java.util.Optional;
 public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final ClientRepository clientRepository;
+    private final BidRepository bidRepo;
 
     @Override
     public ProjectDTO createProject(ProjectDTO dto) {
@@ -74,6 +79,12 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    @Override
+    public List<BidResponseDTO> getBidsByProjectId(Long projectId) {
+        // Fetch and map all bids for a project to DTOs
+        return bidRepo.findByProject_Id(projectId).stream().map(this::mapToDTO).toList();
+    }
+
     private ProjectDTO toDTO(Project project) {
         return new ProjectDTO(
                 project.getId(),
@@ -84,5 +95,18 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getStatus(),
                 project.getClient() != null ? project.getClient().getId() : null
         );
+    }
+
+    private BidResponseDTO mapToDTO(Bids bid) {
+        BidResponseDTO dto = new BidResponseDTO();
+        dto.setBidId(bid.getId());
+        dto.setFreelancerId(bid.getFreelancer().getId());
+        dto.setProjectId(bid.getProject().getId());
+        dto.setProposal(bid.getProposal());
+        dto.setBidAmount(bid.getBidAmount());
+        dto.setDurationDays(bid.getDurationDays());
+        dto.setStatus(bid.getStatus().toString());
+        dto.setCreatedAt(bid.getCreatedAt());
+        return dto;
     }
 }

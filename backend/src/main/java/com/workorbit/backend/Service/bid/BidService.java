@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface BidService {
     Bids placeBid(BidDTO dto);
-    List<BidResponseDTO> getBidsByProjectId(Long projectId);
     List<BidResponseDTO> getBidsByFreelancerId(Long freelancerId);
     void deleteBid(Long bidId, Long freelancerId);
 }

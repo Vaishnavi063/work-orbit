@@ -37,10 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/freelancer/**").hasRole("FREELANCER")
                         .requestMatchers("/projects/**").hasAnyRole("CLIENT")
-                        .requestMatchers(HttpMethod.POST, "/bids").hasRole("FREELANCER")
-                        .requestMatchers(HttpMethod.DELETE, "/bids/*/freelancer/*").hasRole("FREELANCER")
-                        .requestMatchers("/bids/project/**").hasRole("CLIENT")
-                        .requestMatchers("/bids/freelancer/**").hasRole("FREELANCER")
+                        .requestMatchers("/bids/**").hasRole("FREELANCER")
                         .requestMatchers("/api/contracts/**").hasAnyRole("CLIENT", "FREELANCER")
                         // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()

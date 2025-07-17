@@ -108,6 +108,50 @@ public class ProjectServiceImpl implements ProjectService {
         return toDTO(updated);
     }
 
+    @Override
+    public void acceptBid(Long projectId, Long bidId) {
+        Bids acceptedBid = bidRepo.findById(bidId)
+                .orElseThrow(() -> new RuntimeException("Bid not found"));
+
+        Project project = acceptedBid.getProject();
+
+        if (!project.getId().equals(projectId)) {
+            throw new RuntimeException("Bid does not belong to the specified project");
+        }
+
+        project.setStatus(Project.ProjectStatus.CLOSED);
+        projectRepository.save(project);
+
+        List<Bids> allBids = bidRepo.findByProject_Id(projectId);
+
+        for (Bids bid : allBids) {
+            if (bid.getId().equals(bidId)) {
+                bid.setStatus(Bids.bidStatus.Accepted);
+            } else {
+                bid.setStatus(Bids.bidStatus.Rejected);
+            }
+        }
+
+        bidRepo.saveAll(allBids);
+    }
+
+    @Override
+    public void rejectBid(Long projectId, Long bidId) {
+        Bids bid = bidRepo.findById(bidId)
+                .orElseThrow(() -> new RuntimeException("Bid not found"));
+
+        if (!bid.getProject().getId().equals(projectId)) {
+            throw new RuntimeException("Bid does not belong to the specified project");
+        }
+
+        // Only allow rejection if bid is in PENDING state
+        if (bid.getStatus() != Bids.bidStatus.Pending) {
+            throw new IllegalStateException("Only pending bids can be rejected");
+        }
+
+        bid.setStatus(Bids.bidStatus.Rejected);
+        bidRepo.save(bid);
+    }
 
     private ProjectDTO toDTO(Project project) {
         return new ProjectDTO(

@@ -8,4 +8,5 @@ import java.util.List;
 public interface BidRepository extends JpaRepository<Bids, Long> {
     List<Bids> findByProject_Id(Long projectId);
     List<Bids> findByFreelancer_Id(Long freelancerId);
+    boolean existsByFreelancerIdAndProjectId(Long freelancerId, Long projectId);
 }

@@ -49,7 +49,7 @@ public class ProjectController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProjectDTO>> updateProject(@PathVariable Long id, @RequestBody ProjectDTO dto) {
-        ProjectDTO updatedProject = projectService.updateProject(id,dto);
+        ProjectDTO updatedProject = projectService.updateProject(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updatedProject));
     }
 
@@ -61,5 +61,20 @@ public class ProjectController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Project not found"));
         }
+    }
+
+    @PutMapping("/{projectId}/bids/{bidId}/accept")
+    public ResponseEntity<ApiResponse<String>> acceptBid(
+            @PathVariable Long projectId,
+            @PathVariable Long bidId) {
+
+        projectService.acceptBid(projectId, bidId);
+        return ResponseEntity.ok(ApiResponse.success("Project bid accepted"));
+    }
+
+    @PutMapping("/{projectId}/bids/{bidId}/reject")
+    public ResponseEntity<ApiResponse<String>> rejectBid(@PathVariable Long projectId, @PathVariable Long bidId) {
+        projectService.rejectBid(projectId,bidId);
+        return ResponseEntity.ok(ApiResponse.success("Project rejected"));
     }
 }

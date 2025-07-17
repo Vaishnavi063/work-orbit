@@ -1,9 +1,4 @@
-import {
-  SidebarContent,
-  SidebarGroup,
-  SidebarMenu,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   MessageCircle,
   FilePlus2,
@@ -12,8 +7,13 @@ import {
   Handshake,
 } from "lucide-react";
 
-import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarMenu,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const userRole = "freelancer";
 

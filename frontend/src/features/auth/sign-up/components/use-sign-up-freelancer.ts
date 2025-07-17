@@ -1,6 +1,7 @@
-import { useMutation } from "react-query";
-import apis from "../../apis";
 import toast from "react-hot-toast";
+import { useMutation } from "react-query";
+
+import apis from "../../apis";
 
 const useSignUpFreelancer = () => {
   const { isLoading, mutate } = useMutation({

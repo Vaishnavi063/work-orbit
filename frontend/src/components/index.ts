@@ -9,7 +9,7 @@ import AuthButtons from "./shared/auth-buttons";
 import { useTheme } from "./shared/theme-provider";
 import ListComponent from "./shared/list-component";
 import { ThemeProvider } from "./shared/theme-provider";
-import DashboardSidebar from "./shared/dashboard-sidebar /dashboard-sidebar";
+import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
 
 export {
   SignInIcon,

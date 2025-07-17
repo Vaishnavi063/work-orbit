@@ -1,9 +1,9 @@
-// nav-header.tsx
-import { useNavigate } from "react-router-dom";
-import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 import { Orbit } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { cn } from "@/lib/utils";
 import { siteConfigs } from "@/apis";
+import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
 
 const NavHeader = () => {
   const { isMobile, open } = useSidebar();

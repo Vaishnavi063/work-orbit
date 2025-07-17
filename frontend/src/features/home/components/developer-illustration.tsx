@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
-import illustration from "/assets/working-man.png";
 import { useNavigate } from "react-router-dom";
+import illustration from "/assets/working-man.png";
+
+import { Button } from "@/components/ui/button";
 
 const DeveloperIllustration = () => {
   const navigate = useNavigate();

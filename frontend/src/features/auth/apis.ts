@@ -1,6 +1,7 @@
 import { request } from "@/apis";
-import urls from "./urls";
 import type { RequestType } from "@/types";
+
+import urls from "./urls";
 
 
 const apis = {

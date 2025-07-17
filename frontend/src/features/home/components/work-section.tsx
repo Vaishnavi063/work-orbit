@@ -1,7 +1,8 @@
+import { FilePlus, PencilLine, Handshake } from "lucide-react";
+
+import { WorkFlow } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardHeader } from "@/components/ui/card";
-import { WorkFlow } from "@/constants";
-import { FilePlus, PencilLine, Handshake } from "lucide-react";
 
 const WorkSection = () => {
   return (

@@ -80,9 +80,34 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<BidResponseDTO> getBidsByProjectId(Long projectId) {
-        // Fetch and map all bids for a project to DTOs
         return bidRepo.findByProject_Id(projectId).stream().map(this::mapToDTO).toList();
     }
+
+    @Override
+    public ProjectDTO updateProject(Long id, ProjectDTO dto) {
+        Optional<Project> optionalProject = projectRepository.findById(id);
+        if (optionalProject.isEmpty()) {
+            throw new RuntimeException("Project not found");
+        }
+
+        Project project = optionalProject.get();
+
+        project.setTitle(dto.getTitle());
+        project.setDescription(dto.getDescription());
+        project.setDeadline(dto.getDeadline());
+        project.setBudget(dto.getBudget());
+
+        if (dto.getClientId() != null) {
+            Client client = clientRepository.findById(dto.getClientId())
+                    .orElseThrow(() -> new RuntimeException("Client not found"));
+            project.setClient(client);
+        }
+
+        Project updated = projectRepository.save(project);
+
+        return toDTO(updated);
+    }
+
 
     private ProjectDTO toDTO(Project project) {
         return new ProjectDTO(

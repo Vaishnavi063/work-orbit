@@ -10,5 +10,6 @@ public interface ProjectService {
      List<ProjectDTO> getAllProjects();
      ProjectDTO getProjectById(Long id);
      List<BidResponseDTO> getBidsByProjectId(Long projectId);
+     ProjectDTO updateProject(Long id,ProjectDTO dto);
      boolean deleteProjectById(Long id);
 }

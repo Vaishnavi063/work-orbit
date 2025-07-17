@@ -9,9 +9,9 @@ const DeveloperIllustration = () => {
   return (
     <div className="mx-auto overflow-hidden p-4 md:p-8 shadow-sm relative my-16">
       <section
-        className="flex flex-col md:flex-row items-center justify-between px-6 py-10 
+        className="flex flex-col md:flex-row items-center justify-between px-16 py-10 
         rounded-xl transition-colors duration-300
-        bg-white dark:bg-slate-900"
+        bg-slate-200/95 backdrop-blur supports-[backdrop-filter]:bg-slate-200/60 dark:bg-slate-900"
       >
         <div className="mt-6 md:mt-0 md:mr-12 flex-shrink-0">
           <img

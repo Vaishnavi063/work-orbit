@@ -1,7 +1,7 @@
 const urls = {
-  registerClient: "/auth/api/register/client",
-  registerFreelancer: "/auth/api/register/freelancer",
-  login: "/auth/api/login",
+  registerClient: "/api/auth/register/client",
+  registerFreelancer: "/api/auth/register/freelancer",
+  login: "/api/auth/login",
 };
 
 export default urls;

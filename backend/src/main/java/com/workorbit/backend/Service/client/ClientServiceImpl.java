@@ -30,6 +30,7 @@ public class ClientServiceImpl implements ClientService {
                     p.getId(),
                     p.getTitle(),
                     p.getDescription(),
+                    p.getCategory(),
                     p.getDeadline(),
                     p.getBudget(),
                     p.getStatus(),

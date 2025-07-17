@@ -37,6 +37,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setDeadline(dto.getDeadline());
         project.setBudget(dto.getBudget());
         project.setClient(client);
+        project.setCategory(dto.getCategory());
 
 
         Project saved = projectRepository.save(project);
@@ -96,6 +97,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setDescription(dto.getDescription());
         project.setDeadline(dto.getDeadline());
         project.setBudget(dto.getBudget());
+        project.setCategory(dto.getCategory());
 
         if (dto.getClientId() != null) {
             Client client = clientRepository.findById(dto.getClientId())
@@ -158,6 +160,7 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getId(),
                 project.getTitle(),
                 project.getDescription(),
+                project.getCategory(),
                 project.getDeadline(),
                 project.getBudget(),
                 project.getStatus(),

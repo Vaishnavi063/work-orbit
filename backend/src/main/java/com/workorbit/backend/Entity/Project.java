@@ -36,6 +36,9 @@ public class Project {
     private Long budget;
 
     @Column(nullable = false)
+    private String category;
+
+    @Column(nullable = false)
     private LocalDateTime deadline;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

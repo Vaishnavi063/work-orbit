@@ -13,7 +13,7 @@ import java.util.List;
 import com.workorbit.backend.DTO.ApiResponse;
 
 @RestController
-@RequestMapping("/bids")
+@RequestMapping("/api/bids")
 public class BidController {
 
     @Autowired

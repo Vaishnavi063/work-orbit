@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("freelancer/skills")
+@RequestMapping("/api/freelancer/skills")
 public class SkillController {
 
     private final SkillsService skillService;

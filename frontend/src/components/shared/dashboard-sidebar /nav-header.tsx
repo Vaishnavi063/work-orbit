@@ -18,7 +18,7 @@ const NavHeader = () => {
         className={cn("flex items-center", (isMobile || open) && "space-x-4")}
       >
         <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
-          <Orbit className="size-4 text-green-400" />
+          <Orbit className="w-4 h-4 text-white dark:text-primary-foreground" />
         </div>
         {(isMobile || open) && (
           <div className="grid flex-1 text-left text-lg leading-tight">

@@ -50,40 +50,50 @@ module.exports = {
 
         // Dark mode values
         dark: {
-          background: '#09090b',
-          foreground: '#fafafa',
-          card: '#18181b',
-          'card-foreground': '#fafafa',
-          popover: '#18181b',
-          'popover-foreground': '#fafafa',
-          primary: '#e4e4e7',
-          'primary-foreground': '#18181b',
-          secondary: '#27272a',
-          'secondary-foreground': '#fafafa',
-          muted: '#27272a',
-          'muted-foreground': '#9f9fa9',
-          accent: '#27272a',
-          'accent-foreground': '#fafafa',
-          destructive: '#ff6467',
-          border: '#ffffff1a',
-          input: '#ffffff26',
-          ring: '#71717b',
+          background: '#0d1117',
+          foreground: '#e6edf3',
+
+          card: '#161b22',
+          'card-foreground': '#e6edf3',
+
+          popover: '#161b22',
+          'popover-foreground': '#e6edf3',
+
+          primary: '#1f6feb',
+          'primary-foreground': '#ffffff',
+
+          secondary: '#21262d',
+          'secondary-foreground': '#c9d1d9',
+
+          muted: '#21262d',
+          'muted-foreground': '#8b949e',
+
+          accent: '#30363d',
+          'accent-foreground': '#e6edf3',
+
+          destructive: '#ff6b6b',
+
+          border: '#30363d',
+          input: '#30363d',
+          ring: '#58a6ff',
+
           chart: {
-            1: '#1447e6',
-            2: '#00bc7d',
-            3: '#fe9a00',
-            4: '#ad46ff',
-            5: '#ff2056',
+            1: '#58a6ff',
+            2: '#3fb950',
+            3: '#f778ba',
+            4: '#d29922',
+            5: '#ff7b72',
           },
+
           sidebar: {
-            DEFAULT: '#18181b',
-            foreground: '#fafafa',
-            primary: '#1447e6',
-            'primary-foreground': '#fafafa',
-            accent: '#27272a',
-            'accent-foreground': '#fafafa',
-            border: '#ffffff1a',
-            ring: '#71717b',
+            DEFAULT: '#161b22',
+            foreground: '#e6edf3',
+            primary: '#1f6feb',
+            'primary-foreground': '#ffffff',
+            accent: '#21262d',
+            'accent-foreground': '#e6edf3',
+            border: '#30363d',
+            ring: '#58a6ff',
           },
         },
       },

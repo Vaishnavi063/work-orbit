@@ -1,11 +1,14 @@
 import { RouterProvider } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import router from "./routes";
+import { ThemeProvider } from "./components";
 const App = () => {
   return (
     <div className="min-h-screen w-full">
-      <RouterProvider router={router} />
-      <Toaster />
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <RouterProvider router={router} />
+        <Toaster />
+      </ThemeProvider>
     </div>
   );
 };

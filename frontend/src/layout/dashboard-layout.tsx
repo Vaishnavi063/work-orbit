@@ -1,14 +1,14 @@
-import { DashboardSidebar } from "@/components";
-import ModeToggle from "@/components/shared/mode-toggle";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Outlet } from "react-router-dom";
+
+import { cn } from "@/lib/utils";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { Outlet } from "react-router-dom";
+import { DashboardSidebar, ModeToggle } from "@/components";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   // const { user } = useAuth();

@@ -96,6 +96,7 @@ public class AuthService {
                 .orElse("UNKNOWN_ROLE");
 
         return AuthResponse.builder()
+                .id(userDetails.getProfileId())
                 .name(userDetails.getName())
                 .email(userDetails.getUsername())
                 .role(role)

@@ -13,6 +13,7 @@ import java.util.Collections;
 @Getter
 public class AppUserDetails implements UserDetails {
 
+    private final Long profileId;
     private final String username;
     private final String password;
     private final String name;
@@ -23,8 +24,10 @@ public class AppUserDetails implements UserDetails {
         this.password = appUser.getPassword();
         if (appUser.getRole() == Role.ROLE_CLIENT) {
             this.name = appUser.getClientProfile().getName();
+            this.profileId = appUser.getClientProfile().getId();
         } else {
             this.name = appUser.getFreelancerProfile().getName();
+            this.profileId = appUser.getFreelancerProfile().getId();
         }
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority(appUser.getRole().toString()));
     }

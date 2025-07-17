@@ -1,12 +1,12 @@
 import { useMutation } from "react-query";
 import apis from "../../apis";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 const useSignIn = () => {
   const { mutate, isLoading } = useMutation({
     mutationFn: ({ data }: { data: { email: string; password: string } }) =>
       apis.login({ data }),
     onSuccess: ({ data: response }) => {
-      toast.success("Login success");
+      toast.success("Logging Success")
       console.log("LOGIN DATA -> ", response);
     },
     onError: () => {

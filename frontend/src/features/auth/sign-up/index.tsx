@@ -1,5 +1,7 @@
-import SignUpIcon from "@/components/icons/signup-icon";
 import { Link } from "react-router-dom";
+
+import { SignUpIcon } from "@/components";
+
 import SignUpForm from "./components/sign-up-form";
 
 const SignUpPage = () => {

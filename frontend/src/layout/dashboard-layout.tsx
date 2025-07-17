@@ -7,7 +7,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { DashboardSidebar, ModeToggle } from "@/components";
+import { DashboardSidebar } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
@@ -28,7 +28,6 @@ const Header = () => {
           </h1>
         </div>
       </div>
-      <ModeToggle />
     </header>
   );
 };

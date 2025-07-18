@@ -31,12 +31,13 @@ public class EmailService {
     public void sendPasswordResetEmail(String recipientEmail, String resetToken, String userName) {
 
         try {
-            String resetUrl = frontendUrl + "/reset-password?token=" + resetToken;
+            String resetUrl = frontendUrl + "/auth/reset-password?token=" + resetToken;
 
             Context context = new Context();
             context.setVariable("userName", userName);
             context.setVariable("resetUrl", resetUrl);
             context.setVariable("frontendUrl", frontendUrl);
+            context.setVariable("currentDate", java.time.LocalDateTime.now());
 
             String emailContent = templateEngine.process("email/password-reset-email", context);
 

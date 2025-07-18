@@ -7,3 +7,8 @@
 
 [build.environment]
   PNPM_VERSION = "10"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

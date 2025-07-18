@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("freelancer/pastworks")
+@RequestMapping("/api/freelancer/pastworks")
 public class PastWorkController {
 
     @Autowired

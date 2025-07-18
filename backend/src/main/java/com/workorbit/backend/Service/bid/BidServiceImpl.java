@@ -23,19 +23,32 @@ public class BidServiceImpl implements BidService {
     private FreelancerRepository freelancerRepo;
     @Autowired
     private com.workorbit.backend.Repository.ProjectRepository projectRepo;
-    
+
     @Override
     public Bids placeBid(BidDTO dto) {
-        Bids bid = new Bids();
-
+        // Fetch freelancer
         Freelancer freelancer = freelancerRepo.findById(dto.getFreelancerId())
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
-        bid.setFreelancer(freelancer);
 
+        // Fetch project
         Project project = projectRepo.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        bid.setProject(project);
 
+        // ✅ Check project status
+        if (project.getStatus() != Project.ProjectStatus.OPEN) {
+            throw new IllegalStateException("Bids can only be placed on projects with status OPEN");
+        }
+
+        // ✅ Check if freelancer already placed a bid on this project
+        boolean alreadyBid = bidRepo.existsByFreelancerIdAndProjectId(dto.getFreelancerId(), dto.getProjectId());
+        if (alreadyBid) {
+            throw new IllegalStateException("Freelancer has already placed a bid on this project");
+        }
+
+        // Create and save bid
+        Bids bid = new Bids();
+        bid.setFreelancer(freelancer);
+        bid.setProject(project);
         bid.setProposal(dto.getProposal());
         bid.setBidAmount(dto.getBidAmount());
         bid.setDurationDays(dto.getDurationDays());

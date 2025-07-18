@@ -12,6 +12,7 @@ public class ProjectDTO {
     private Long id;
     private String title;
     private String description;
+    private String category;
     private LocalDateTime deadline;
     private Long budget;
     private Project.ProjectStatus status;

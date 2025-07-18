@@ -8,7 +8,7 @@ const useSignIn = () => {
     mutationFn: ({ data }: { data: { email: string; password: string } }) =>
       apis.login({ data }),
     onSuccess: ({ data: response }) => {
-      toast.success("Logging Success")
+      toast.success("Logged in successfully")
       console.log("LOGIN DATA -> ", response);
     },
     onError: (err: any) => {

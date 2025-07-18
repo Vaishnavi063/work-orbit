@@ -8,7 +8,7 @@ import SignInPage from "@/features/auth/sign-in";
 import SignUpPage from "@/features/auth/sign-up";
 import AuthLayout from "@/layout/auth-layout";
 import DashboardLayout from "@/layout/dashboard-layout";
-import PageNotFound from "@/features/not-found/ index";
+import PageNotFound from "@/features/not-found";
 
 import HomePage from "../features/home";
 import AppLayout from "../layout/app-layout";

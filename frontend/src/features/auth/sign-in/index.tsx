@@ -1,5 +1,7 @@
-import { SignInIcon } from "@/components";
 import { Link } from "react-router-dom";
+
+import { SignInIcon } from "@/components";
+
 import SignInForm from "./components/sign-in-form";
 
 const SignInPage = () => {

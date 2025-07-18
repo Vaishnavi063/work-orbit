@@ -1,6 +1,7 @@
 import { useMutation } from "react-query";
+
 import apis from "../../apis";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const useSignUpClient = () => {
   const { isLoading, mutate } = useMutation({
@@ -13,8 +14,10 @@ const useSignUpClient = () => {
       toast.success("Register Freelancer Success");
       console.log("RESIGTER FREELANCER DATA => ", data);
     },
-    onError: () => {
-      toast.error("Something went wrong");
+    onError: (err:any) => {
+      toast.error("Something went wrong",{
+        description: err?.response?.data?.error?.message
+      });
     },
     retry: false,
   });

@@ -12,6 +12,7 @@ import {
   Smartphone,
   Layout,
 } from "lucide-react";
+
 import type { CategoryType } from "@/types";
 
 const CATEGORIES: CategoryType[] = [

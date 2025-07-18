@@ -1,7 +1,7 @@
-import Categories from "./components/categories";
-import DeveloperIllustration from "./components/developer-illustration";
 import Hero from "./components/hero";
+import Categories from "./components/categories";
 import WorkSection from "./components/work-section";
+import DeveloperIllustration from "./components/developer-illustration";
 
 const HomePage = () => {
   return (

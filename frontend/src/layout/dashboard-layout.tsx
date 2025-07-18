@@ -38,7 +38,7 @@ const OutletComp = () => {
     <div
       className={cn(
         "p-4",
-        open ? "w-[calc(100vw_-250px)]" : "w-[calc(100vw_-50px)]",
+        open ? "w-[calc(100%_-218px)]" : "w-[calc(100%_-56px)]",
         isMobile && "w-full"
       )}
     >

@@ -14,6 +14,7 @@ import PageNotFound from "@/features/not-found";
 
 import HomePage from "../features/home";
 import AppLayout from "../layout/app-layout";
+import Profile from "@/features/profile";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -28,6 +29,7 @@ const router = createBrowserRouter(
         <Route index element={<HomePage />} />
       </Route>
       <Route path="dashboard" element={<DashboardLayout />}>
+        <Route path="profile" element={<Profile />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Route>

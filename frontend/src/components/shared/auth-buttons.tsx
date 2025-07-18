@@ -1,10 +1,15 @@
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "../ui/button";
+import useAuth from "@/hooks/use-auth";
 
 const AuthButtons = () => {
+  const { isAuth } = useAuth();
   const navigate = useNavigate();
   const redirect = (url: string) => navigate(url);
+
+  if (isAuth) return null;
+
   return (
     <div className="flex items-center justify-center space-x-4">
       <Button

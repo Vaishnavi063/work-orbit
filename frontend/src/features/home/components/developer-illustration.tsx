@@ -12,7 +12,7 @@ const DeveloperIllustration = () => {
       <section
         className="flex flex-col md:flex-row items-center justify-between px-16 py-10 
         rounded-xl transition-colors duration-300
-        bg-slate-200/95 backdrop-blur supports-[backdrop-filter]:bg-slate-200/60 dark:bg-slate-900"
+        bg-slate-200/60 backdrop-blur supports-[backdrop-filter]:bg-slate-200/60 dark:bg-slate-900"
       >
         <div className="mt-6 md:mt-0 md:mr-12 flex-shrink-0">
           <img
@@ -45,7 +45,7 @@ const DeveloperIllustration = () => {
           <Button
             onClick={() => redirect("/auth/sign-up")}
             className="bg-primary text-primary-foreground py-3 px-6 rounded-lg text-base 
-            hover:bg-primary/80 transition-colors duration-200 shadow-md"
+            hover:bg-primary/80 transition-colors duration-200 shadow-md cursor-pointer"
           >
             Become a Freelancer
           </Button>

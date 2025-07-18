@@ -130,7 +130,11 @@ const SignUpForm = () => {
             )}
           />
 
-          <Button type="submit" disabled={loading || isLoading}>
+          <Button
+            className="cursor-pointer"
+            type="submit"
+            disabled={loading || isLoading}
+          >
             Create An Account
             {isLoading || loading ? (
               <LoaderCircle className="ml-2 size-4 animate-spin" />

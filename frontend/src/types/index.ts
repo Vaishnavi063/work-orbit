@@ -16,3 +16,13 @@ export interface RequestType {
   url?: string;
   isFormData?: boolean;
 }
+
+export interface ApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string;
+      };
+    };
+  };
+}

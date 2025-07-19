@@ -5,8 +5,13 @@ import com.workorbit.backend.Entity.Freelancer;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
+@Table(indexes = {
+        @Index(name = "idx_app_user_reset_password_token", columnList = "reset_password_token", unique = true)
+})
 public class AppUser {
 
     @Id
@@ -28,4 +33,8 @@ public class AppUser {
 
     @OneToOne(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private Freelancer freelancerProfile;
+
+    private String resetPasswordToken;
+
+    private LocalDateTime resetPasswordTokenExpiry;
 }

@@ -27,4 +27,8 @@ public class ApiResponse<T> {
         response.setError(error);
         return response;
     }
-} 
+
+    public boolean isSuccess() {
+        return "success".equals(status);
+    }
+}

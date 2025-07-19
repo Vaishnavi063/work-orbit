@@ -6,6 +6,8 @@ import {
 
 import SignInPage from "@/features/auth/sign-in";
 import SignUpPage from "@/features/auth/sign-up";
+import ForgotPasswordPage from "@/features/auth/forgot-password";
+import ResetPasswordPage from "@/features/auth/reset-password";
 import AuthLayout from "@/layout/auth-layout";
 import DashboardLayout from "@/layout/dashboard-layout";
 import PageNotFound from "@/features/not-found";
@@ -19,6 +21,8 @@ const router = createBrowserRouter(
       <Route path="auth" element={<AuthLayout />}>
         <Route path="sign-in" element={<SignInPage />} />
         <Route path="sign-up" element={<SignUpPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />

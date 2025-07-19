@@ -22,6 +22,18 @@ const apis = {
       method: "POST",
       url: urls.registerFreelancer,
       data
+    }),
+  forgotPassword: ({data}: RequestType) =>
+    request({
+      method: "POST",
+      url: urls.forgotPassword,
+      data
+    }),
+  resetPassword: ({data}: RequestType) =>
+    request({
+      method: "POST",
+      url: urls.resetPassword,
+      data
     })
 }
 

@@ -1,25 +1,32 @@
+import { toast } from "sonner";
 import { useMutation } from "react-query";
+import { useDispatch } from "react-redux";
+
+import { setAuth } from "@/store/slices/auth-slice";
 
 import apis from "../../apis";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 const useSignUpClient = () => {
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isLoading, mutate } = useMutation({
     mutationFn: ({
       data,
     }: {
       data: { email: string; name: string; password: string };
     }) => apis.registerClient({ data }),
-    onSuccess: () => {
+    onSuccess: ({ data: response }) => {
       toast.success("Client registered successfully");
-      navigate("/auth/sign-in")
+      dispatch(
+        setAuth({
+          user: response?.data,
+          authToken: response?.data?.token,
+        })
+      );
     },
-    onError: (err:any) => {
-      console.log("error: " , err)
-      toast.error("Something went wrong",{
-        description: err?.response?.data?.error?.password
+    onError: (err: any) => {
+      console.log("error: ", err);
+      toast.error("Something went wrong", {
+        description: err?.response?.data?.error?.password,
       });
     },
     retry: false,

@@ -52,6 +52,7 @@ public class BidServiceImpl implements BidService {
         bid.setProposal(dto.getProposal());
         bid.setBidAmount(dto.getBidAmount());
         bid.setDurationDays(dto.getDurationDays());
+        bid.setTeamSize(dto.getTeamSize());
         bid.setStatus(Bids.bidStatus.Pending);
         bid.setCreatedAt(LocalDateTime.now());
 
@@ -87,6 +88,7 @@ public class BidServiceImpl implements BidService {
         dto.setProposal(bid.getProposal());
         dto.setBidAmount(bid.getBidAmount());
         dto.setDurationDays(bid.getDurationDays());
+        dto.setTeamSize(bid.getTeamSize());
         dto.setStatus(bid.getStatus().toString());
         dto.setCreatedAt(bid.getCreatedAt());
         return dto;

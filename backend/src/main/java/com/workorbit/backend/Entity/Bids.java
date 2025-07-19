@@ -25,6 +25,9 @@ public class Bids {
     @Column(nullable = false)
     private long durationDays;
 
+    @Column(nullable = false)
+    private Integer teamSize;
+
     @Enumerated(EnumType.STRING)
     private bidStatus status = bidStatus.Pending;
 

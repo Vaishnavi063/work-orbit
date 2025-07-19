@@ -19,7 +19,7 @@ export interface RequestType {
 
 export type UserRoles = "ROLE_FREELANCER" | "ROLE_CLIENT";
 
-export interface User{
+export interface User {
   id?: number;
   name: string;
   email: string;
@@ -35,3 +35,12 @@ export interface NavLinkType {
   icon: LucideIcon;
 }
 
+export interface ApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string;
+      };
+    };
+  };
+}

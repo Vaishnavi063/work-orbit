@@ -176,6 +176,7 @@ public class ProjectServiceImpl implements ProjectService {
         dto.setProposal(bid.getProposal());
         dto.setBidAmount(bid.getBidAmount());
         dto.setDurationDays(bid.getDurationDays());
+        dto.setTeamSize(bid.getTeamSize());
         dto.setStatus(bid.getStatus().toString());
         dto.setCreatedAt(bid.getCreatedAt());
         return dto;

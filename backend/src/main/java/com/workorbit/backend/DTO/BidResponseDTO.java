@@ -15,6 +15,7 @@ public class BidResponseDTO {
     private String proposal;
     private Double bidAmount;
     private Long durationDays;
+    private Integer teamSize;
     private String status;
     private LocalDateTime createdAt;
 }

@@ -12,4 +12,5 @@ public class BidDTO {
     private String proposal;
     private Double bidAmount;
     private Long durationDays;
+    private Integer teamSize;
 }

@@ -8,9 +8,11 @@ import {
   SidebarMenu,
   useSidebar,
 } from "@/components/ui/sidebar";
+import useLogout from "@/hooks/use-logout";
 
 const NavSecondary = () => {
   const { open, isMobile, setOpenMobile } = useSidebar();
+  const { logout } = useLogout();
 
   return (
     <SidebarFooter>
@@ -21,7 +23,7 @@ const NavSecondary = () => {
           onClick={() => setOpenMobile(false)}
           className={({ isActive }) =>
             cn(
-              "flex items-center space-x-2 hover:bg-muted p-2 rounded-lg text-foreground font-medium transition-colors",
+              "flex items-center space-x-2 hover:bg-gray-200 p-2 rounded-lg text-foreground font-medium transition-colors",
               isActive && "bg-gray-300 text-active"
             )
           }
@@ -33,9 +35,9 @@ const NavSecondary = () => {
         </NavLink>
         <button
           className={cn(
-            "flex items-center space-x-2 hover:bg-muted p-2 rounded-lg text-foreground font-medium transition-colors"
+            "flex items-center space-x-2 hover:bg-gray-200 p-2 rounded-lg text-foreground font-medium transition-colors cursor-pointer"
           )}
-          // onClick={logout}
+          onClick={logout}
         >
           <LogOut size={16} className="shrink-0" />
           <span className={cn("text-md", !open && !isMobile && "hidden")}>

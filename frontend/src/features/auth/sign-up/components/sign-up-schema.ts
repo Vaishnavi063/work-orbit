@@ -12,8 +12,8 @@ export const signUpFormSchema = z.object({
 
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters long." })
-    .max(50, { message: "Password must not be longer than 50 characters." }),
+    .min(8, { message: "Password must be at least 8 characters long." })
+    .max(20, { message: "Password must not be longer than 20 characters." }),
 });
 
 export type SignUpFormValues = z.infer<typeof signUpFormSchema>;

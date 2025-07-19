@@ -14,8 +14,7 @@ import {
   SidebarMenu,
   useSidebar,
 } from "@/components/ui/sidebar";
-
-const userRole = "freelancer";
+import useAuth from "@/hooks/use-auth";
 
 export const navMain = [
   {
@@ -23,57 +22,52 @@ export const navMain = [
     title: "Projects",
     path: "/dashboard/projects",
     icon: Briefcase,
-    endPoint: "browse-projects",
-    role: "freelancer",
+    role: "ROLE_FREELANCER",
   },
   {
     id: 2,
     title: "My Bids",
     path: "/dashboard/bids",
     icon: FilePlus2,
-    endPoint: "my-bids",
-    role: "freelancer",
+    role: "ROLE_FREELANCER",
   },
   {
     id: 3,
     title: "Projects",
     path: "/dashboard/projects",
     icon: Briefcase,
-    endPoint: "projects",
-    role: "client",
+    role: "ROLE_CLIENT",
   },
   {
     id: 4,
     title: "Freelancers",
     path: "/dashboard/freelancers",
     icon: Users,
-    endPoint: "browse",
-    role: "client",
+    role: "ROLE_CLIENT",
   },
   {
     id: 5,
     title: "Contracts",
     path: "/dashboard/contracts",
     icon: Handshake,
-    endPoint: "contracts",
-    role: "common",
+    role: "COMMON",
   },
   {
     id: 6,
     title: "Chats",
     path: "/dashboard/chats",
     icon: MessageCircle,
-    endPoint: "channels",
-    role: "common",
+    role: "COMMON",
   },
 ];
 
 const NavMain = () => {
+  const { user } = useAuth();
   const { open, isMobile, setOpenMobile } = useSidebar();
   const { pathname } = useLocation();
 
   const filteredNav = navMain.filter(
-    (item) => item.role === "common" || item.role === userRole
+    (item) => item.role === "COMMON" || item.role === user?.role
   );
 
   return (
@@ -83,10 +77,10 @@ const NavMain = () => {
           return (
             <SidebarMenu key={item.id}>
               <NavLink
-                to={`${item.path}/${item.endPoint}`}
+                to={`${item.path}`}
                 onClick={() => setOpenMobile(false)}
                 className={cn(
-                  "flex items-center space-x-2 hover:bg-muted p-2 rounded-lg text-foreground font-medium transition-colors",
+                  "flex items-center space-x-2 hover:bg-gray-200 p-2 rounded-lg text-foreground font-medium transition-colors",
                   pathname.includes(item.path) && "bg-gray-300 text-active"
                 )}
               >

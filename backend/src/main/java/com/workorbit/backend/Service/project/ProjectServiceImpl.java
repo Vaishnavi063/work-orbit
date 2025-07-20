@@ -209,6 +209,31 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private BidResponseDTO mapToDTO(Bids bid) {
-        return getBidResponseDTO(bid);
+        BidResponseDTO dto = new BidResponseDTO();
+        dto.setBidId(bid.getId());
+        dto.setFreelancerId(bid.getFreelancer().getId());
+        dto.setProject(toProjectDTO(bid.getProject())); 
+        dto.setProposal(bid.getProposal());
+        dto.setBidAmount(bid.getBidAmount());
+        dto.setDurationDays(bid.getDurationDays());
+        dto.setTeamSize(bid.getTeamSize());
+        dto.setStatus(bid.getStatus().toString());
+        dto.setCreatedAt(bid.getCreatedAt());
+        return dto;
+    }
+
+    private ProjectDTO toProjectDTO(Project project) {
+        if (project == null) return null;
+
+        return new ProjectDTO(
+                project.getId(),
+                project.getTitle(),
+                project.getDescription(),
+                project.getCategory(),
+                project.getDeadline(),
+                project.getBudget(),
+                project.getStatus(),
+                project.getClient() != null ? project.getClient().getId() : null
+        );
     }
 }

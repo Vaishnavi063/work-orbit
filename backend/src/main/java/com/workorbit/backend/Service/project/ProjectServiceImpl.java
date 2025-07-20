@@ -1,6 +1,7 @@
 package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.DTO.ContractResponse;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Client;
@@ -8,18 +9,22 @@ import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
 import com.workorbit.backend.Repository.ClientRepository;
 import com.workorbit.backend.Repository.ProjectRepository;
+import com.workorbit.backend.Service.contract.ContractService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.List;
 import java.util.Optional;
 
+// using this annotation you don't need to write logger manually
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final ClientRepository clientRepository;
+    private final ContractService contractService;
     private final BidRepository bidRepo;
 
     @Override
@@ -121,6 +126,11 @@ public class ProjectServiceImpl implements ProjectService {
             throw new RuntimeException("Bid does not belong to the specified project");
         }
 
+//        // Reject if bid is not in PENDING state
+        if (acceptedBid.getStatus() != Bids.bidStatus.Pending) {
+            throw new IllegalStateException("Only pending bids can be accepted");
+        }
+
         project.setStatus(Project.ProjectStatus.CLOSED);
         projectRepository.save(project);
 
@@ -135,6 +145,8 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         bidRepo.saveAll(allBids);
+        // Create contract for accepted bid
+        contractService.createContract(acceptedBid);
     }
 
     @Override

@@ -19,4 +19,5 @@ public class ProjectDTO {
     private Long clientId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer bidCount;
 }

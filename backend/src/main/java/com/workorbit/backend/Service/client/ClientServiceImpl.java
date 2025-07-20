@@ -24,26 +24,33 @@ public class ClientServiceImpl implements ClientService {
 
         List<ProjectDTO> projectDTOs = new ArrayList<>();
         for (Project p : client.getProjects()) {
-            Long clientId = (p.getClient() != null) ? p.getClient().getId() : null;
 
-            ProjectDTO dto = new ProjectDTO(
-                    p.getId(),
-                    p.getTitle(),
-                    p.getDescription(),
-                    p.getCategory(),
-                    p.getDeadline(),
-                    p.getBudget(),
-                    p.getStatus(),
-                    clientId,
-                    p.getCreatedAt(),
-                    p.getUpdatedAt()
-            );
+            ProjectDTO dto = getProjectDTO(p);
 
             projectDTOs.add(dto);
         }
 
         String email = client.getAppUser() != null ? client.getAppUser().getEmail() : null;
         return new ClientDTO(client.getName(), email, projectDTOs);
+    }
+
+    private static ProjectDTO getProjectDTO(Project p) {
+        Long clientId = (p.getClient() != null) ? p.getClient().getId() : null;
+        Integer bidCount = (p.getBids() != null) ? p.getBids().size() : 0;
+
+        return new ProjectDTO(
+                p.getId(),
+                p.getTitle(),
+                p.getDescription(),
+                p.getCategory(),
+                p.getDeadline(),
+                p.getBudget(),
+                p.getStatus(),
+                clientId,
+                p.getCreatedAt(),
+                p.getUpdatedAt(),
+                bidCount
+        );
     }
 
     @Override

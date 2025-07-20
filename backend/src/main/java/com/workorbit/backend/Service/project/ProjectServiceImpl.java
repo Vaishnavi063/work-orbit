@@ -178,7 +178,8 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getStatus(),
                 project.getClient() != null ? project.getClient().getId() : null,
                 project.getCreatedAt(),
-                project.getUpdatedAt()
+                project.getUpdatedAt(),
+                project.getBids() != null ? project.getBids().size() : 0
         );
     }
 

@@ -139,7 +139,7 @@ const projectsSlice = createSlice({
     addProjectOptimistic: (state, action: PayloadAction<Project>) => {
       state.projects.unshift(action.payload);
     },
-    updateBidStatusOptimistic: (state, action: PayloadAction<{ bidId: number; status: "Accepted" | "Rejected" }>) => {
+    updateBidStatusOptimistic: (state, action: PayloadAction<{ bidId: number; status: "Pending" | "Accepted" | "Rejected" }>) => {
       const { bidId, status } = action.payload;
       const bid = state.currentProjectBids.find(b => b.bidId === bidId);
       if (bid) {

@@ -69,8 +69,6 @@ export const projectCreateFormSchema = z.object({
     deadline: z
         .date()
         .min(new Date(), { message: "Deadline must be in the future." }),
-
-    skills: z.array(z.string()).optional(),
 });
 
 export type ProjectCreateFormValues = z.infer<typeof projectCreateFormSchema>;
@@ -81,7 +79,6 @@ export interface ProjectFormData {
     budget: number;
     category: string;
     deadline: Date;
-    skills?: string[];
 }
 
 export interface GetProjectsResponse {

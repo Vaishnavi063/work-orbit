@@ -210,7 +210,7 @@ const BidCard: React.FC<BidCardProps> = ({
                 <div className="flex items-start justify-between">
                     <div className="flex-1">
                         <CardTitle className="text-base mb-2">
-                            Freelancer #{bid.freelancerId}
+                            {bid.freelancerName}
                         </CardTitle>
                         <div className="flex items-center gap-2 mb-2">
                             <Badge variant={getStatusColor(bid.status)}>

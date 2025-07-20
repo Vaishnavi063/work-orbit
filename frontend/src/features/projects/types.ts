@@ -17,6 +17,7 @@ export interface Project {
 export interface BidResponse {
     bidId: number;
     freelancerId: number;
+    freelancerName: string;
     projectId: number;
     proposal: string;
     bidAmount: number;

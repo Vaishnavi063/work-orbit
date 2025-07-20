@@ -17,6 +17,9 @@ import java.util.*;
 import java.util.List;
 import java.util.Optional;
 
+import static com.workorbit.backend.Service.bid.BidServiceImpl.getBidResponseDTO;
+
+
 // using this annotation you don't need to write logger manually
 @Slf4j
 @Service
@@ -184,16 +187,6 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private BidResponseDTO mapToDTO(Bids bid) {
-        BidResponseDTO dto = new BidResponseDTO();
-        dto.setBidId(bid.getId());
-        dto.setFreelancerId(bid.getFreelancer().getId());
-        dto.setProjectId(bid.getProject().getId());
-        dto.setProposal(bid.getProposal());
-        dto.setBidAmount(bid.getBidAmount());
-        dto.setDurationDays(bid.getDurationDays());
-        dto.setTeamSize(bid.getTeamSize());
-        dto.setStatus(bid.getStatus().toString());
-        dto.setCreatedAt(bid.getCreatedAt());
-        return dto;
+        return getBidResponseDTO(bid);
     }
 }

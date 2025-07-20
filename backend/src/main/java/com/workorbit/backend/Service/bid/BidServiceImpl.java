@@ -81,10 +81,15 @@ public class BidServiceImpl implements BidService {
 
     // Helper method to map a Bid entity to a BidResponseDTO
     private BidResponseDTO mapToDTO(Bids bid) {
+        return getBidResponseDTO(bid);
+    }
+
+    public static BidResponseDTO getBidResponseDTO(Bids bid) {
         BidResponseDTO dto = new BidResponseDTO();
         dto.setBidId(bid.getId());
         dto.setFreelancerId(bid.getFreelancer().getId());
         dto.setProjectId(bid.getProject().getId());
+        dto.setFreelancerName(bid.getFreelancer().getName());
         dto.setProposal(bid.getProposal());
         dto.setBidAmount(bid.getBidAmount());
         dto.setDurationDays(bid.getDurationDays());
@@ -93,5 +98,4 @@ public class BidServiceImpl implements BidService {
         dto.setCreatedAt(bid.getCreatedAt());
         return dto;
     }
-
 }

@@ -86,13 +86,13 @@ const ProjectDetails: React.FC = () => {
   const projectToDisplay = currentProject || projectFromStore;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center">
+    <div className="container py-6 space-y-6 max-w-7xl mx-auto">
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={handleGoBack}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeftIcon className="h-4 w-4" />
           Back to Projects
@@ -112,7 +112,7 @@ const ProjectDetails: React.FC = () => {
           bids={currentProjectBids}
         />
       ) : (
-        <div className="py-8 text-center text-muted-foreground">
+        <div className="py-8 text-center text-muted-foreground bg-white rounded-lg shadow-sm border p-4">
           No project data available
         </div>
       )}
@@ -150,10 +150,10 @@ const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <h1 className="text-2xl font-bold mb-2">{project.title}</h1>
         <div className="flex items-center gap-2">
-          <Badge variant={project.status === "OPEN" ? "default" : "secondary"}>
-            {project.status}
+          <Badge variant={project.status === "OPEN" ? "default" : "secondary"} className="capitalize">
+            {project.status.toLowerCase()}
           </Badge>
-          <Badge variant="outline">
+          <Badge variant="outline" className="text-xs bg-slate-50">
             {project.category}
           </Badge>
         </div>
@@ -371,7 +371,7 @@ const ProjectDetailsError: React.FC<ProjectDetailsErrorProps> = ({
           <p className="text-muted-foreground mb-6 max-w-md">
             {error}
           </p>
-          <Button onClick={onRetry} variant="outline">
+          <Button onClick={onRetry} variant="outline" className="cursor-pointer">
             <LoaderCircle className="mr-2 h-4 w-4" />
             Try Again
           </Button>

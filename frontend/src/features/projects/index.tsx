@@ -43,34 +43,51 @@ const ProjectsListView: React.FC = () => {
   };
 
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container py-6 space-y-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border">
         <h1 className="text-2xl font-bold">My Projects</h1>
-        <Button onClick={handleCreateProject}>
+        <Button onClick={handleCreateProject} className="bg-primary hover:bg-primary/90 cursor-pointer">
           <PlusIcon className="mr-2 h-4 w-4" />
           Post New Project
         </Button>
       </div>
 
-      <Tabs defaultValue="list" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="list">All Projects</TabsTrigger>
-          <TabsTrigger value="open">Open Projects</TabsTrigger>
-          <TabsTrigger value="closed">Closed Projects</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="list" className="mt-6">
-          <ProjectList />
-        </TabsContent>
-        
-        <TabsContent value="open" className="mt-6">
-          <ProjectList filterStatus="OPEN" />
-        </TabsContent>
-        
-        <TabsContent value="closed" className="mt-6">
-          <ProjectList filterStatus="CLOSED" />
-        </TabsContent>
-      </Tabs>
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <Tabs defaultValue="list" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4 bg-slate-100 p-1">
+            <TabsTrigger 
+              value="list" 
+              className="cursor-pointer data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary hover:bg-slate-200 transition-all"
+            >
+              All Projects
+            </TabsTrigger>
+            <TabsTrigger 
+              value="open" 
+              className="cursor-pointer data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary hover:bg-slate-200 transition-all"
+            >
+              Open Projects
+            </TabsTrigger>
+            <TabsTrigger 
+              value="closed" 
+              className="cursor-pointer data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary hover:bg-slate-200 transition-all"
+            >
+              Closed Projects
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="list" className="mt-2">
+            <ProjectList />
+          </TabsContent>
+          
+          <TabsContent value="open" className="mt-2">
+            <ProjectList filterStatus="OPEN" />
+          </TabsContent>
+          
+          <TabsContent value="closed" className="mt-2">
+            <ProjectList filterStatus="CLOSED" />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Project Creation Modal */}
       <ProjectCreateForm 

@@ -1,7 +1,7 @@
 import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Route,
+    createBrowserRouter,
+    createRoutesFromElements,
+    Route,
 } from "react-router-dom";
 
 import SignInPage from "@/features/auth/sign-in";
@@ -15,6 +15,7 @@ import PageNotFound from "@/features/not-found";
 import HomePage from "../features/home";
 import AppLayout from "../layout/app-layout";
 import Profile from "@/features/profile";
+import ClientProjectsDashboard from "@/features/projects";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -28,12 +29,13 @@ const router = createBrowserRouter(
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
       </Route>
-      <Route path="dashboard" element={<DashboardLayout />}>
+        <Route path="dashboard" element={<DashboardLayout />}>
         <Route path="profile" element={<Profile />} />
+        <Route path="projects" element={<ClientProjectsDashboard />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Route>
-  )
+    )
 );
 
 export default router;

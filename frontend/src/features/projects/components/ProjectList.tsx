@@ -58,7 +58,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
     }
 
     return (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProjects.map((project) => (
                 <ProjectCard
                     key={project.id}
@@ -113,7 +113,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     };
 
     return (
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow h-full flex flex-col">
             <CardHeader>
                 <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -135,13 +135,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 flex-grow">
                 {/* Budget and Deadline */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-2">
                         <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                            ${project.budget.toLocaleString()}
+                            {project.budget.toLocaleString()}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">

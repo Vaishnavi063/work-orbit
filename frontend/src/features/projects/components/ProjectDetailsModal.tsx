@@ -185,7 +185,7 @@ const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({
             <DollarSignIcon className="h-6 w-6 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Budget</p>
-              <p className="font-semibold">${project.budget.toLocaleString()}</p>
+              <p className="font-semibold">{project.budget.toLocaleString()}</p>
             </div>
           </div>
           

@@ -231,7 +231,7 @@ const BidCard: React.FC<BidCardProps> = ({
                         <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
                         <div>
                             <span className="font-medium">
-                                ${bid.bidAmount.toLocaleString()}
+                                {bid.bidAmount.toLocaleString()}
                             </span>
                             <p className="text-muted-foreground text-xs">
                                 Bid Amount

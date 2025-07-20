@@ -3,6 +3,7 @@ package com.workorbit.backend.Auth.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -14,6 +15,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -29,9 +31,10 @@ public class EmailService {
 
     @Async
     public void sendPasswordResetEmail(String recipientEmail, String resetToken, String userName) {
-
+        log.info("Sending password reset email to: {}", recipientEmail);
         try {
             String resetUrl = frontendUrl + "/auth/reset-password?token=" + resetToken;
+            log.info("Reset URL: {}", resetUrl);
 
             Context context = new Context();
             context.setVariable("userName", userName);
@@ -53,12 +56,12 @@ public class EmailService {
             helper.setTo(recipientEmail);
             helper.setSubject("Reset Your WorkOrbit Password");
             helper.setText(emailContent, true);
+            log.info("Email message created");
 
             mailSender.send(message);
-            System.out.printf("Password reset email sent to %s%n", recipientEmail);
-
+            log.info("Password reset email sent to {}", recipientEmail);
         } catch (MessagingException | UnsupportedEncodingException e) {
-            System.err.printf("Failed to send password reset email to %s: %s%n", recipientEmail, e.getMessage());
+            log.error("Failed to send password reset email to {}: {}", recipientEmail, e.getMessage());
         }
     }
 

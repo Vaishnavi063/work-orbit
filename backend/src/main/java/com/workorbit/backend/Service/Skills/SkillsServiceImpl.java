@@ -6,9 +6,11 @@ import com.workorbit.backend.Entity.Skills;
 import com.workorbit.backend.Repository.FreelancerRepository;
 import com.workorbit.backend.Repository.SkillRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SkillsServiceImpl implements SkillsService {
@@ -20,8 +22,10 @@ public class SkillsServiceImpl implements SkillsService {
     @Override
     public SkillDTO addSkill(SkillDTO dto) {
         // Find the freelancer by ID
+        log.info("Adding skill for freelancer ID: {}", dto.getFreelancerId());
         Freelancer freelancer = freelancerRepo.findById(dto.getFreelancerId())
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
+
 
         // Find or create the skill by name
         Skills skill = skillRepo.findByNameIgnoreCase(dto.getSkillName());
@@ -29,6 +33,7 @@ public class SkillsServiceImpl implements SkillsService {
             skill = new Skills();
             skill.setName(dto.getSkillName());
             skill = skillRepo.save(skill);
+            log.info("Skill created: {}", skill.getName());
         }
 
         // Add the skill to the freelancer (owning side of the relationship)
@@ -39,12 +44,15 @@ public class SkillsServiceImpl implements SkillsService {
         // Save the freelancer to persist the relationship in the join table
         freelancerRepo.save(freelancer);
 
+        log.info("Skill added to freelancer: {}", freelancer.getName());
+
         return new SkillDTO(skill.getId(), skill.getName(), dto.getFreelancerId());
     }
 
     @Override
     public void removeSkillFromFreelancer(Long freelancerId, String skillName) {
         // Find the skill by name
+        log.info("Removing skill from freelancer ID: {}", freelancerId);
         Skills skill = skillRepo.findByNameIgnoreCase(skillName);
         if (skill == null) throw new RuntimeException("Skill not found");
 
@@ -59,5 +67,7 @@ public class SkillsServiceImpl implements SkillsService {
 
         // Save the freelancer to persist the removal in the join table
         freelancerRepo.save(freelancer);
+
+        log.info("Skill removed from freelancer: {}", freelancer.getName());
     }
 }

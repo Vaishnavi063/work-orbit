@@ -1,7 +1,6 @@
 package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.BidResponseDTO;
-import com.workorbit.backend.DTO.ContractResponse;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Client;
@@ -20,11 +19,11 @@ import java.util.Optional;
 import static com.workorbit.backend.Service.bid.BidServiceImpl.getBidResponseDTO;
 
 
-// using this annotation you don't need to write logger manually
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
+
     private final ProjectRepository projectRepository;
     private final ClientRepository clientRepository;
     private final ContractService contractService;
@@ -32,13 +31,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectDTO createProject(ProjectDTO dto) {
+
+        log.info("Creating project: {}", dto.getTitle());
         Optional<Client> optionalClient = clientRepository.findById(dto.getClientId());
         if (optionalClient.isEmpty()) {
             throw new RuntimeException("Client not found");
         }
         Client client = optionalClient.get();
 
-
+        log.info("Client found: {}", client.getName());
         Project project = new Project();
         project.setTitle(dto.getTitle());
         project.setDescription(dto.getDescription());
@@ -49,11 +50,13 @@ public class ProjectServiceImpl implements ProjectService {
 
 
         Project saved = projectRepository.save(project);
+        log.info("Project saved: {}", saved.getTitle());
         return toDTO(saved);
     }
 
     @Override
     public List<ProjectDTO> getAllProjects() {
+        log.info("Fetching all projects");
         List<Project> projects = projectRepository.findAll();
         List<ProjectDTO> dtoList = new ArrayList<>();
 
@@ -67,35 +70,44 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectDTO getProjectById(Long id) {
+        log.info("Fetching project by ID: {}", id);
         Optional<Project> optionalProject = projectRepository.findById(id);
 
         if (optionalProject.isPresent()) {
             Project project = optionalProject.get();
+            log.info("Project found: {}", project.getTitle());
             return toDTO(project);
         } else {
+            log.error("Project not found with ID: {}", id);
             throw new RuntimeException("Project not found");
         }
     }
 
     @Override
     public boolean deleteProjectById(Long id) {
+        log.info("Deleting project by ID: {}", id);
         if (projectRepository.existsById(id)) {
             projectRepository.deleteById(id);
+            log.info("Project deleted: {}", id);
             return true;
         } else {
+            log.error("Project not found with ID: {}", id);
             return false;
         }
     }
 
     @Override
     public List<BidResponseDTO> getBidsByProjectId(Long projectId) {
+        log.info("Fetching bids by project ID: {}", projectId);
         return bidRepo.findByProject_Id(projectId).stream().map(this::mapToDTO).toList();
     }
 
     @Override
     public ProjectDTO updateProject(Long id, ProjectDTO dto) {
+        log.info("Updating project by ID: {}", id);
         Optional<Project> optionalProject = projectRepository.findById(id);
         if (optionalProject.isEmpty()) {
+            log.error("Project not found with ID: {}", id);
             throw new RuntimeException("Project not found");
         }
 
@@ -110,30 +122,35 @@ public class ProjectServiceImpl implements ProjectService {
         if (dto.getClientId() != null) {
             Client client = clientRepository.findById(dto.getClientId())
                     .orElseThrow(() -> new RuntimeException("Client not found"));
+            log.info("Client found: {}", client.getName());
             project.setClient(client);
         }
 
         Project updated = projectRepository.save(project);
-
+        log.info("Project updated: {}", updated.getTitle());
         return toDTO(updated);
     }
 
     @Override
     public void acceptBid(Long projectId, Long bidId) {
+        log.info("Accepting bid for project ID: {} with bid ID: {}", projectId, bidId);
         Bids acceptedBid = bidRepo.findById(bidId)
                 .orElseThrow(() -> new RuntimeException("Bid not found"));
-
+        log.info("Bid found: {}", acceptedBid.getId());
         Project project = acceptedBid.getProject();
 
         if (!project.getId().equals(projectId)) {
+            log.error("Bid does not belong to the specified project: {}", bidId);
             throw new RuntimeException("Bid does not belong to the specified project");
         }
 
-//        // Reject if bid is not in PENDING state
+        // Reject if bid is not in PENDING state
         if (acceptedBid.getStatus() != Bids.bidStatus.Pending) {
+            log.error("Bid is not in PENDING state: {}", acceptedBid.getId());
             throw new IllegalStateException("Only pending bids can be accepted");
         }
 
+        log.info("Setting project status to CLOSED");
         project.setStatus(Project.ProjectStatus.CLOSED);
         projectRepository.save(project);
 
@@ -149,25 +166,30 @@ public class ProjectServiceImpl implements ProjectService {
 
         bidRepo.saveAll(allBids);
         // Create contract for accepted bid
+        log.info("Creating contract for accepted bid: {}", acceptedBid.getId());
         contractService.createContract(acceptedBid);
     }
 
     @Override
     public void rejectBid(Long projectId, Long bidId) {
+        log.info("Rejecting bid for project ID: {} with bid ID: {}", projectId, bidId);
         Bids bid = bidRepo.findById(bidId)
                 .orElseThrow(() -> new RuntimeException("Bid not found"));
 
         if (!bid.getProject().getId().equals(projectId)) {
+            log.error("Bid does not belong to the specified project: {}", bidId);
             throw new RuntimeException("Bid does not belong to the specified project");
         }
 
         // Only allow rejection if bid is in PENDING state
         if (bid.getStatus() != Bids.bidStatus.Pending) {
+            log.error("Bid is not in PENDING state: {}", bid.getId());
             throw new IllegalStateException("Only pending bids can be rejected");
         }
 
         bid.setStatus(Bids.bidStatus.Rejected);
         bidRepo.save(bid);
+        log.info("Bid rejected: {}", bid.getId());
     }
 
     private ProjectDTO toDTO(Project project) {

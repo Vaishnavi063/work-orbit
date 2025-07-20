@@ -4,7 +4,7 @@ import com.workorbit.backend.DTO.BidDTO;
 import com.workorbit.backend.DTO.BidResponseDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Service.bid.BidService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +14,10 @@ import com.workorbit.backend.DTO.ApiResponse;
 
 @RestController
 @RequestMapping("/api/bids")
+@RequiredArgsConstructor
 public class BidController {
 
-    @Autowired
-    private BidService bidService;
+    private final BidService bidService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Bids>> placeBid(@RequestBody BidDTO dto) {

@@ -44,15 +44,8 @@ const Header = () => {
 };
 
 const OutletComp = () => {
-  const { open, isMobile } = useSidebar();
   return (
-    <div
-      className={cn(
-        "p-4",
-        open ? "w-[calc(100%_-218px)]" : "w-[calc(100%_-56px)]",
-        isMobile && "w-full"
-      )}
-    >
+    <div className="p-4 w-full">   
       <Outlet />
     </div>
   );

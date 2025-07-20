@@ -1,11 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-import { cn } from "@/lib/utils";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

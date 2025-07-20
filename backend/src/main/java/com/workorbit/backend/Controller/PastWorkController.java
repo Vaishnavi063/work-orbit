@@ -4,7 +4,7 @@ import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.PastWorkDTO;
 import com.workorbit.backend.Entity.PastWork;
 import com.workorbit.backend.Service.pastWork.PastWorkService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/freelancer/pastworks")
+@RequiredArgsConstructor
 public class PastWorkController {
 
-    @Autowired
-    private PastWorkService pastWorkService;
+    private final PastWorkService pastWorkService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<PastWorkDTO>> addPastWork(@RequestBody PastWorkDTO dto) {

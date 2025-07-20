@@ -2,18 +2,17 @@ package com.workorbit.backend.Controller;
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.FreelancerDTO;
 import com.workorbit.backend.Service.freelancer.FreelancerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-
 @RestController
 @RequestMapping("/api/freelancers")
+@RequiredArgsConstructor
 public class FreelancerController {
 
-    @Autowired
-    private FreelancerService freelancerService;
+    private final FreelancerService freelancerService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<FreelancerDTO>> getProfile(@PathVariable Long id) {

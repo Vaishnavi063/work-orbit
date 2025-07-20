@@ -7,7 +7,7 @@ import com.workorbit.backend.DTO.ContractResponse;
 import com.workorbit.backend.Entity.Bids;
 
 public interface ContractService {
-	ContractResponse createContract(Bids bid);
+	void createContract(Bids bid);
 	ApiResponse<List<ContractResponse>> getAllContracts();
 	ApiResponse<ContractResponse> getContractById(Long id);
 }

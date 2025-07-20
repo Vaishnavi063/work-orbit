@@ -7,25 +7,27 @@ import com.workorbit.backend.Entity.Freelancer;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
 import com.workorbit.backend.Repository.FreelancerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.workorbit.backend.Repository.ProjectRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class BidServiceImpl implements BidService {
 
-    @Autowired
-    private BidRepository bidRepo;
-
-    @Autowired
-    private FreelancerRepository freelancerRepo;
-    @Autowired
-    private com.workorbit.backend.Repository.ProjectRepository projectRepo;
+    private final BidRepository bidRepo;
+    private final FreelancerRepository freelancerRepo;
+    private final ProjectRepository projectRepo;
 
     @Override
     public Bids placeBid(BidDTO dto) {
+        log.info("Placing bid for freelancer ID: {}", dto.getFreelancerId());
         // Fetch freelancer
         Freelancer freelancer = freelancerRepo.findById(dto.getFreelancerId())
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
@@ -33,17 +35,25 @@ public class BidServiceImpl implements BidService {
         // Fetch project
         Project project = projectRepo.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
+        log.info("Project found: {}", project.getTitle());
+
 
         // ✅ Check project status
         if (project.getStatus() != Project.ProjectStatus.OPEN) {
+            log.error("Project status is not OPEN");
             throw new IllegalStateException("Bids can only be placed on projects with status OPEN");
         }
+        log.info("Project status is OPEN");
+
 
         // ✅ Check if freelancer already placed a bid on this project
         boolean alreadyBid = bidRepo.existsByFreelancerIdAndProjectId(dto.getFreelancerId(), dto.getProjectId());
         if (alreadyBid) {
+            log.error("Freelancer has already placed a bid on this project");
             throw new IllegalStateException("Freelancer has already placed a bid on this project");
         }
+        log.info("Freelancer has not placed a bid on this project");
+
 
         // Create and save bid
         Bids bid = new Bids();
@@ -55,6 +65,7 @@ public class BidServiceImpl implements BidService {
         bid.setTeamSize(dto.getTeamSize());
         bid.setStatus(Bids.bidStatus.Pending);
         bid.setCreatedAt(LocalDateTime.now());
+        log.info("Bid created: {}", bid.getId());
 
         return bidRepo.save(bid);
     }
@@ -62,29 +73,48 @@ public class BidServiceImpl implements BidService {
 
     @Override
     public List<BidResponseDTO> getBidsByFreelancerId(Long freelancerId) {
+        log.info("Fetching bids for freelancer ID: {}", freelancerId);
+
         // Fetch and map all bids for a freelancer to DTOs
-        return bidRepo.findByFreelancer_Id(freelancerId).stream().map(this::mapToDTO).toList();
+        List<BidResponseDTO> bids = bidRepo.findByFreelancer_Id(freelancerId).stream().map(this::mapToDTO).toList();
+        log.info("Bids found: {}", bids.size());
+        return bids;
     }
 
     @Override
     public void deleteBid(Long bidId, Long freelancerId) {
+        log.info("Deleting bid by ID: {}", bidId);
         // Find the bid and check if the freelancer is authorized to delete it
         Bids bid = bidRepo.findById(bidId).orElseThrow(() -> new RuntimeException("Bid not found"));
+        log.info("Bid found: {}", bid.getId());
+
         if (!bid.getFreelancer().getId().equals(freelancerId)) {
+            log.error("Freelancer is not authorized to delete the bid");
             throw new RuntimeException("You can only delete your own bids.");
         }
+        log.info("Freelancer is authorized to delete the bid");
+
         if (!bid.getStatus().equals(Bids.bidStatus.Pending)) {
+            log.error("Bid is not pending, cannot delete");
             throw new RuntimeException("Only pending bids can be deleted.");
         }
+        log.info("Bid is pending, deleting bid");
+
         bidRepo.deleteById(bidId);
+        log.info("Bid deleted: {}", bidId);
     }
 
     // Helper method to map a Bid entity to a BidResponseDTO
     private BidResponseDTO mapToDTO(Bids bid) {
+        return getBidResponseDTO(bid);
+    }
+
+    public static BidResponseDTO getBidResponseDTO(Bids bid) {
         BidResponseDTO dto = new BidResponseDTO();
         dto.setBidId(bid.getId());
         dto.setFreelancerId(bid.getFreelancer().getId());
         dto.setProjectId(bid.getProject().getId());
+        dto.setFreelancerName(bid.getFreelancer().getName());
         dto.setProposal(bid.getProposal());
         dto.setBidAmount(bid.getBidAmount());
         dto.setDurationDays(bid.getDurationDays());
@@ -93,5 +123,4 @@ public class BidServiceImpl implements BidService {
         dto.setCreatedAt(bid.getCreatedAt());
         return dto;
     }
-
 }

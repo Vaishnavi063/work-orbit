@@ -5,11 +5,12 @@ import {
   CalendarIcon, 
   DollarSignIcon, 
   TagIcon, 
-  UserIcon, 
   ClockIcon,
   XIcon,
   LoaderCircle
 } from "lucide-react";
+
+import { useErrorHandler } from "@/hooks/use-error-handler";
 
 import {
   Dialog,
@@ -52,15 +53,21 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
   const loading = useSelector(selectProjectsLoading);
   const error = useSelector(selectProjectsError);
   const { authToken } = useSelector((state: RootState) => state.auth);
+  const { handleError } = useErrorHandler();
 
   useEffect(() => {
     if (isOpen && project && authToken) {
       dispatch(fetchProjectDetails({ 
         projectId: project.id, 
         authToken 
-      }));
+      })).catch((err) => {
+        handleError(err as Error, {
+          toastTitle: "Failed to load project details",
+          showToast: true
+        });
+      });
     }
-  }, [isOpen, project, authToken, dispatch]);
+  }, [isOpen, project, authToken, dispatch, handleError]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -69,66 +76,76 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
   }, [isOpen, dispatch]);
 
   const handleClose = () => {
-    onClose();
+    try {
+      onClose();
+    } catch (err) {
+      handleError(err as Error, {
+        toastTitle: "Error closing modal",
+        showToast: true
+      });
+    }
+  };
+
+  const handleRetry = () => {
+    if (project && authToken) {
+      dispatch(fetchProjectDetails({ 
+        projectId: project.id, 
+        authToken 
+      })).catch((err) => {
+        handleError(err as Error, {
+          toastTitle: "Retry failed",
+          showToast: true
+        });
+      });
+    }
   };
 
   const projectToDisplay = currentProject || project;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-0">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <DialogTitle className="text-xl mb-2">
-                {projectToDisplay?.title || "Project Details"}
-              </DialogTitle>
-              {projectToDisplay && (
-                <div className="flex items-center gap-2">
-                  <Badge variant={projectToDisplay.status === "OPEN" ? "default" : "secondary"}>
-                    {projectToDisplay.status}
-                  </Badge>
-                  <Badge variant="outline">
-                    {projectToDisplay.category}
-                  </Badge>
-                </div>
-              )}
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader className="p-6 pb-0">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <DialogTitle className="text-xl mb-2">
+                  {projectToDisplay?.title || "Project Details"}
+                </DialogTitle>
+                {projectToDisplay && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant={projectToDisplay.status === "OPEN" ? "default" : "secondary"}>
+                      {projectToDisplay.status}
+                    </Badge>
+                    <Badge variant="outline">
+                      {projectToDisplay.category}
+                    </Badge>
+                  </div>
+                )}
+              </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-8 w-8 p-0"
-            >
-              <XIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
+          </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          {loading.projectDetails ? (
-            <ProjectDetailsModalSkeleton />
-          ) : error.projectDetails ? (
-            <ProjectDetailsModalError 
-              error={error.projectDetails} 
-              onRetry={() => project && authToken && dispatch(fetchProjectDetails({ 
-                projectId: project.id, 
-                authToken 
-              }))}
-            />
-          ) : projectToDisplay ? (
-            <ProjectDetailsContent 
-              project={projectToDisplay}
-              bids={currentProjectBids}
-            />
-          ) : (
-            <div className="py-8 text-center text-muted-foreground">
-              No project data available
-            </div>
-          )}
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+          <ScrollArea className="flex-1 px-6">
+            {loading.projectDetails ? (
+              <ProjectDetailsModalSkeleton />
+            ) : error.projectDetails ? (
+              <ProjectDetailsModalError 
+                error={error.projectDetails} 
+                onRetry={handleRetry}
+              />
+            ) : projectToDisplay ? (
+              <ProjectDetailsContent 
+                project={projectToDisplay}
+                bids={currentProjectBids}
+              />
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                No project data available
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
   );
 };
 
@@ -163,9 +180,9 @@ const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Project Overview</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <DollarSignIcon className="h-5 w-5 text-muted-foreground" />
+            <DollarSignIcon className="h-6 w-6 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Budget</p>
               <p className="font-semibold">${project.budget.toLocaleString()}</p>
@@ -173,7 +190,7 @@ const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({
           </div>
           
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+            <CalendarIcon className="h-6 w-6 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Deadline</p>
               <p className="font-semibold">{formatDeadline(project.deadline)}</p>
@@ -181,18 +198,10 @@ const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({
           </div>
           
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <TagIcon className="h-5 w-5 text-muted-foreground" />
+            <TagIcon className="h-6 w-6 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Category</p>
               <p className="font-semibold">{project.category}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <UserIcon className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Client ID</p>
-              <p className="font-semibold">#{project.clientId}</p>
             </div>
           </div>
         </div>
@@ -217,7 +226,7 @@ const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({
         <h3 className="text-lg font-semibold">Timeline</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-center gap-3">
-            <ClockIcon className="h-4 w-4 text-muted-foreground" />
+            <ClockIcon className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Created</p>
               <p className="font-medium">{formatDate(project.createdAt)}</p>
@@ -225,7 +234,7 @@ const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
-            <ClockIcon className="h-4 w-4 text-muted-foreground" />
+            <ClockIcon className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Last Updated</p>
               <p className="font-medium">{formatDate(project.updatedAt)}</p>

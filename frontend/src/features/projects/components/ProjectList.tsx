@@ -26,13 +26,17 @@ import {
     selectProjectsLoading,
 } from "@/store/slices/projects-slice";
 import type { RootState } from "@/store";
+import { useErrorHandler } from "@/hooks/use-error-handler";
 
 interface ProjectListProps {
     onViewDetails?: (project: Project) => void;
     filterStatus?: "OPEN" | "CLOSED";
 }
 
-const ProjectList: React.FC<ProjectListProps> = ({ onViewDetails, filterStatus }) => {
+const ProjectList: React.FC<ProjectListProps> = ({
+    onViewDetails,
+    filterStatus,
+}) => {
     const loading = useSelector(selectProjectsLoading);
     const projects = useSelector(selectProjects);
     const { user } = useSelector((state: RootState) => state.auth);
@@ -41,8 +45,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ onViewDetails, filterStatus }
         (project) => project.clientId === user?.id
     );
 
-    const filteredProjects = filterStatus 
-        ? clientProjects.filter(project => project.status === filterStatus)
+    const filteredProjects = filterStatus
+        ? clientProjects.filter((project) => project.status === filterStatus)
         : clientProjects;
 
     if (loading.projects) {
@@ -75,8 +79,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     project,
     onViewDetails,
 }) => {
+    const { handleError } = useErrorHandler();
+
     const handleViewDetails = () => {
-        onViewDetails?.(project);
+        try {
+            onViewDetails?.(project);
+        } catch (error) {
+            handleError(error as Error, {
+                toastTitle: "Error opening project",
+                showToast: true,
+            });
+        }
     };
 
     const getStatusColor = (status: Project["status"]) => {
@@ -194,24 +207,27 @@ const ProjectListSkeleton: React.FC = () => {
     );
 };
 
-const EmptyProjectList: React.FC<{ status?: "OPEN" | "CLOSED" }> = ({ status }) => {
-    let message = "You haven't posted any projects yet. Create your first project to start receiving bids from talented freelancers.";
-    
+const EmptyProjectList: React.FC<{ status?: "OPEN" | "CLOSED" }> = ({
+    status,
+}) => {
+    let message =
+        "You haven't posted any projects yet. Create your first project to start receiving bids from talented freelancers.";
+
     if (status === "OPEN") {
-        message = "You don't have any open projects. Create a new project to start receiving bids.";
+        message =
+            "You don't have any open projects. Create a new project to start receiving bids.";
     } else if (status === "CLOSED") {
-        message = "You don't have any closed projects. Projects will appear here after you accept a bid.";
+        message =
+            "You don't have any closed projects. Projects will appear here after you accept a bid.";
     }
-    
+
     return (
         <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="rounded-full bg-muted p-6 mb-4">
                 <MessageSquareIcon className="h-12 w-12 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-semibold mb-2">No projects found</h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-                {message}
-            </p>
+            <p className="text-muted-foreground mb-6 max-w-md">{message}</p>
             <Button variant="outline">
                 <DollarSignIcon className="mr-2 h-4 w-4" />
                 Post Your First Project

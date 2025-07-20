@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
 import { CalendarIcon, LoaderCircle } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { useErrorHandler } from "@/hooks/use-error-handler";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +66,7 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
   const { user, authToken } = useSelector((state: RootState) => state.auth);
   const loading = useSelector(selectProjectsLoading);
   const error = useSelector(selectProjectsError);
+  const { handleError, handleSuccess } = useErrorHandler();
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -83,7 +84,10 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
 
   const onSubmit = async (data: ProjectCreateFormValues) => {
     if (!user?.id || !authToken) {
-      toast.error("Authentication required");
+      handleError("Authentication required", {
+        toastTitle: "Authentication Error",
+        showToast: true
+      });
       return;
     }
 
@@ -102,30 +106,39 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
       );
 
       if (createProject.fulfilled.match(result)) {
-        toast.success("Project created successfully!");
+        handleSuccess("Project created successfully!");
         form.reset();
         onClose();
         onSuccess?.();
       } else {
-        toast.error("Failed to create project", {
-          description: error.createProject || "Please try again",
+        handleError(error.createProject || "Failed to create project", {
+          toastTitle: "Creation Failed",
+          showToast: true
         });
       }
     } catch (err) {
-      toast.error("Failed to create project", {
-        description: "An unexpected error occurred",
+      handleError(err as Error, {
+        toastTitle: "Failed to create project",
+        showToast: true
       });
     }
   };
 
   const handleClose = () => {
-    form.reset();
-    onClose();
+    try {
+      form.reset();
+      onClose();
+    } catch (err) {
+      handleError(err as Error, {
+        toastTitle: "Error closing form",
+        showToast: true
+      });
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Post New Project</DialogTitle>
           <DialogDescription>

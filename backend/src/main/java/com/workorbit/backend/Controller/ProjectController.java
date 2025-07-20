@@ -24,9 +24,13 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProjectDTO>>> getAllProjects() {
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(projectService.getAllProjects()));
+    public ResponseEntity<ApiResponse<List<ProjectDTO>>> getAllProjects(
+            @RequestParam(value = "q", required = false) String query) {
+
+        List<ProjectDTO> projects = projectService.getAllProjects(query);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(projects));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProjectDTO>> getProjectById(@PathVariable Long id) {

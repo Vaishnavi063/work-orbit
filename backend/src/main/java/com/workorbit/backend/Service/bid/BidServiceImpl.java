@@ -2,6 +2,7 @@ package com.workorbit.backend.Service.bid;
 
 import com.workorbit.backend.DTO.BidDTO;
 import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.DTO.ClientDTO;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Freelancer;
@@ -123,6 +124,16 @@ public class BidServiceImpl implements BidService {
     private ProjectDTO toProjectDTO(Project project) {
         if (project == null) return null;
 
+        ClientDTO clientDTO = null;
+
+        if (project.getClient() != null && project.getClient().getAppUser() != null) {
+            clientDTO = new ClientDTO(
+                    project.getClient().getName(),
+                    project.getClient().getAppUser().getEmail(),
+                    null // prevent circular reference
+            );
+        }
+
         return new ProjectDTO(
                 project.getId(),
                 project.getTitle(),
@@ -131,7 +142,8 @@ public class BidServiceImpl implements BidService {
                 project.getDeadline(),
                 project.getBudget(),
                 project.getStatus(),
-                project.getClient() != null ? project.getClient().getId() : null
+                clientDTO,
+                project.getClient() != null ? project.getClient().getId() : null // optional for internal use
         );
     }
 }

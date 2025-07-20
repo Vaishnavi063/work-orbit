@@ -33,6 +33,7 @@ public class ClientServiceImpl implements ClientService {
         log.info("Fetching projects for client: {}", client.getName());
         List<ProjectDTO> projectDTOs = new ArrayList<>();
 
+
         for (Project p : client.getProjects()) {
             log.info("Project found: {}", p.getTitle());
             ProjectDTO dto = getProjectDTO(p);

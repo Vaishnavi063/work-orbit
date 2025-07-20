@@ -1,6 +1,7 @@
 package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.DTO.ClientDTO;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Client;
@@ -55,15 +56,19 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectDTO> getAllProjects() {
+    public List<ProjectDTO> getAllProjects(String titleQuery) {
         log.info("Fetching all projects");
-        List<Project> projects = projectRepository.findAll();
-        List<ProjectDTO> dtoList = new ArrayList<>();
+        List<Project> projects;
+        if (titleQuery == null || titleQuery.trim().isEmpty()) {
+            projects = projectRepository.findAll();
+        } else {
+            projects = projectRepository.findByTitleContainingIgnoreCase(titleQuery.trim());
+        }
 
+        List<ProjectDTO> dtoList = new ArrayList<>(projects.size());
         for (Project project : projects) {
             dtoList.add(toDTO(project));
         }
-
         return dtoList;
     }
 
@@ -193,6 +198,16 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private ProjectDTO toDTO(Project project) {
+        ClientDTO clientDTO = null;
+
+        if (project.getClient() != null && project.getClient().getAppUser() != null) {
+            clientDTO = new ClientDTO(
+                    project.getClient().getName(),
+                    project.getClient().getAppUser().getEmail(),
+                    null
+            );
+        }
+
         return new ProjectDTO(
                 project.getId(),
                 project.getTitle(),
@@ -201,6 +216,7 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getDeadline(),
                 project.getBudget(),
                 project.getStatus(),
+                clientDTO,
                 project.getClient() != null ? project.getClient().getId() : null,
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
@@ -225,6 +241,16 @@ public class ProjectServiceImpl implements ProjectService {
     private ProjectDTO toProjectDTO(Project project) {
         if (project == null) return null;
 
+        ClientDTO clientDTO = null;
+
+        if (project.getClient() != null && project.getClient().getAppUser() != null) {
+            clientDTO = new ClientDTO(
+                    project.getClient().getName(),
+                    project.getClient().getAppUser().getEmail(),
+                    null // skip project list to avoid circular reference
+            );
+        }
+
         return new ProjectDTO(
                 project.getId(),
                 project.getTitle(),
@@ -233,6 +259,7 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getDeadline(),
                 project.getBudget(),
                 project.getStatus(),
+                clientDTO,
                 project.getClient() != null ? project.getClient().getId() : null
         );
     }

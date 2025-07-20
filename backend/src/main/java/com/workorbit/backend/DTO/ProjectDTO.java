@@ -17,4 +17,6 @@ public class ProjectDTO {
     private Long budget;
     private Project.ProjectStatus status;
     private Long clientId;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

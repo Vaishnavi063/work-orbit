@@ -34,7 +34,9 @@ public class ClientServiceImpl implements ClientService {
                     p.getDeadline(),
                     p.getBudget(),
                     p.getStatus(),
-                    clientId
+                    clientId,
+                    p.getCreatedAt(),
+                    p.getUpdatedAt()
             );
 
             projectDTOs.add(dto);

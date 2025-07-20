@@ -31,7 +31,7 @@ const router = createBrowserRouter(
       </Route>
         <Route path="dashboard" element={<DashboardLayout />}>
         <Route path="profile" element={<Profile />} />
-        <Route path="projects" element={<ClientProjectsDashboard />} />
+        <Route path="projects/*" element={<ClientProjectsDashboard />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Route>

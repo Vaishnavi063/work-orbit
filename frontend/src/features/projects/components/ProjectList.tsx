@@ -27,14 +27,13 @@ import {
 } from "@/store/slices/projects-slice";
 import type { RootState } from "@/store";
 import { useErrorHandler } from "@/hooks/use-error-handler";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectListProps {
-    onViewDetails?: (project: Project) => void;
     filterStatus?: "OPEN" | "CLOSED";
 }
 
 const ProjectList: React.FC<ProjectListProps> = ({
-    onViewDetails,
     filterStatus,
 }) => {
     const loading = useSelector(selectProjectsLoading);
@@ -63,7 +62,6 @@ const ProjectList: React.FC<ProjectListProps> = ({
                 <ProjectCard
                     key={project.id}
                     project={project}
-                    onViewDetails={onViewDetails}
                 />
             ))}
         </div>
@@ -72,18 +70,18 @@ const ProjectList: React.FC<ProjectListProps> = ({
 
 interface ProjectCardProps {
     project: Project;
-    onViewDetails?: (project: Project) => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
     project,
-    onViewDetails,
 }) => {
     const { handleError } = useErrorHandler();
+    const navigate = useNavigate();
 
     const handleViewDetails = () => {
         try {
-            onViewDetails?.(project);
+            // Navigate to project details page (using relative path)
+            navigate(`${project.id}`);
         } catch (error) {
             handleError(error as Error, {
                 toastTitle: "Error opening project",

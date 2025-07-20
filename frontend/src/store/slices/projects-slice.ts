@@ -283,8 +283,25 @@ export const selectCurrentProjectBids = (state: RootState) => state.projects.cur
 export const selectProjectsLoading = (state: RootState) => state.projects.loading;
 export const selectProjectsError = (state: RootState) => state.projects.error;
 
-export const selectClientProjects = (clientId: number) => (state: RootState) =>
-  state.projects.projects.filter(project => project.clientId === clientId);
+export const selectClientProjects = (clientId: number | undefined) => (state: RootState) => {
+  if (!clientId) return [];
+  return state.projects.projects.filter(project => project.clientId === clientId);
+};
+
+export const selectClientProjectsWithStats = (clientId: number | undefined) => (state: RootState) => {
+  if (!clientId) return { projects: [], totalProjects: 0, openProjects: 0, totalBids: 0 };
+  
+  const clientProjects = state.projects.projects.filter(project => project.clientId === clientId);
+  const openProjects = clientProjects.filter(project => project.status === "OPEN").length;
+  const totalBids = clientProjects.reduce((total, project) => total + (project.bidCount || 0), 0);
+  
+  return {
+    projects: clientProjects,
+    totalProjects: clientProjects.length,
+    openProjects,
+    totalBids
+  };
+};
 
 export const selectProjectById = (projectId: number) => (state: RootState) =>
   state.projects.projects.find(project => project.id === projectId);
@@ -294,5 +311,19 @@ export const selectOpenProjects = (state: RootState) =>
 
 export const selectClosedProjects = (state: RootState) =>
   state.projects.projects.filter(project => project.status === "CLOSED");
+
+export const selectClientOpenProjects = (clientId: number | undefined) => (state: RootState) => {
+  if (!clientId) return [];
+  return state.projects.projects.filter(project => 
+    project.clientId === clientId && project.status === "OPEN"
+  );
+};
+
+export const selectClientClosedProjects = (clientId: number | undefined) => (state: RootState) => {
+  if (!clientId) return [];
+  return state.projects.projects.filter(project => 
+    project.clientId === clientId && project.status === "CLOSED"
+  );
+};
 
 export default projectsSlice.reducer;

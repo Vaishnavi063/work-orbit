@@ -4,10 +4,28 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, Users, Calendar, IndianRupee } from "lucide-react";
 
+type Client = {
+  name: string;
+  email: string;
+  projects: any | null;
+};
+
+type Project = {
+  id: number;
+  title: string;
+  description: string;
+  category: string | null;
+  deadline: string;
+  budget: number;
+  status: string;
+  client: Client;
+  clientId: number;
+};
+
 type Bid = {
   bidId: number;
   freelancerId: number;
-  projectId: number;
+  project: Project;
   proposal: string;
   bidAmount: number;
   durationDays: number;
@@ -85,7 +103,7 @@ const BidList = ({ bids }: BidListProps) => {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Freelancer #{bid.freelancerId}
+                      Freelancer #{bid?.freelancerId}
                     </p>
                   </div>
                 </div>

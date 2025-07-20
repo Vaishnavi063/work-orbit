@@ -20,7 +20,7 @@ export const navMain = [
   {
     id: 1,
     title: "Projects",
-    path: "/dashboard/projects",
+    path: "/dashboard/browse-projects",
     icon: Briefcase,
     role: "ROLE_FREELANCER",
   },

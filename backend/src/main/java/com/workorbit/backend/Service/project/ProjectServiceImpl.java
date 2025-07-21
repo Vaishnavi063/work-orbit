@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import static com.workorbit.backend.Service.bid.BidServiceImpl.getBidResponseDTO;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,7 +31,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectDTO createProject(ProjectDTO dto) {
-
         log.info("Creating project: {}", dto.getTitle());
         Optional<Client> optionalClient = clientRepository.findById(dto.getClientId());
         if (optionalClient.isEmpty()) {
@@ -48,7 +46,6 @@ public class ProjectServiceImpl implements ProjectService {
         project.setBudget(dto.getBudget());
         project.setClient(client);
         project.setCategory(dto.getCategory());
-
 
         Project saved = projectRepository.save(project);
         log.info("Project saved: {}", saved.getTitle());
@@ -71,7 +68,6 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return dtoList;
     }
-
 
     @Override
     public ProjectDTO getProjectById(Long id) {
@@ -228,7 +224,12 @@ public class ProjectServiceImpl implements ProjectService {
         BidResponseDTO dto = new BidResponseDTO();
         dto.setBidId(bid.getId());
         dto.setFreelancerId(bid.getFreelancer().getId());
-        dto.setProject(toProjectDTO(bid.getProject())); 
+
+        if (bid.getFreelancer() != null && bid.getFreelancer().getAppUser() != null) {
+            dto.setFreelancerName(bid.getFreelancer().getName());
+        }
+
+        dto.setProject(toProjectDTO(bid.getProject()));
         dto.setProposal(bid.getProposal());
         dto.setBidAmount(bid.getBidAmount());
         dto.setDurationDays(bid.getDurationDays());
@@ -260,7 +261,10 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getBudget(),
                 project.getStatus(),
                 clientDTO,
-                project.getClient() != null ? project.getClient().getId() : null
+                project.getClient() != null ? project.getClient().getId() : null,
+                project.getCreatedAt(),        // ✅ ADD THIS LINE
+                project.getUpdatedAt(),        // ✅ ADD THIS LINE
+                project.getBids() != null ? project.getBids().size() : 0  // ✅ ADD THIS LINE
         );
     }
 }

@@ -33,7 +33,6 @@ public class ClientServiceImpl implements ClientService {
         log.info("Fetching projects for client: {}", client.getName());
         List<ProjectDTO> projectDTOs = new ArrayList<>();
 
-
         for (Project p : client.getProjects()) {
             log.info("Project found: {}", p.getTitle());
             ProjectDTO dto = getProjectDTO(p);
@@ -47,22 +46,34 @@ public class ClientServiceImpl implements ClientService {
         return new ClientDTO(client.getName(), email, projectDTOs);
     }
 
+    // ✅ Fixed getProjectDTO method with correct constructor parameters
     private static ProjectDTO getProjectDTO(Project p) {
         Long clientId = (p.getClient() != null) ? p.getClient().getId() : null;
         Integer bidCount = (p.getBids() != null) ? p.getBids().size() : 0;
 
+        // Create a lightweight ClientDTO to avoid circular reference
+        ClientDTO clientDTO = null;
+        if (p.getClient() != null && p.getClient().getAppUser() != null) {
+            clientDTO = new ClientDTO(
+                    p.getClient().getName(),
+                    p.getClient().getAppUser().getEmail(),
+                    null // Set projects to null to prevent circular reference
+            );
+        }
+
         return new ProjectDTO(
                 p.getId(),
-                p.getTitle(),
-                p.getDescription(),
-                p.getCategory(),
-                p.getDeadline(),
-                p.getBudget(),
-                p.getStatus(),
-                clientId,
-                p.getCreatedAt(),
-                p.getUpdatedAt(),
-                bidCount
+                p.getTitle(),             // title
+                p.getDescription(),       // description
+                p.getCategory(),          // category
+                p.getDeadline(),          // deadline
+                p.getBudget(),            // budget
+                p.getStatus(),            // status
+                clientDTO,                // client (ClientDTO object)
+                clientId,                 // clientId
+                p.getCreatedAt(),         // createdAt
+                p.getUpdatedAt(),         // updatedAt
+                bidCount                  // bidCount
         );
     }
 

@@ -10,7 +10,6 @@ import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
 import com.workorbit.backend.Repository.FreelancerRepository;
 import com.workorbit.backend.Repository.ProjectRepository;
-import com.workorbit.backend.Repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,13 +38,11 @@ public class BidServiceImpl implements BidService {
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         log.info("Project found: {}", project.getTitle());
 
-
         if (project.getStatus() != Project.ProjectStatus.OPEN) {
             log.error("Project status is not OPEN");
             throw new IllegalStateException("Bids can only be placed on projects with status OPEN");
         }
         log.info("Project status is OPEN");
-
 
         boolean alreadyBid = bidRepo.existsByFreelancerIdAndProjectId(dto.getFreelancerId(), dto.getProjectId());
         if (alreadyBid) {
@@ -53,7 +50,6 @@ public class BidServiceImpl implements BidService {
             throw new IllegalStateException("Freelancer has already placed a bid on this project");
         }
         log.info("Freelancer has not placed a bid on this project");
-
 
         Bids bid = new Bids();
         bid.setFreelancer(freelancer);
@@ -110,7 +106,7 @@ public class BidServiceImpl implements BidService {
         BidResponseDTO dto = new BidResponseDTO();
         dto.setBidId(bid.getId());
         dto.setFreelancerId(bid.getFreelancer().getId());
-        dto.setProjectId(bid.getProject().getId());
+        // ✅ FIXED: Removed the problematic setProjectId line
         dto.setFreelancerName(bid.getFreelancer().getName());
         dto.setProject(toProjectDTO(bid.getProject()));
         dto.setProposal(bid.getProposal());
@@ -121,7 +117,8 @@ public class BidServiceImpl implements BidService {
         dto.setCreatedAt(bid.getCreatedAt());
         return dto;
     }
-    private ProjectDTO toProjectDTO(Project project) {
+
+    private static ProjectDTO toProjectDTO(Project project) {
         if (project == null) return null;
 
         ClientDTO clientDTO = null;
@@ -143,7 +140,9 @@ public class BidServiceImpl implements BidService {
                 project.getBudget(),
                 project.getStatus(),
                 clientDTO,
-                project.getClient() != null ? project.getClient().getId() : null // optional for internal use
+                project.getClient() != null ? project.getClient().getId() : null,
+                project.getCreatedAt(),
+                project.getUpdatedAt()
         );
     }
 }

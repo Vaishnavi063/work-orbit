@@ -1,6 +1,7 @@
 package com.workorbit.backend.Controller;
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.FreelancerDTO;
+import com.workorbit.backend.DTO.FreelancerUpdateDTO;
 import com.workorbit.backend.Service.freelancer.FreelancerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,5 +24,11 @@ public class FreelancerController {
     public ResponseEntity<ApiResponse<String>> deleteFreelancer(@PathVariable Long id) {
         freelancerService.deleteFreelancer(id);
         return ResponseEntity.ok(ApiResponse.success("Freelancer deleted successfully."));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<FreelancerDTO>> updateFreelancer(@PathVariable Long id, @RequestBody FreelancerUpdateDTO dto) {
+        FreelancerDTO updated = freelancerService.updateFreelancerProfile(id, dto);
+        return ResponseEntity.ok(ApiResponse.success(updated));
     }
 }

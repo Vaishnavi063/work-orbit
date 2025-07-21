@@ -2,10 +2,10 @@ package com.workorbit.backend.DTO;
 import lombok.Data;
 
 @Data
-public class PastWorkDTO {
-    private Long id;
+public class PastWorkUpdateDTO {
+    private Long id; // null for new
     private String title;
     private String link;
     private String description;
-    private Long freelancerId;
+    private Boolean toDelete; // true if should be deleted
 }

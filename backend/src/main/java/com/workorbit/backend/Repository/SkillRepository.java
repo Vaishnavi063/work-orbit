@@ -9,4 +9,5 @@ import java.util.List;
 public interface SkillRepository extends JpaRepository<Skills, Long> {
     List<Skills> findByFreelancers_Id(Long freelancerId);
     Skills findByNameIgnoreCase(String skillName);
+    List<Skills> findByNameIn(List<String> names);
 }

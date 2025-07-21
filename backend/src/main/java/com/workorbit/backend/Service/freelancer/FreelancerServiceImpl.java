@@ -63,9 +63,11 @@ public class FreelancerServiceImpl implements FreelancerService {
         profile.setPastWorks(
             pastWorks.stream().map(p -> {
                 PastWorkDTO dto = new PastWorkDTO();
+                dto.setId(p.getId());
                 dto.setTitle(p.getTitle());
                 dto.setLink(p.getLink());
                 dto.setDescription(p.getDescription());
+                dto.setFreelancerId(p.getFreelancer() != null ? p.getFreelancer().getId() : null);
                 return dto;
             }).toList()
         );
@@ -79,5 +81,65 @@ public class FreelancerServiceImpl implements FreelancerService {
         log.info("Deleting freelancer by ID: {}", id);
         freelancerRepo.deleteById(id);
         log.info("Freelancer deleted: {}", id);
+    }
+
+    @Override
+    public FreelancerDTO updateFreelancerProfile(Long id, com.workorbit.backend.DTO.FreelancerUpdateDTO dto) {
+        Freelancer freelancer = freelancerRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Freelancer not found"));
+
+        // Update basic info
+        if (dto.getName() != null) freelancer.setName(dto.getName());
+        // Do NOT update email here, as email is required for login and should not be changed.
+
+        // Update skills (many-to-many)
+        if (dto.getSkills() != null) {
+            List<Skills> newSkills = skillRepo.findByNameIn(dto.getSkills());
+            freelancer.setFreelancerSkill(new java.util.HashSet<>(newSkills));
+        }
+
+        // Update past works (one-to-many, modify collection in place)
+        if (dto.getPastWorks() != null) {
+            List<PastWork> currentPastWorks = freelancer.getPastWorks();
+            if (currentPastWorks == null) {
+                currentPastWorks = new java.util.ArrayList<>();
+                freelancer.setPastWorks(currentPastWorks);
+            }
+            // Build set of IDs to keep
+            java.util.Set<Long> updatedIds = dto.getPastWorks().stream()
+                .filter(pw -> pw.getId() != null && !Boolean.TRUE.equals(pw.getToDelete()))
+                .map(com.workorbit.backend.DTO.PastWorkUpdateDTO::getId)
+                .collect(java.util.stream.Collectors.toSet());
+            // Remove deleted past works
+            currentPastWorks.removeIf(pw -> pw.getId() != null && !updatedIds.contains(pw.getId()));
+            // Add new and update existing
+            for (var pwDto : dto.getPastWorks()) {
+                if (pwDto.getId() == null && !Boolean.TRUE.equals(pwDto.getToDelete())) {
+                    // New past work
+                    PastWork pw = new PastWork();
+                    pw.setTitle(pwDto.getTitle());
+                    pw.setLink(pwDto.getLink());
+                    pw.setDescription(pwDto.getDescription());
+                    pw.setFreelancer(freelancer);
+                    currentPastWorks.add(pw);
+                } else if (pwDto.getId() != null && Boolean.TRUE.equals(pwDto.getToDelete())) {
+                    // Already handled by removeIf above
+                    continue;
+                } else if (pwDto.getId() != null) {
+                    // Update existing
+                    PastWork pw = currentPastWorks.stream()
+                        .filter(existing -> existing.getId().equals(pwDto.getId()))
+                        .findFirst()
+                        .orElseThrow();
+                    pw.setTitle(pwDto.getTitle());
+                    pw.setLink(pwDto.getLink());
+                    pw.setDescription(pwDto.getDescription());
+                }
+            }
+        }
+
+        Freelancer saved = freelancerRepo.save(freelancer);
+        // Reuse getFreelancerProfile to build the response
+        return getFreelancerProfile(saved.getId());
     }
 }

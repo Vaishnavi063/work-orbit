@@ -100,11 +100,6 @@ const FreelancerBids = () => {
           {filteredBids.map((bid: BidType) => {
             const isPending = bid.status === "Pending";
             const isAccepted = bid.status === "Accepted";
-            const daysLeft = Math.ceil(
-              (new Date(bid.project.deadline).getTime() - Date.now()) /
-                (1000 * 60 * 60 * 24)
-            );
-            const isUrgent = daysLeft <= 3 && daysLeft > 0;
 
             return (
               <div

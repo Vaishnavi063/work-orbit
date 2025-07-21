@@ -1,8 +1,13 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Clock, Users, Calendar, IndianRupee } from "lucide-react";
+import {
+  Clock,
+  Users,
+  Calendar,
+  IndianRupee,
+  MessageSquare,
+} from "lucide-react";
 
 type Client = {
   name: string;
@@ -22,9 +27,16 @@ type Project = {
   clientId: number;
 };
 
+type Freelancer = {
+  id: number;
+  name: string;
+  email: string;
+};
+
 type Bid = {
   bidId: number;
   freelancerId: number;
+  freelancer?: Freelancer;
   project: Project;
   proposal: string;
   bidAmount: number;
@@ -32,147 +44,134 @@ type Bid = {
   teamSize: number;
   status: string;
   createdAt: string;
+  freelancerName?: string;
 };
 
 interface BidListProps {
   bids: Bid[];
 }
 
-const getStatusVariant = (status: string) => {
+const getStatusConfig = (status: string) => {
   switch (status.toLowerCase()) {
     case "accepted":
-      return "default";
+      return { className: "bg-green-100 text-green-800", label: "Accepted" };
     case "rejected":
-      return "destructive";
+      return { className: "bg-red-100 text-red-800", label: "Rejected" };
     case "pending":
-      return "secondary";
+      return { className: "bg-yellow-100 text-yellow-800", label: "Pending" };
     case "under review":
-      return "outline";
+      return { className: "bg-blue-100 text-blue-800", label: "Under Review" };
     default:
-      return "secondary";
+      return { className: "bg-gray-100 text-gray-800", label: status };
   }
 };
 
 const BidList = ({ bids }: BidListProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return "1d ago";
+    if (diffDays < 7) return `${diffDays}d ago`;
+
     return date.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
-  const getInitials = (freelancerId: number) => {
-    return `F${freelancerId}`;
+  const getFreelancerName = (bid: Bid) => {
+    return bid?.freelancerName || `Freelancer #${bid.freelancerId}`;
   };
 
-  return (
-    <div className="space-y-4 py-4">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold tracking-tight">Project Bids</h2>
-        <Badge
-          variant="outline"
-          className="px-3 py-1 bg-blue-100 text-blue-700 border-blue-200"
-        >
-          {bids.length} {bids.length === 1 ? "bid" : "bids"}
-        </Badge>
-      </div>
+  const getFreelancerInitials = (bid: Bid) => {
+    const name = bid.freelancer?.name;
+    if (name) {
+      const names = name.split(" ");
+      return names.length > 1
+        ? `${names[0][0]}${names[1][0]}`.toUpperCase()
+        : name.substring(0, 2).toUpperCase();
+    }
+    return `F${bid.freelancerId}`;
+  };
 
-      <div className="grid gap-4">
-        {bids.map((bid) => (
+  if (bids.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <MessageSquare className="w-6 h-6 text-gray-400" />
+        </div>
+        <h3 className="font-medium text-gray-900 mb-1">No proposals yet</h3>
+        <p className="text-sm text-gray-600">
+          Proposals will appear here when submitted.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {bids.map((bid) => {
+        const statusConfig = getStatusConfig(bid.status);
+
+        return (
           <Card
             key={bid.bidId}
-            className="group hover:shadow-lg transition-all duration-300 border shadow-md bg-gray-50"
+            className="hover:shadow-sm transition-shadow border border-gray-200 bg-gray-50"
           >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-                    <AvatarFallback className="bg-primary/5 text-primary font-semibold">
-                      {getInitials(bid.freelancerId)}
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-gray-100 text-gray-700 text-xs font-medium">
+                      {getFreelancerInitials(bid)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <IndianRupee className="h-5 w-5 text-green-600" />
-                      <span className="text-2xl font-bold text-foreground">
-                        {bid.bidAmount.toLocaleString("en-IN")}
+                    <h3 className="font-medium text-gray-900 text-sm">
+                      {getFreelancerName(bid)}
+                    </h3>
+                    <div className="flex items-center gap-1">
+                      <IndianRupee className="h-3 w-3 text-green-600" />
+                      <span className="font-semibold text-green-700 text-sm">
+                        ₹{bid.bidAmount.toLocaleString("en-IN")}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Freelancer #{bid?.freelancerId}
-                    </p>
                   </div>
                 </div>
-
                 <Badge
-                  variant={getStatusVariant(bid.status)}
-                  className="font-medium px-3 py-1"
+                  className={`${statusConfig.className} text-xs px-2 py-1`}
                 >
-                  {bid.status}
+                  {statusConfig.label}
                 </Badge>
               </div>
-            </CardHeader>
 
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-blue-500" />
-                  <span className="font-medium">Duration:</span>
-                  <span className="text-muted-foreground">
-                    {bid.durationDays} days
-                  </span>
+              <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>{bid.durationDays}d</span>
                 </div>
-
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-purple-500" />
-                  <span className="font-medium">Team Size:</span>
-                  <span className="text-muted-foreground">{bid.teamSize}</span>
+                <div className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  <span>{bid.teamSize}</span>
                 </div>
-
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-orange-500" />
-                  <span className="font-medium">Submitted:</span>
-                  <span className="text-muted-foreground">
-                    {formatDate(bid.createdAt)}
-                  </span>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  <span>{formatDate(bid.createdAt)}</span>
                 </div>
               </div>
 
-              <Separator className="my-3" />
-
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-foreground">
-                  Proposal
-                </h4>
-                <div className="bg-white rounded-lg p-4 border-l-4 border-l-primary/50">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {bid.proposal}
-                  </p>
-                </div>
+              <div className="bg-white rounded-md mt-4 p-3 border border-l-2 border-l-blue-500">
+                <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
+                  {bid.proposal}
+                </p>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {bids.length === 0 && (
-        <Card className="border-dashed border-2 border-muted-foreground/25">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="rounded-full bg-muted p-3 mb-4">
-              <IndianRupee className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="font-semibold text-lg mb-2">No bids yet</h3>
-            <p className="text-muted-foreground text-center max-w-sm">
-              When freelancers submit bids for your project, they'll appear
-              here.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+        );
+      })}
     </div>
   );
 };

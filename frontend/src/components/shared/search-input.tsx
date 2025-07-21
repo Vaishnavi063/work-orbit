@@ -5,7 +5,7 @@ import useDebounce from "@/hooks/use-debaunce";
 
 interface SearchInputProps {
   text: string;
-  fn: (searchText?: string) => void;
+  fn: (searchText: string) => void;
   placeholder: string;
   className?: string;
 }

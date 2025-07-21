@@ -4,11 +4,12 @@ import type { RequestType } from "@/types";
 import urls from "./urls";
 
 const apis = {
-  getProjects: ({ authToken }: RequestType) =>
+  getProjects: ({ authToken,params }: RequestType) =>
     request({
       method: "GET",
       url: urls.getProjects,
       authToken,
+      params
     }),
   getProjectDetails: ({ authToken, id }: { authToken: string; id: string }) =>
     request({

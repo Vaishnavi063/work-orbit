@@ -7,14 +7,21 @@ import {
   TrendingUp,
   Eye,
 } from "lucide-react";
+import { useState } from "react";
 import useGetFreelancerBids from "../hooks/use-freelancer-bids";
 import type { BidType } from "@/types";
 import { useMutation } from "react-query";
 import apis from "../apis";
 import { toast } from "sonner";
 import useAuth from "@/hooks/use-auth";
+import { FullscreenLoader } from "@/components/shared/full-screen-loader";
+import BidStatusFilter from "./bid-filter";
 
 const FreelancerBids = () => {
+  const [statusFilter, setStatusFilter] = useState<
+    "All" | "Accepted" | "Pending" | "Rejected"
+  >("All");
+
   const { freelancerBids, refetch, isLoading } = useGetFreelancerBids();
   const { user, authToken } = useAuth();
 
@@ -51,6 +58,15 @@ const FreelancerBids = () => {
     }
   };
 
+  const filteredBids =
+    statusFilter === "All"
+      ? freelancerBids
+      : freelancerBids?.filter((bid: any) => bid.status === statusFilter);
+
+  if (isLoading) {
+    return <FullscreenLoader lable="Bids Loading..." />;
+  }
+
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="mb-8">
@@ -67,28 +83,21 @@ const FreelancerBids = () => {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-6">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="h-52 rounded-2xl bg-white/60 animate-pulse"
-            />
-          ))}
-        </div>
-      ) : !freelancerBids || freelancerBids.length === 0 ? (
+      <BidStatusFilter selected={statusFilter} onChange={setStatusFilter} />
+
+      {!filteredBids || filteredBids.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mx-auto mb-4">
             <Eye className="w-8 h-8 text-slate-400" />
           </div>
           <p className="text-slate-500 text-lg">No bids found</p>
           <p className="text-slate-400 text-sm mt-1">
-            Start bidding on projects to see them here
+            Try selecting a different status filter
           </p>
         </div>
       ) : (
         <div className="grid gap-6">
-          {freelancerBids.map((bid: BidType) => {
+          {filteredBids.map((bid: BidType) => {
             const isPending = bid.status === "Pending";
             const isAccepted = bid.status === "Accepted";
             const daysLeft = Math.ceil(

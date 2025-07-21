@@ -53,22 +53,19 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectDTO> getAllProjects(String titleQuery) {
+    public List<ProjectDTO> getAllProjects(String query) {
         log.info("Fetching all projects");
         List<Project> projects;
-        if (titleQuery == null || titleQuery.trim().isEmpty()) {
+
+        if (query == null || query.trim().isEmpty()) {
             projects = projectRepository.findAll();
         } else {
-            projects = projectRepository.findByTitleContainingIgnoreCase(titleQuery.trim());
+            String trimmedQuery = query.trim();
+            projects = projectRepository.findByTitleContainingIgnoreCaseOrCategoryContainingIgnoreCase(trimmedQuery, trimmedQuery);
         }
 
-        List<ProjectDTO> dtoList = new ArrayList<>(projects.size());
-        for (Project project : projects) {
-            dtoList.add(toDTO(project));
-        }
-        return dtoList;
+        return projects.stream().map(this::toDTO).toList();
     }
-
     @Override
     public ProjectDTO getProjectById(Long id) {
         log.info("Fetching project by ID: {}", id);

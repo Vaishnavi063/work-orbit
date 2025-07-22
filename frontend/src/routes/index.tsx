@@ -19,6 +19,7 @@ import AppLayout from "../layout/app-layout";
 import ProjectDetails from "@/features/freelancer/components/project-details";
 import FreelancerBids from "@/features/freelancer/components/freelancer-bids";
 import ClientProjectsDashboard from "@/features/projects";
+import ProfileUpdate from "@/features/profile/update";
 import ContractsFeature from "@/features/contracts";
 import RevenueDetail from "@/features/wallet/freelancer";
 import { ClientWallet } from "@/features/wallet/client";
@@ -37,6 +38,7 @@ const router = createBrowserRouter(
       </Route>
       <Route path="dashboard" element={<DashboardLayout />}>
         <Route path="profile" element={<Profile />} />
+        <Route path="profile/update" element={<ProfileUpdate />} />
         <Route path="projects/*" element={<ClientProjectsDashboard />} />
         <Route path="contracts/*" element={<ContractsFeature />} />
         <Route path="browse-projects" element={<BrowseProjects />} />

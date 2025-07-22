@@ -100,7 +100,7 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[600px]">
+      <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -108,7 +108,7 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
   
   if (error) {
     return (
-      <div className="flex items-center justify-center h-[600px] text-destructive">
+      <div className="flex items-center justify-center h-full text-destructive">
         {error}
       </div>
     );
@@ -116,7 +116,7 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
   
   if (!contractDetails) {
     return (
-      <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+      <div className="flex items-center justify-center h-full text-muted-foreground">
         Contract details not available.
       </div>
     );

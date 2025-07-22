@@ -42,8 +42,8 @@ export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => 
   };
   
   return (
-    <Card className={className}>
-      <CardContent className="p-0 h-[600px] flex flex-col">
+    <Card className={`h-full flex flex-col ${className || ''}`}>
+      <CardContent className="p-0 flex flex-col h-full">
         {error && (
           <div className="bg-destructive/10 text-destructive text-sm p-2 text-center">
             {error}

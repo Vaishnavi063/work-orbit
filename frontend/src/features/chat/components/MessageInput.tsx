@@ -58,7 +58,7 @@ export const MessageInput = ({
   return (
     <form 
       onSubmit={handleSubmit} 
-      className="flex items-end gap-2 p-4 border-t bg-background"
+      className="flex items-end gap-2 p-4 border-t bg-background flex-shrink-0"
     >
       <Textarea
         ref={textareaRef}

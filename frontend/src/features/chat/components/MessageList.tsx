@@ -62,7 +62,7 @@ export const MessageList = ({ messages, isLoading, hasMore, onLoadMore }: Messag
   return (
     <div 
       ref={messagesContainerRef}
-      className="flex flex-col-reverse gap-3 overflow-y-auto p-4 h-[calc(100%-120px)]"
+      className="flex flex-col-reverse gap-3 overflow-y-auto p-4 flex-grow"
     >
       <div ref={messagesEndRef} />
       

@@ -141,7 +141,7 @@ export const BidNegotiationChat = ({ chatRoomId, className }: BidNegotiationChat
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[600px]">
+      <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -149,7 +149,7 @@ export const BidNegotiationChat = ({ chatRoomId, className }: BidNegotiationChat
   
   if (error) {
     return (
-      <div className="flex items-center justify-center h-[600px] text-destructive">
+      <div className="flex items-center justify-center h-full text-destructive">
         {error}
       </div>
     );
@@ -157,146 +157,134 @@ export const BidNegotiationChat = ({ chatRoomId, className }: BidNegotiationChat
   
   if (!bidDetails) {
     return (
-      <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+      <div className="flex items-center justify-center h-full text-muted-foreground">
         Bid details not available.
       </div>
     );
   }
   
   return (
-    <div className={cn("grid grid-cols-1 gap-4", className)}>
-      {/* Bid details card */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium">
-            Bid for: {bidDetails.projectTitle}
-          </CardTitle>
+    <div className={cn("flex flex-col h-full", className)}>
+      {/* Bid details card - compact version */}
+      <Card className="mb-2 flex-shrink-0">
+        <CardHeader className="py-2 px-4">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-base font-medium">
+              Bid for: {bidDetails.projectTitle}
+            </CardTitle>
+            <Badge variant="outline" className={getStatusColor(bidDetails.status)}>
+              {bidDetails.status}
+            </Badge>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className={getStatusColor(bidDetails.status)}>
-                  {bidDetails.status}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  Submitted on {formatDate(bidDetails.createdAt)}
-                </span>
+        <CardContent className="py-2 px-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs text-muted-foreground">
+              Submitted on {formatDate(bidDetails.createdAt)}
+            </span>
+            
+            {/* Bid action buttons */}
+            {(bidDetails.canAccept || bidDetails.canReject) && (
+              <div className="flex gap-2">
+                {bidDetails.canAccept && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        size="sm" 
+                        variant="default" 
+                        className="bg-green-600 hover:bg-green-700 h-7 text-xs"
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <>
+                            <CheckIcon className="h-3 w-3 mr-1" />
+                            Accept
+                          </>
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Accept this bid?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will create a contract with the freelancer and close the project to other bidders.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleAcceptBid}>Accept</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+                
+                {bidDetails.canReject && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        className="h-7 text-xs"
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <>
+                            <XIcon className="h-3 w-3 mr-1" />
+                            Reject
+                          </>
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Reject this bid?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. The freelancer will be notified that their bid was rejected.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleRejectBid}>Reject</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
-              
-              {/* Bid action buttons */}
-              {(bidDetails.canAccept || bidDetails.canReject) && (
-                <div className="flex gap-2">
-                  {bidDetails.canAccept && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="default" 
-                          className="bg-green-600 hover:bg-green-700"
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <CheckIcon className="h-4 w-4 mr-1" />
-                              Accept Bid
-                            </>
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Accept this bid?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will create a contract with the freelancer and close the project to other bidders.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleAcceptBid}>Accept</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                  
-                  {bidDetails.canReject && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <XIcon className="h-4 w-4 mr-1" />
-                              Reject Bid
-                            </>
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Reject this bid?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. The freelancer will be notified that their bid was rejected.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleRejectBid}>Reject</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </div>
-              )}
+            )}
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            <div className="flex items-center gap-1">
+              <DollarSignIcon className="h-3 w-3 text-muted-foreground" />
+              <span>${bidDetails.bidAmount.toFixed(2)}</span>
             </div>
             
-            {/* Bid details */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              <div className="flex items-center gap-2">
-                <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Bid Amount</div>
-                  <div className="text-lg">${bidDetails.bidAmount.toFixed(2)}</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Duration</div>
-                  <div className="text-lg">{bidDetails.durationDays} days</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Team Size</div>
-                  <div className="text-lg">{bidDetails.teamSize} {bidDetails.teamSize === 1 ? 'person' : 'people'}</div>
-                </div>
-              </div>
+            <div className="flex items-center gap-1">
+              <CalendarIcon className="h-3 w-3 text-muted-foreground" />
+              <span>{bidDetails.durationDays} days</span>
             </div>
             
-            {/* Proposal */}
-            <div className="pt-2">
-              <div className="text-sm font-medium mb-1">Proposal</div>
-              <div className="text-sm bg-muted p-3 rounded-md whitespace-pre-wrap">
-                {bidDetails.proposal}
-              </div>
+            <div className="flex items-center gap-1">
+              <UsersIcon className="h-3 w-3 text-muted-foreground" />
+              <span>{bidDetails.teamSize} {bidDetails.teamSize === 1 ? 'person' : 'people'}</span>
             </div>
+          </div>
+          
+          {/* Proposal - only show first line with ellipsis */}
+          <div className="mt-1 text-xs text-muted-foreground truncate">
+            {bidDetails.proposal.split('\n')[0]}
           </div>
         </CardContent>
       </Card>
       
-      {/* Chat interface */}
-      <ChatInterface chatRoomId={chatRoomId} />
+      {/* Chat interface - takes remaining height */}
+      <div className="flex-grow overflow-hidden">
+        <ChatInterface chatRoomId={chatRoomId} className="h-full" />
+      </div>
     </div>
   );
 }; 

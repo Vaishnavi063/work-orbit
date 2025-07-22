@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Loader2, CalendarIcon, DollarSignIcon, CheckCircleIcon } from 'lucide-react';
-import { format } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -83,14 +82,7 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
     fetchContractDetails();
   }, [chatRoomId, authToken]);
   
-  // Format date
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'MMM d, yyyy');
-    } catch (e) {
-      return dateString;
-    }
-  };
+  // Format date function removed as it's not used
   
   // Get status badge color
   const getStatusColor = (status: string) => {
@@ -131,85 +123,52 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
   }
   
   return (
-    <div className={cn("space-y-4", className)}>
-      {/* Contract details card */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium">
-            Contract: {contractDetails.projectTitle}
-          </CardTitle>
+    <div className={cn("flex flex-col h-full", className)}>
+      {/* Contract details card - compact version */}
+      <Card className="mb-2 flex-shrink-0">
+        <CardHeader className="py-2 px-4">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-base font-medium">
+              Contract: {contractDetails.projectTitle}
+            </CardTitle>
+            <Badge variant="outline" className={getStatusColor(contractDetails.contractStatus)}>
+              {contractDetails.contractStatus}
+            </Badge>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className={getStatusColor(contractDetails.contractStatus)}>
-                  {contractDetails.contractStatus}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  Created on {formatDate(contractDetails.createdAt)}
-                </span>
-              </div>
+        <CardContent className="py-2 px-4">
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            <div className="flex items-center gap-1">
+              <DollarSignIcon className="h-3 w-3 text-muted-foreground" />
+              <span>${contractDetails.contractAmount.toFixed(2)}</span>
             </div>
             
-            {/* Contract details */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              <div className="flex items-center gap-2">
-                <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Contract Amount</div>
-                  <div className="text-lg">${contractDetails.contractAmount.toFixed(2)}</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Duration</div>
-                  <div className="text-lg">{contractDetails.durationDays} days</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <CheckCircleIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Completion</div>
-                  <div className="flex items-center gap-2">
-                    <Progress value={completionPercentage} className="h-2 w-24" />
-                    <span className="text-sm">{Math.round(completionPercentage)}%</span>
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center gap-1">
+              <CalendarIcon className="h-3 w-3 text-muted-foreground" />
+              <span>{contractDetails.durationDays} days</span>
             </div>
             
-            {/* Parties */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div>
-                <div className="text-sm font-medium mb-1">Client</div>
-                <div className="text-sm">{contractDetails.clientName}</div>
-              </div>
-              
-              <div>
-                <div className="text-sm font-medium mb-1">Freelancer</div>
-                <div className="text-sm">{contractDetails.freelancerName}</div>
-              </div>
+            <div className="flex items-center gap-1">
+              <CheckCircleIcon className="h-3 w-3 text-muted-foreground" />
+              <Progress value={completionPercentage} className="h-2 w-12 inline-block mr-1" />
+              <span>{Math.round(completionPercentage)}%</span>
             </div>
           </div>
         </CardContent>
       </Card>
       
-      {/* Tabs for Chat and Milestones */}
-      <Tabs defaultValue="chat" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      {/* Tabs for Chat and Milestones - takes remaining height */}
+      <Tabs defaultValue="chat" className="flex-grow flex flex-col">
+        <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="chat" className="mt-2">
-          <ChatInterface chatRoomId={chatRoomId} />
+        <TabsContent value="chat" className="mt-2 flex-grow overflow-hidden">
+          <ChatInterface chatRoomId={chatRoomId} className="h-full" />
         </TabsContent>
         
-        <TabsContent value="milestones" className="mt-2">
+        <TabsContent value="milestones" className="mt-2 flex-grow overflow-auto">
           <MilestonePanel contractId={contractDetails.contractId} />
         </TabsContent>
       </Tabs>

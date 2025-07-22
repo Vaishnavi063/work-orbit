@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { chatApis } from './apis';
 import { ChatInterface } from './components';
+import { BidNegotiationChat } from './components/BidNegotiationChat';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import type { RootState } from '@/store';
 import type { ChatRoom } from '@/types';
@@ -28,7 +29,7 @@ export default function ChatPage() {
         
         // If no chatRoomId is provided, navigate to the first chat room
         if (!chatRoomId && response.data.data.length > 0) {
-          navigate(`/chat/${response.data.data[0].id}`);
+          navigate(`/dashboard/chats/${response.data.data[0].id}`);
         }
       } catch (err: any) {
         setError(err?.response?.data?.error?.message || 'Failed to load chat rooms');
@@ -39,6 +40,11 @@ export default function ChatPage() {
     
     loadChatRooms();
   }, [authToken, chatRoomId, navigate]);
+  
+  // Get the current chat room
+  const currentChatRoom = chatRoomId 
+    ? chatRooms.find(room => room.id === parseInt(chatRoomId, 10)) 
+    : null;
   
   if (isLoading) {
     return (
@@ -76,7 +82,7 @@ export default function ChatPage() {
             {chatRooms.map((room) => (
               <li key={room.id}>
                 <button
-                  onClick={() => navigate(`/chat/${room.id}`)}
+                  onClick={() => navigate(`/dashboard/chats/${room.id}`)}
                   className={`w-full px-4 py-3 text-left hover:bg-accent flex items-center justify-between ${
                     chatRoomId === room.id.toString() ? 'bg-accent' : ''
                   }`}
@@ -103,7 +109,11 @@ export default function ChatPage() {
       {/* Chat interface */}
       <div className="md:col-span-2">
         {chatRoomId ? (
-          <ChatInterface chatRoomId={parseInt(chatRoomId, 10)} />
+          currentChatRoom?.chatType === 'BID_NEGOTIATION' ? (
+            <BidNegotiationChat chatRoomId={parseInt(chatRoomId, 10)} />
+          ) : (
+            <ChatInterface chatRoomId={parseInt(chatRoomId, 10)} />
+          )
         ) : (
           <div className="flex items-center justify-center h-[600px] text-muted-foreground">
             Select a conversation to start chatting.

@@ -145,3 +145,40 @@ export interface ProfileData {
   skills: string[];
   pastWorks: PastWork[];
 }
+// Ably-related types
+export interface AblyTokenRequest {
+  channels: string[];
+}
+
+export interface AblyTokenResponse {
+  token: string;
+  expires: number;
+}
+
+export interface ChatMessage {
+  id: number;
+  chatRoomId: number;
+  senderType: 'CLIENT' | 'FREELANCER' | 'SYSTEM';
+  senderId?: number;
+  senderName: string;
+  content: string;
+  messageType: 'TEXT' | 'SYSTEM_NOTIFICATION' | 'BID_ACTION' | 'MILESTONE_UPDATE';
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface ChatRoom {
+  id: number;
+  chatType: 'BID_NEGOTIATION' | 'CONTRACT';
+  referenceId: number;
+  otherParty: {
+    id: number;
+    name: string;
+    type: 'CLIENT' | 'FREELANCER';
+  };
+  lastMessage?: ChatMessage;
+  unreadCount: number;
+  status: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  createdAt: string;
+  updatedAt: string;
+}

@@ -6,6 +6,7 @@ import ModeToggle from "./shared/mode-toggle";
 import AuthButtons from "./shared/auth-buttons";
 import ListComponent from "./shared/list-component";
 import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
+import { AblyConnectionStatus } from "./shared/ably-connection-status";
 
 export {
   SignInIcon,
@@ -15,5 +16,8 @@ export {
   AuthButtons,
   SiteFooter,
   SiteHeader,
-  ListComponent
+  ListComponent,
+  Logo,
+  LogoLink,
+  AblyConnectionStatus
 };

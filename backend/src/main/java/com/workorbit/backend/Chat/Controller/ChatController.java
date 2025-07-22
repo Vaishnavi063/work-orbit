@@ -3,6 +3,7 @@ package com.workorbit.backend.Chat.Controller;
 import com.workorbit.backend.Auth.DTO.AppUserDetails;
 import com.workorbit.backend.Auth.Entity.Role;
 import com.workorbit.backend.Chat.DTO.*;
+import com.workorbit.backend.Chat.Entity.ChatRoom;
 import com.workorbit.backend.Chat.Service.ChatService;
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.Service.bid.BidService;
@@ -19,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for managing chat operations including message sending,
@@ -174,6 +176,74 @@ public class ChatController {
             log.error("Error marking messages as read: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Failed to mark messages as read: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Creates or retrieves a chat room for bid negotiation.
+     * 
+     * @param request the bid chat room creation request
+     * @return the chat room response
+     */
+    @PostMapping("/rooms/bid")
+    public ResponseEntity<ApiResponse<ChatRoomResponse>> createBidChatRoom(
+            @RequestBody Map<String, Long> request) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            Long bidId = request.get("bidId");
+            if (bidId == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Bid ID is required"));
+            }
+            
+            ChatRoom chatRoom = chatService.createBidNegotiationChat(bidId);
+            ChatRoomResponse response = chatService.getChatRoomResponse(chatRoom, userDetails.getProfileId(), userType);
+            
+            log.info("Bid chat room created/retrieved for bid {} by user {}", bidId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(response));
+            
+        } catch (Exception e) {
+            log.error("Error creating bid chat room: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to create bid chat room: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Creates or retrieves a chat room for contract management.
+     * 
+     * @param request the contract chat room creation request
+     * @return the chat room response
+     */
+    @PostMapping("/rooms/contract")
+    public ResponseEntity<ApiResponse<ChatRoomResponse>> createContractChatRoom(
+            @RequestBody Map<String, Long> request) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            Long contractId = request.get("contractId");
+            if (contractId == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Contract ID is required"));
+            }
+            
+            ChatRoom chatRoom = chatService.createContractChat(contractId);
+            ChatRoomResponse response = chatService.getChatRoomResponse(chatRoom, userDetails.getProfileId(), userType);
+            
+            log.info("Contract chat room created/retrieved for contract {} by user {}", contractId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(response));
+            
+        } catch (Exception e) {
+            log.error("Error creating contract chat room: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to create contract chat room: " + e.getMessage()));
         }
     }
 

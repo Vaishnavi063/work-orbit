@@ -7,7 +7,7 @@ import { useAblyChat } from './use-ably-chat';
 
 interface UseChatNotificationsParams {
   onNewMessage?: (message: ChatMessage, chatRoomId: number) => void;
-  requestNotificationPermission?: boolean;
+  // requestNotificationPermission removed as notifications are disabled
 }
 
 interface UseChatNotificationsReturn {
@@ -17,22 +17,22 @@ interface UseChatNotificationsReturn {
   error: string | null;
   refreshChatRooms: () => Promise<void>;
   markAsRead: (chatRoomId: number) => Promise<void>;
-  notificationsEnabled: boolean;
-  requestPermission: () => Promise<boolean>;
+  notificationsEnabled: boolean; // Always false now
+  requestPermission: () => Promise<boolean>; // Always returns false
 }
 
 /**
  * Hook for managing chat notifications and unread message counts
  */
 export const useChatNotifications = ({
-  onNewMessage,
-  requestNotificationPermission = false
+  onNewMessage
 }: UseChatNotificationsParams = {}): UseChatNotificationsReturn => {
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(false);
+  // Notifications are always disabled
+  const notificationsEnabled = false;
   
   const authToken = useSelector((state: RootState) => state.auth?.authToken);
   const user = useSelector((state: RootState) => state.auth?.user);
@@ -46,62 +46,17 @@ export const useChatNotifications = ({
       if (message && message.chatRoomId && onNewMessage) {
         onNewMessage(message, message.chatRoomId);
         
-        // Show browser notification if enabled
-        if (notificationsEnabled && document.visibilityState === 'hidden') {
-          const notification = new Notification('New Message', {
-            body: `${message.senderName}: ${message.content}`,
-            icon: '/logo.png',
-            tag: `chat-${message.chatRoomId}`,
-          });
-          
-          // Close notification after 5 seconds
-          setTimeout(() => notification.close(), 5000);
-          
-          // Focus window when notification is clicked
-          notification.onclick = () => {
-            window.focus();
-            notification.close();
-          };
-        }
-        
         // Update unread count
         refreshChatRooms();
       }
     }
   });
   
-  // Check notification permission on mount
-  useEffect(() => {
-    const checkNotificationPermission = () => {
-      if (!('Notification' in window)) {
-        return;
-      }
-      
-      if (Notification.permission === 'granted') {
-        setNotificationsEnabled(true);
-      } else if (Notification.permission !== 'denied' && requestNotificationPermission) {
-        requestPermission();
-      }
-    };
-    
-    checkNotificationPermission();
-  }, [requestNotificationPermission]);
+  // Notification permissions are not needed as notifications are disabled
   
-  // Request notification permission
+  // Empty implementation of requestPermission that always returns false
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (!('Notification' in window)) {
-      return false;
-    }
-    
-    try {
-      const permission = await Notification.requestPermission();
-      const granted = permission === 'granted';
-      setNotificationsEnabled(granted);
-      return granted;
-    } catch (err) {
-      console.error('Error requesting notification permission:', err);
-      return false;
-    }
+    return false;
   }, []);
   
   // Load chat rooms and calculate unread count

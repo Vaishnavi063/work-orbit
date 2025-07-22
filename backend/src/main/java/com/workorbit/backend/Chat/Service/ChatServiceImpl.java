@@ -448,6 +448,12 @@ public class ChatServiceImpl implements ChatService {
         return response;
     }
 
+    @Override
+    public ChatRoomResponse getChatRoomResponse(ChatRoom chatRoom, Long userId, String userType) {
+        log.debug("Converting ChatRoom {} to response for user: {} ({})", chatRoom.getId(), userId, userType);
+        return mapToChatRoomResponse(chatRoom, userId, userType);
+    }
+
     /**
      * Gets the sender name for a chat message.
      */

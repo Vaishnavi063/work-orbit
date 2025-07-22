@@ -152,7 +152,8 @@ export interface AblyTokenRequest {
 
 export interface AblyTokenResponse {
   token: string;
-  expires: number;
+  expiresAt: number;
+  clientId: string;
 }
 
 export interface ChatMessage {

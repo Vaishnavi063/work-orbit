@@ -9,6 +9,7 @@ import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
 import { AblyConnectionIndicator } from "./shared/ably-connection-status";
 import type LogoLink from "./shared/logo-link";
 import type Logo from "./shared/logo";
+import { AblyConnectionStatus } from "./shared/ably-connection-status";
 
 export {
   SignInIcon,
@@ -19,7 +20,10 @@ export {
   SiteFooter,
   SiteHeader,
   ListComponent,
-  AblyConnectionIndicator
+  AblyConnectionIndicator,
+  Logo,
+  LogoLink,
+  AblyConnectionStatus
 };
 
 export type { Logo, LogoLink };

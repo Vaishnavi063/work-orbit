@@ -100,4 +100,40 @@ public interface ChatService {
      * @param notification the notification message
      */
     void sendSystemNotification(Long chatRoomId, String notification);
+    
+    /**
+     * Sends a system notification to a bid negotiation chat room.
+     * 
+     * @param bidId the ID of the bid
+     * @param notification the notification message
+     */
+    void sendBidSystemNotification(Long bidId, String notification);
+    
+    /**
+     * Transitions a bid negotiation chat to contract chat when bid is accepted.
+     * 
+     * @param bidId the ID of the accepted bid
+     * @param contractId the ID of the created contract
+     */
+    void transitionBidChatToContract(Long bidId, Long contractId);
+    
+    /**
+     * Gets bid details for a bid negotiation chat room.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @param userId the ID of the requesting user
+     * @param userType the type of user (CLIENT or FREELANCER)
+     * @return bid details response
+     */
+    BidDetailsResponse getBidDetailsForChat(Long chatRoomId, Long userId, String userType);
+    
+    /**
+     * Gets contract details for a contract chat room.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @param userId the ID of the requesting user
+     * @param userType the type of user (CLIENT or FREELANCER)
+     * @return contract details response
+     */
+    ContractDetailsResponse getContractDetailsForChat(Long chatRoomId, Long userId, String userType);
 }

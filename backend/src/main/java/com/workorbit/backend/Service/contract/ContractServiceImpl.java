@@ -15,6 +15,7 @@ import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Contract;
 import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.ContractRepository;
+import com.workorbit.backend.Chat.Service.ChatService;
 import lombok.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ public class ContractServiceImpl implements ContractService {
 
 	private final ContractRepository contractRepository;
 	private final WalletService walletService;
+	private final ChatService chatService;
 
 	@Override
 	public void createContract(Bids bid) {
@@ -47,6 +49,25 @@ public class ContractServiceImpl implements ContractService {
 
 	    Contract savedContract = contractRepository.save(contract);
 		log.info("Contract saved: {}", savedContract.getContractId());
+		
+		// Create contract chat room
+		try {
+		    chatService.createContractChat(savedContract.getContractId());
+		    log.info("Contract chat created for contract ID: {}", savedContract.getContractId());
+		} catch (Exception e) {
+		    log.error("Failed to create contract chat for contract ID: {}", savedContract.getContractId(), e);
+		    // Don't fail the contract creation if chat creation fails
+		}
+		
+		// Transition bid negotiation chat to contract
+		try {
+		    chatService.transitionBidChatToContract(bid.getId(), savedContract.getContractId());
+		    log.info("Bid chat transitioned to contract for bid: {} and contract: {}", bid.getId(), savedContract.getContractId());
+		} catch (Exception e) {
+		    log.error("Failed to transition bid chat to contract for bid: {} and contract: {}", bid.getId(), savedContract.getContractId(), e);
+		    // Don't fail the contract creation if chat transition fails
+		}
+		
         toDTO(savedContract);
     }
 	

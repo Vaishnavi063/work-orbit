@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -262,7 +263,7 @@ public class ChatServiceImpl implements ChatService {
         systemMessage.setSenderId(null);
         systemMessage.setContent(notification);
         systemMessage.setMessageType(ChatMessage.MessageType.SYSTEM_NOTIFICATION);
-        systemMessage.setIsRead(false);
+        systemMessage.setRead(false);
         
         ChatMessage savedMessage = chatMessageRepository.save(systemMessage);
         log.info("System notification saved with ID: {}", savedMessage.getId());
@@ -275,6 +276,120 @@ public class ChatServiceImpl implements ChatService {
         } catch (Exception e) {
             log.error("Failed to publish system notification to Ably", e);
         }
+    }
+    
+    @Override
+    @Transactional
+    public void sendBidSystemNotification(Long bidId, String notification) {
+        log.info("Sending system notification to bid negotiation chat for bid: {}", bidId);
+        
+        ChatRoom chatRoom = chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId)
+                .orElseThrow(() -> new RuntimeException("Bid negotiation chat room not found for bid ID: " + bidId));
+        
+        sendSystemNotification(chatRoom.getId(), notification);
+        
+        // If this is a rejection notification, mark the chat room as completed
+        if (notification.toLowerCase().contains("rejected")) {
+            chatRoom.setStatus(ChatRoom.ChatStatus.COMPLETED);
+            chatRoomRepository.save(chatRoom);
+            log.info("Bid negotiation chat {} marked as completed due to rejection", chatRoom.getId());
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void transitionBidChatToContract(Long bidId, Long contractId) {
+        log.info("Transitioning bid chat to contract for bid: {} and contract: {}", bidId, contractId);
+        
+        // Find the bid negotiation chat room
+        ChatRoom bidChatRoom = chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId)
+                .orElseThrow(() -> new RuntimeException("Bid negotiation chat room not found for bid ID: " + bidId));
+        
+        // Mark bid negotiation chat as completed
+        bidChatRoom.setStatus(ChatRoom.ChatStatus.COMPLETED);
+        chatRoomRepository.save(bidChatRoom);
+        
+        // Send transition notification to bid chat
+        sendSystemNotification(bidChatRoom.getId(), "This bid negotiation has been completed. A new contract chat has been created for project management.");
+        
+        log.info("Bid negotiation chat {} marked as completed and transition notification sent", bidChatRoom.getId());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public BidDetailsResponse getBidDetailsForChat(Long chatRoomId, Long userId, String userType) {
+        log.info("Getting bid details for chat room: {} by user: {} ({})", chatRoomId, userId, userType);
+        
+        // Find and validate chat room access
+        ChatRoom chatRoom = findChatRoomById(chatRoomId, userId, userType);
+        
+        // Validate that this is a bid negotiation chat
+        if (chatRoom.getChatType() != ChatRoom.ChatType.BID_NEGOTIATION) {
+            throw new RuntimeException("Chat room is not a bid negotiation chat");
+        }
+        
+        // Get bid details
+        Bids bid = bidRepository.findById(chatRoom.getReferenceId())
+                .orElseThrow(() -> new RuntimeException("Bid not found with ID: " + chatRoom.getReferenceId()));
+        
+        // Determine if user can accept/reject (only clients can, and only for pending bids)
+        boolean canAccept = "CLIENT".equals(userType) && 
+                           bid.getStatus() == Bids.bidStatus.Pending &&
+                           bid.getProject().getClient().getId().equals(userId);
+        boolean canReject = canAccept; // Same conditions for reject
+        
+        return BidDetailsResponse.builder()
+                .bidId(bid.getId())
+                .projectId(bid.getProject().getId())
+                .projectTitle(bid.getProject().getTitle())
+                .freelancerId(bid.getFreelancer().getId())
+                .freelancerName(bid.getFreelancer().getName())
+                .proposal(bid.getProposal())
+                .bidAmount(BigDecimal.valueOf(bid.getBidAmount()))
+                .durationDays((int) bid.getDurationDays())
+                .teamSize(bid.getTeamSize())
+                .status(bid.getStatus().toString())
+                .createdAt(bid.getCreatedAt())
+                .canAccept(canAccept)
+                .canReject(canReject)
+                .build();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public ContractDetailsResponse getContractDetailsForChat(Long chatRoomId, Long userId, String userType) {
+        log.info("Getting contract details for chat room: {} by user: {} ({})", chatRoomId, userId, userType);
+        
+        // Find and validate chat room access
+        ChatRoom chatRoom = findChatRoomById(chatRoomId, userId, userType);
+        
+        // Validate that this is a contract chat
+        if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
+            throw new RuntimeException("Chat room is not a contract chat");
+        }
+        
+        // Get contract details
+        Contract contract = contractRepository.findById(chatRoom.getReferenceId())
+                .orElseThrow(() -> new RuntimeException("Contract not found with ID: " + chatRoom.getReferenceId()));
+        
+        Bids bid = contract.getBid();
+        Project project = contract.getProject();
+        
+        return ContractDetailsResponse.builder()
+                .contractId(contract.getContractId())
+                .projectId(project.getId())
+                .projectTitle(project.getTitle())
+                .bidId(bid.getId())
+                .clientId(project.getClient().getId())
+                .clientName(project.getClient().getName())
+                .freelancerId(bid.getFreelancer().getId())
+                .freelancerName(bid.getFreelancer().getName())
+                .contractAmount(BigDecimal.valueOf(bid.getBidAmount()))
+                .durationDays((int) bid.getDurationDays())
+                .contractStatus(contract.getContractStatus().toString())
+                .createdAt(contract.getCreatedAt())
+                .updatedAt(contract.getUpdatedAt())
+                .build();
     }
 
     /**

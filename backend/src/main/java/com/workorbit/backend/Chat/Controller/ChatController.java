@@ -5,6 +5,7 @@ import com.workorbit.backend.Auth.Entity.Role;
 import com.workorbit.backend.Chat.DTO.*;
 import com.workorbit.backend.Chat.Service.ChatService;
 import com.workorbit.backend.DTO.ApiResponse;
+import com.workorbit.backend.Service.bid.BidService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final BidService bidService;
 
     /**
      * Sends a message in a chat room.
@@ -222,8 +224,8 @@ public class ChatController {
                     .body(ApiResponse.error("Only clients can accept bids"));
             }
             
-            // TODO: Implement bid acceptance logic in ChatService or delegate to BidService
-            // This will be implemented in task 9 when integrating with existing bid flows
+            // Delegate to BidService for bid acceptance
+            bidService.acceptBid(bidId, userDetails.getProfileId());
             
             log.info("Bid {} accepted by client {} through chat", bidId, userDetails.getProfileId());
             
@@ -255,8 +257,8 @@ public class ChatController {
                     .body(ApiResponse.error("Only clients can reject bids"));
             }
             
-            // TODO: Implement bid rejection logic in ChatService or delegate to BidService
-            // This will be implemented in task 9 when integrating with existing bid flows
+            // Delegate to BidService for bid rejection
+            bidService.rejectBid(bidId, userDetails.getProfileId());
             
             log.info("Bid {} rejected by client {} through chat", bidId, userDetails.getProfileId());
             
@@ -266,6 +268,62 @@ public class ChatController {
             log.error("Error rejecting bid: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Failed to reject bid: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Gets bid details for a bid negotiation chat room.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @return bid details response
+     */
+    @GetMapping("/rooms/{chatRoomId}/bid-details")
+    public ResponseEntity<ApiResponse<BidDetailsResponse>> getBidDetailsForChat(@PathVariable Long chatRoomId) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            BidDetailsResponse bidDetails = chatService.getBidDetailsForChat(
+                chatRoomId, userDetails.getProfileId(), userType);
+            
+            log.info("Retrieved bid details for chat room {} by user {}", 
+                chatRoomId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(bidDetails));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving bid details for chat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to retrieve bid details: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Gets contract details for a contract chat room.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @return contract details response
+     */
+    @GetMapping("/rooms/{chatRoomId}/contract-details")
+    public ResponseEntity<ApiResponse<ContractDetailsResponse>> getContractDetailsForChat(@PathVariable Long chatRoomId) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            ContractDetailsResponse contractDetails = chatService.getContractDetailsForChat(
+                chatRoomId, userDetails.getProfileId(), userType);
+            
+            log.info("Retrieved contract details for chat room {} by user {}", 
+                chatRoomId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(contractDetails));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving contract details for chat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to retrieve contract details: " + e.getMessage()));
         }
     }
 

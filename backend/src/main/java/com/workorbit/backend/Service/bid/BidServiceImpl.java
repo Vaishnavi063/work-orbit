@@ -10,6 +10,8 @@ import com.workorbit.backend.Entity.Project;
 import com.workorbit.backend.Repository.BidRepository;
 import com.workorbit.backend.Repository.FreelancerRepository;
 import com.workorbit.backend.Repository.ProjectRepository;
+import com.workorbit.backend.Chat.Service.ChatService;
+import com.workorbit.backend.Service.contract.ContractService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,8 @@ public class BidServiceImpl implements BidService {
     private final BidRepository bidRepo;
     private final FreelancerRepository freelancerRepo;
     private final ProjectRepository projectRepo;
+    private final ChatService chatService;
+    private final ContractService contractService;
 
     @Override
     public Bids placeBid(BidDTO dto) {
@@ -62,7 +66,18 @@ public class BidServiceImpl implements BidService {
         bid.setCreatedAt(LocalDateTime.now());
         log.info("Bid created: {}", bid.getId());
 
-        return bidRepo.save(bid);
+        Bids savedBid = bidRepo.save(bid);
+        
+        // Create bid negotiation chat room
+        try {
+            chatService.createBidNegotiationChat(savedBid.getId());
+            log.info("Bid negotiation chat created for bid ID: {}", savedBid.getId());
+        } catch (Exception e) {
+            log.error("Failed to create bid negotiation chat for bid ID: {}", savedBid.getId(), e);
+            // Don't fail the bid creation if chat creation fails
+        }
+
+        return savedBid;
     }
 
     @Override
@@ -100,6 +115,95 @@ public class BidServiceImpl implements BidService {
 
     private BidResponseDTO mapToDTO(Bids bid) {
         return getBidResponseDTO(bid);
+    }
+
+    @Override
+    public void acceptBid(Long bidId, Long clientId) {
+        log.info("Accepting bid ID: {} by client ID: {}", bidId, clientId);
+        
+        Bids bid = bidRepo.findById(bidId)
+                .orElseThrow(() -> new RuntimeException("Bid not found"));
+        
+        Project project = bid.getProject();
+        
+        // Validate that the client owns the project
+        if (!project.getClient().getId().equals(clientId)) {
+            log.error("Client {} is not authorized to accept bid for project {}", clientId, project.getId());
+            throw new RuntimeException("You are not authorized to accept this bid");
+        }
+        
+        // Validate bid status
+        if (bid.getStatus() != Bids.bidStatus.Pending) {
+            log.error("Bid {} is not in PENDING state", bidId);
+            throw new IllegalStateException("Only pending bids can be accepted");
+        }
+        
+        // Update project status to CLOSED
+        project.setStatus(Project.ProjectStatus.CLOSED);
+        projectRepo.save(project);
+        
+        // Update all bids for this project
+        List<Bids> allBids = bidRepo.findByProject_Id(project.getId());
+        for (Bids b : allBids) {
+            if (b.getId().equals(bidId)) {
+                b.setStatus(Bids.bidStatus.Accepted);
+            } else {
+                b.setStatus(Bids.bidStatus.Rejected);
+            }
+        }
+        bidRepo.saveAll(allBids);
+        
+        // Create contract for accepted bid
+        contractService.createContract(bid);
+        
+        // Send system notification to bid negotiation chat
+        try {
+            chatService.sendBidSystemNotification(bidId, "Bid has been accepted! A contract has been created.");
+            log.info("System notification sent for accepted bid: {}", bidId);
+        } catch (Exception e) {
+            log.error("Failed to send system notification for accepted bid: {}", bidId, e);
+        }
+        
+        // Transition bid chat to contract - we need to get the contract ID
+        // This will be handled after contract creation in ContractService
+        
+        log.info("Bid {} accepted successfully", bidId);
+    }
+    
+    @Override
+    public void rejectBid(Long bidId, Long clientId) {
+        log.info("Rejecting bid ID: {} by client ID: {}", bidId, clientId);
+        
+        Bids bid = bidRepo.findById(bidId)
+                .orElseThrow(() -> new RuntimeException("Bid not found"));
+        
+        Project project = bid.getProject();
+        
+        // Validate that the client owns the project
+        if (!project.getClient().getId().equals(clientId)) {
+            log.error("Client {} is not authorized to reject bid for project {}", clientId, project.getId());
+            throw new RuntimeException("You are not authorized to reject this bid");
+        }
+        
+        // Validate bid status
+        if (bid.getStatus() != Bids.bidStatus.Pending) {
+            log.error("Bid {} is not in PENDING state", bidId);
+            throw new IllegalStateException("Only pending bids can be rejected");
+        }
+        
+        // Update bid status
+        bid.setStatus(Bids.bidStatus.Rejected);
+        bidRepo.save(bid);
+        
+        // Send system notification to bid negotiation chat
+        try {
+            chatService.sendBidSystemNotification(bidId, "Bid has been rejected.");
+            log.info("System notification sent for rejected bid: {}", bidId);
+        } catch (Exception e) {
+            log.error("Failed to send system notification for rejected bid: {}", bidId, e);
+        }
+        
+        log.info("Bid {} rejected successfully", bidId);
     }
 
     @Override

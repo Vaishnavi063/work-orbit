@@ -19,6 +19,7 @@ public class Bids {
     @GeneratedValue
     private Long id;
 
+    @Column(nullable = false)
     private String proposal;
     @Column(nullable = false)
     private double bidAmount;

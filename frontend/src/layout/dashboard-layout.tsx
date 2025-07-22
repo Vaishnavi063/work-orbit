@@ -43,7 +43,7 @@ const Header = () => {
 
 const OutletComp = () => {
   return (
-    <div className="p-4 w-full">   
+    <div className="p-4 w-full">
       <Outlet />
     </div>
   );

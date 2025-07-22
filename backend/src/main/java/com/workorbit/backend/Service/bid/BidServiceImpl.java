@@ -2,6 +2,8 @@ package com.workorbit.backend.Service.bid;
 
 import com.workorbit.backend.DTO.BidDTO;
 import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.DTO.ClientDTO;
+import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Freelancer;
 import com.workorbit.backend.Entity.Project;
@@ -32,21 +34,16 @@ public class BidServiceImpl implements BidService {
         Freelancer freelancer = freelancerRepo.findById(dto.getFreelancerId())
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
 
-        // Fetch project
         Project project = projectRepo.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         log.info("Project found: {}", project.getTitle());
 
-
-        // ✅ Check project status
         if (project.getStatus() != Project.ProjectStatus.OPEN) {
             log.error("Project status is not OPEN");
             throw new IllegalStateException("Bids can only be placed on projects with status OPEN");
         }
         log.info("Project status is OPEN");
 
-
-        // ✅ Check if freelancer already placed a bid on this project
         boolean alreadyBid = bidRepo.existsByFreelancerIdAndProjectId(dto.getFreelancerId(), dto.getProjectId());
         if (alreadyBid) {
             log.error("Freelancer has already placed a bid on this project");
@@ -54,8 +51,6 @@ public class BidServiceImpl implements BidService {
         }
         log.info("Freelancer has not placed a bid on this project");
 
-
-        // Create and save bid
         Bids bid = new Bids();
         bid.setFreelancer(freelancer);
         bid.setProject(project);
@@ -69,7 +64,6 @@ public class BidServiceImpl implements BidService {
 
         return bidRepo.save(bid);
     }
-
 
     @Override
     public List<BidResponseDTO> getBidsByFreelancerId(Long freelancerId) {
@@ -104,7 +98,6 @@ public class BidServiceImpl implements BidService {
         log.info("Bid deleted: {}", bidId);
     }
 
-    // Helper method to map a Bid entity to a BidResponseDTO
     private BidResponseDTO mapToDTO(Bids bid) {
         return getBidResponseDTO(bid);
     }
@@ -113,8 +106,9 @@ public class BidServiceImpl implements BidService {
         BidResponseDTO dto = new BidResponseDTO();
         dto.setBidId(bid.getId());
         dto.setFreelancerId(bid.getFreelancer().getId());
-        dto.setProjectId(bid.getProject().getId());
+        // ✅ FIXED: Removed the problematic setProjectId line
         dto.setFreelancerName(bid.getFreelancer().getName());
+        dto.setProject(toProjectDTO(bid.getProject()));
         dto.setProposal(bid.getProposal());
         dto.setBidAmount(bid.getBidAmount());
         dto.setDurationDays(bid.getDurationDays());
@@ -122,5 +116,33 @@ public class BidServiceImpl implements BidService {
         dto.setStatus(bid.getStatus().toString());
         dto.setCreatedAt(bid.getCreatedAt());
         return dto;
+    }
+
+    private static ProjectDTO toProjectDTO(Project project) {
+        if (project == null) return null;
+
+        ClientDTO clientDTO = null;
+
+        if (project.getClient() != null && project.getClient().getAppUser() != null) {
+            clientDTO = new ClientDTO(
+                    project.getClient().getName(),
+                    project.getClient().getAppUser().getEmail(),
+                    null // prevent circular reference
+            );
+        }
+
+        return new ProjectDTO(
+                project.getId(),
+                project.getTitle(),
+                project.getDescription(),
+                project.getCategory(),
+                project.getDeadline(),
+                project.getBudget(),
+                project.getStatus(),
+                clientDTO,
+                project.getClient() != null ? project.getClient().getId() : null,
+                project.getCreatedAt(),
+                project.getUpdatedAt()
+        );
     }
 }

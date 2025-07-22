@@ -44,3 +44,39 @@ export interface ApiError {
     };
   };
 }
+
+export type ProjectStatus = "OPEN" | "CLOSED";
+
+export interface Project {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  budget: number;
+  status: ProjectStatus;
+  deadline: string; // ISO date string
+  // Add more fields as needed (e.g., skills, poster, etc.)
+}
+
+
+export interface InfoCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  className?: string;
+}
+
+export interface BidType {
+  bidId: string;
+  status: "Pending" | "Accepted" | "Rejected";
+  bidAmount: number;
+  durationDays: number;
+  teamSize: number;
+  proposal: string;
+  project: {
+    title: string;
+    category: string;
+    budget: number;
+    deadline: string; 
+  };
+}

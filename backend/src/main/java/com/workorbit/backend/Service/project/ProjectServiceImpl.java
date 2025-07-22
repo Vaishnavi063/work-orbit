@@ -1,6 +1,7 @@
 package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.DTO.ClientDTO;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Client;
@@ -18,7 +19,6 @@ import java.util.Optional;
 
 import static com.workorbit.backend.Service.bid.BidServiceImpl.getBidResponseDTO;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectDTO createProject(ProjectDTO dto) {
-
         log.info("Creating project: {}", dto.getTitle());
         Optional<Client> optionalClient = clientRepository.findById(dto.getClientId());
         if (optionalClient.isEmpty()) {
@@ -48,26 +47,25 @@ public class ProjectServiceImpl implements ProjectService {
         project.setClient(client);
         project.setCategory(dto.getCategory());
 
-
         Project saved = projectRepository.save(project);
         log.info("Project saved: {}", saved.getTitle());
         return toDTO(saved);
     }
 
     @Override
-    public List<ProjectDTO> getAllProjects() {
+    public List<ProjectDTO> getAllProjects(String query) {
         log.info("Fetching all projects");
-        List<Project> projects = projectRepository.findAll();
-        List<ProjectDTO> dtoList = new ArrayList<>();
+        List<Project> projects;
 
-        for (Project project : projects) {
-            dtoList.add(toDTO(project));
+        if (query == null || query.trim().isEmpty()) {
+            projects = projectRepository.findAll();
+        } else {
+            String trimmedQuery = query.trim();
+            projects = projectRepository.findByTitleContainingIgnoreCaseOrCategoryContainingIgnoreCase(trimmedQuery, trimmedQuery);
         }
 
-        return dtoList;
+        return projects.stream().map(this::toDTO).toList();
     }
-
-
     @Override
     public ProjectDTO getProjectById(Long id) {
         log.info("Fetching project by ID: {}", id);
@@ -193,6 +191,16 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private ProjectDTO toDTO(Project project) {
+        ClientDTO clientDTO = null;
+
+        if (project.getClient() != null && project.getClient().getAppUser() != null) {
+            clientDTO = new ClientDTO(
+                    project.getClient().getName(),
+                    project.getClient().getAppUser().getEmail(),
+                    null
+            );
+        }
+
         return new ProjectDTO(
                 project.getId(),
                 project.getTitle(),
@@ -201,6 +209,7 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getDeadline(),
                 project.getBudget(),
                 project.getStatus(),
+                clientDTO,
                 project.getClient() != null ? project.getClient().getId() : null,
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
@@ -209,6 +218,50 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private BidResponseDTO mapToDTO(Bids bid) {
-        return getBidResponseDTO(bid);
+        BidResponseDTO dto = new BidResponseDTO();
+        dto.setBidId(bid.getId());
+        dto.setFreelancerId(bid.getFreelancer().getId());
+
+        if (bid.getFreelancer() != null && bid.getFreelancer().getAppUser() != null) {
+            dto.setFreelancerName(bid.getFreelancer().getName());
+        }
+
+        dto.setProject(toProjectDTO(bid.getProject()));
+        dto.setProposal(bid.getProposal());
+        dto.setBidAmount(bid.getBidAmount());
+        dto.setDurationDays(bid.getDurationDays());
+        dto.setTeamSize(bid.getTeamSize());
+        dto.setStatus(bid.getStatus().toString());
+        dto.setCreatedAt(bid.getCreatedAt());
+        return dto;
+    }
+
+    private ProjectDTO toProjectDTO(Project project) {
+        if (project == null) return null;
+
+        ClientDTO clientDTO = null;
+
+        if (project.getClient() != null && project.getClient().getAppUser() != null) {
+            clientDTO = new ClientDTO(
+                    project.getClient().getName(),
+                    project.getClient().getAppUser().getEmail(),
+                    null // skip project list to avoid circular reference
+            );
+        }
+
+        return new ProjectDTO(
+                project.getId(),
+                project.getTitle(),
+                project.getDescription(),
+                project.getCategory(),
+                project.getDeadline(),
+                project.getBudget(),
+                project.getStatus(),
+                clientDTO,
+                project.getClient() != null ? project.getClient().getId() : null,
+                project.getCreatedAt(),        // ✅ ADD THIS LINE
+                project.getUpdatedAt(),        // ✅ ADD THIS LINE
+                project.getBids() != null ? project.getBids().size() : 0  // ✅ ADD THIS LINE
+        );
     }
 }

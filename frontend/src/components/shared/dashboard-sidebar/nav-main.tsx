@@ -1,11 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  MessageCircle,
-  FilePlus2,
-  Briefcase,
-  Users,
-  Handshake,
-} from "lucide-react";
+import { FilePlus2, Briefcase, Users, Handshake } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -20,7 +14,7 @@ export const navMain = [
   {
     id: 1,
     title: "Projects",
-    path: "/dashboard/projects",
+    path: "/dashboard/browse-projects",
     icon: Briefcase,
     role: "ROLE_FREELANCER",
   },
@@ -50,13 +44,6 @@ export const navMain = [
     title: "Contracts",
     path: "/dashboard/contracts",
     icon: Handshake,
-    role: "COMMON",
-  },
-  {
-    id: 6,
-    title: "Chats",
-    path: "/dashboard/chats",
-    icon: MessageCircle,
     role: "COMMON",
   },
 ];

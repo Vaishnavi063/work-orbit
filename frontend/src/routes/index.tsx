@@ -1,20 +1,23 @@
 import {
-    createBrowserRouter,
-    createRoutesFromElements,
-    Route,
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
 } from "react-router-dom";
 
+import Profile from "@/features/profile";
+import AuthLayout from "@/layout/auth-layout";
+import PageNotFound from "@/features/not-found";
 import SignInPage from "@/features/auth/sign-in";
 import SignUpPage from "@/features/auth/sign-up";
-import ForgotPasswordPage from "@/features/auth/forgot-password";
-import ResetPasswordPage from "@/features/auth/reset-password";
-import AuthLayout from "@/layout/auth-layout";
+import BrowseProjects from "@/features/freelancer";
 import DashboardLayout from "@/layout/dashboard-layout";
-import PageNotFound from "@/features/not-found";
+import ResetPasswordPage from "@/features/auth/reset-password";
+import ForgotPasswordPage from "@/features/auth/forgot-password";
 
 import HomePage from "../features/home";
 import AppLayout from "../layout/app-layout";
-import Profile from "@/features/profile";
+import ProjectDetails from "@/features/freelancer/components/project-details";
+import FreelancerBids from "@/features/freelancer/components/freelancer-bids";
 import ClientProjectsDashboard from "@/features/projects";
 
 const router = createBrowserRouter(
@@ -29,13 +32,16 @@ const router = createBrowserRouter(
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
       </Route>
-        <Route path="dashboard" element={<DashboardLayout />}>
+      <Route path="dashboard" element={<DashboardLayout />}>
         <Route path="profile" element={<Profile />} />
         <Route path="projects/*" element={<ClientProjectsDashboard />} />
+        <Route path="browse-projects" element={<BrowseProjects />} />
+        <Route path="bids" element={<FreelancerBids />} />
+        <Route path="browse-projects/:id" element={<ProjectDetails />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Route>
-    )
+  )
 );
 
 export default router;

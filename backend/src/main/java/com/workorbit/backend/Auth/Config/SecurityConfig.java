@@ -42,7 +42,7 @@ public class SecurityConfig {
                         // private endpoints
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/freelancer/**").hasRole("FREELANCER")
-                        .requestMatchers("/projects/**").hasAnyRole("CLIENT")
+                        .requestMatchers("/projects/**").hasAnyRole("CLIENT","FREELANCER")
                         .requestMatchers("/bids/**").hasRole("FREELANCER")
                         .requestMatchers("/api/contracts/**").hasAnyRole("CLIENT", "FREELANCER")
                         // public endpoints

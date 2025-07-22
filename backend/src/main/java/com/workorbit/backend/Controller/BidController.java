@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import com.workorbit.backend.DTO.ApiResponse;
 
@@ -20,7 +21,7 @@ public class BidController {
     private final BidService bidService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Bids>> placeBid(@RequestBody BidDTO dto) {
+    public ResponseEntity<ApiResponse<Bids>> placeBid(@Valid @RequestBody BidDTO dto) {
         return new ResponseEntity<>(ApiResponse.success(bidService.placeBid(dto)), HttpStatus.CREATED);
     }
 

@@ -67,7 +67,6 @@ public class FreelancerServiceImpl implements FreelancerService {
                 dto.setTitle(p.getTitle());
                 dto.setLink(p.getLink());
                 dto.setDescription(p.getDescription());
-                dto.setFreelancerId(p.getFreelancer() != null ? p.getFreelancer().getId() : null);
                 return dto;
             }).toList()
         );
@@ -85,21 +84,43 @@ public class FreelancerServiceImpl implements FreelancerService {
 
     @Override
     public FreelancerDTO updateFreelancerProfile(Long id, com.workorbit.backend.DTO.FreelancerUpdateDTO dto) {
+        log.info("Updating profile for freelancer ID: {}", id);
         Freelancer freelancer = freelancerRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Freelancer not found"));
+        log.info("Found freelancer: {}", freelancer.getName());
 
         // Update basic info
-        if (dto.getName() != null) freelancer.setName(dto.getName());
+        if (dto.getName() != null) {
+            log.info("Updating name to: {}", dto.getName());
+            freelancer.setName(dto.getName());
+        }
+        if (dto.getRating() != null) {
+            log.info("Updating rating to: {}", dto.getRating());
+            freelancer.setRating(dto.getRating());
+        }
         // Do NOT update email here, as email is required for login and should not be changed.
 
         // Update skills (many-to-many)
         if (dto.getSkills() != null) {
-            List<Skills> newSkills = skillRepo.findByNameIn(dto.getSkills());
-            freelancer.setFreelancerSkill(new java.util.HashSet<>(newSkills));
+            log.info("Updating skills. New skills: {}", dto.getSkills());
+            java.util.Set<Skills> newSkills = new java.util.HashSet<>();
+            for (String skillName : dto.getSkills()) {
+                Skills skill = skillRepo.findByNameIgnoreCase(skillName);
+                if (skill == null) {
+                    log.info("Creating new skill: {}", skillName);
+                    skill = new Skills();
+                    skill.setName(skillName);
+                    skill = skillRepo.save(skill);
+                }
+                newSkills.add(skill);
+            }
+            freelancer.setFreelancerSkill(newSkills);
+            log.info("Skills updated.");
         }
 
         // Update past works (one-to-many, modify collection in place)
         if (dto.getPastWorks() != null) {
+            log.info("Updating past works.");
             List<PastWork> currentPastWorks = freelancer.getPastWorks();
             if (currentPastWorks == null) {
                 currentPastWorks = new java.util.ArrayList<>();
@@ -111,11 +132,18 @@ public class FreelancerServiceImpl implements FreelancerService {
                 .map(com.workorbit.backend.DTO.PastWorkUpdateDTO::getId)
                 .collect(java.util.stream.Collectors.toSet());
             // Remove deleted past works
-            currentPastWorks.removeIf(pw -> pw.getId() != null && !updatedIds.contains(pw.getId()));
+            currentPastWorks.removeIf(pw -> {
+                boolean toRemove = pw.getId() != null && !updatedIds.contains(pw.getId());
+                if (toRemove) {
+                    log.info("Removing past work with ID: {}", pw.getId());
+                }
+                return toRemove;
+            });
             // Add new and update existing
             for (var pwDto : dto.getPastWorks()) {
                 if (pwDto.getId() == null && !Boolean.TRUE.equals(pwDto.getToDelete())) {
                     // New past work
+                    log.info("Adding new past work with title: {}", pwDto.getTitle());
                     PastWork pw = new PastWork();
                     pw.setTitle(pwDto.getTitle());
                     pw.setLink(pwDto.getLink());
@@ -127,6 +155,7 @@ public class FreelancerServiceImpl implements FreelancerService {
                     continue;
                 } else if (pwDto.getId() != null) {
                     // Update existing
+                    log.info("Updating past work with ID: {}", pwDto.getId());
                     PastWork pw = currentPastWorks.stream()
                         .filter(existing -> existing.getId().equals(pwDto.getId()))
                         .findFirst()
@@ -136,9 +165,11 @@ public class FreelancerServiceImpl implements FreelancerService {
                     pw.setDescription(pwDto.getDescription());
                 }
             }
+            log.info("Past works updated.");
         }
 
         Freelancer saved = freelancerRepo.save(freelancer);
+        log.info("Successfully saved updated profile for freelancer ID: {}", saved.getId());
         // Reuse getFreelancerProfile to build the response
         return getFreelancerProfile(saved.getId());
     }

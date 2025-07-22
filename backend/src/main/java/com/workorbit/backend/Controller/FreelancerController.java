@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/freelancers")
@@ -27,7 +28,7 @@ public class FreelancerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<FreelancerDTO>> updateFreelancer(@PathVariable Long id, @RequestBody FreelancerUpdateDTO dto) {
+    public ResponseEntity<ApiResponse<FreelancerDTO>> updateFreelancer(@PathVariable Long id, @Valid @RequestBody FreelancerUpdateDTO dto) {
         FreelancerDTO updated = freelancerService.updateFreelancerProfile(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updated));
     }

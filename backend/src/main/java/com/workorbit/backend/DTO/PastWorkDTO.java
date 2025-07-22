@@ -7,5 +7,4 @@ public class PastWorkDTO {
     private String title;
     private String link;
     private String description;
-    private Long freelancerId;
 }

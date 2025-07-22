@@ -7,6 +7,8 @@ import AuthButtons from "./shared/auth-buttons";
 import ListComponent from "./shared/list-component";
 import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
 import { AblyConnectionStatus } from "./shared/ably-connection-status";
+import type LogoLink from "./shared/logo-link";
+import type Logo from "./shared/logo";
 
 export {
   SignInIcon,
@@ -17,7 +19,7 @@ export {
   SiteFooter,
   SiteHeader,
   ListComponent,
-  Logo,
-  LogoLink,
   AblyConnectionStatus
 };
+
+export type { Logo, LogoLink };

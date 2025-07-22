@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.workorbit.backend.Entity.Client;
+import com.workorbit.backend.Entity.Freelancer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -89,9 +90,10 @@ public class ContractServiceImpl implements ContractService {
         Client client = project.getClient();
         String clientName = client != null ? client.getName() : "Unknown Client";
         Long clientId = client != null ? client.getId() : null;
-        Long freelancerId = contract.getBid() != null && contract.getBid().getFreelancer() != null 
-            ? contract.getBid().getFreelancer().getId() 
-            : null;
+        
+        Freelancer freelancer = contract.getBid() != null ? contract.getBid().getFreelancer() : null;
+        String freelancerName = freelancer != null ? freelancer.getName() : "Unknown Freelancer";
+        Long freelancerId = freelancer != null ? freelancer.getId() : null;
         
         return ContractResponse.builder()
                 .contractId(contract.getContractId())
@@ -100,6 +102,7 @@ public class ContractServiceImpl implements ContractService {
                 .clientId(clientId)
                 .freelancerId(freelancerId)
                 .clientName(clientName)
+                .freelancerName(freelancerName)
                 .bidId(contract.getBid().getId())
                 .contractStatus(contract.getContractStatus().name())
                 .createdAt(contract.getCreatedAt())

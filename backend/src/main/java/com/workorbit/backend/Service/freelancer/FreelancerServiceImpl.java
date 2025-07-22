@@ -118,54 +118,51 @@ public class FreelancerServiceImpl implements FreelancerService {
             log.info("Skills updated.");
         }
 
-        // Update past works (one-to-many, modify collection in place)
+        // Update past works (one-to-many)
         if (dto.getPastWorks() != null) {
-            log.info("Updating past works.");
-            List<PastWork> currentPastWorks = freelancer.getPastWorks();
-            if (currentPastWorks == null) {
-                currentPastWorks = new java.util.ArrayList<>();
-                freelancer.setPastWorks(currentPastWorks);
+            log.info("Updating past works by re-syncing the collection.");
+
+            // First, handle deletions explicitly based on the DTO
+            java.util.List<Long> idsToDelete = dto.getPastWorks().stream()
+                    .filter(pwDto -> pwDto.getId() != null && Boolean.TRUE.equals(pwDto.getToDelete()))
+                    .map(com.workorbit.backend.DTO.PastWorkUpdateDTO::getId)
+                    .toList();
+
+            if (!idsToDelete.isEmpty()) {
+                log.info("Deleting past works with IDs: {}", idsToDelete);
+                pastWorkRepo.deleteAllByIdInBatch(idsToDelete);
             }
-            // Build set of IDs to keep
-            java.util.Set<Long> updatedIds = dto.getPastWorks().stream()
-                .filter(pw -> pw.getId() != null && !Boolean.TRUE.equals(pw.getToDelete()))
-                .map(com.workorbit.backend.DTO.PastWorkUpdateDTO::getId)
-                .collect(java.util.stream.Collectors.toSet());
-            // Remove deleted past works
-            currentPastWorks.removeIf(pw -> {
-                boolean toRemove = pw.getId() != null && !updatedIds.contains(pw.getId());
-                if (toRemove) {
-                    log.info("Removing past work with ID: {}", pw.getId());
+
+            // Create a new list for the freelancer based on the DTO, excluding the deleted ones
+            java.util.List<PastWork> newPastWorksList = new java.util.ArrayList<>();
+            for (com.workorbit.backend.DTO.PastWorkUpdateDTO pwDto : dto.getPastWorks()) {
+                if (pwDto.getId() != null && idsToDelete.contains(pwDto.getId())) {
+                    continue; // Skip the ones we just deleted
                 }
-                return toRemove;
-            });
-            // Add new and update existing
-            for (var pwDto : dto.getPastWorks()) {
-                if (pwDto.getId() == null && !Boolean.TRUE.equals(pwDto.getToDelete())) {
-                    // New past work
-                    log.info("Adding new past work with title: {}", pwDto.getTitle());
-                    PastWork pw = new PastWork();
-                    pw.setTitle(pwDto.getTitle());
-                    pw.setLink(pwDto.getLink());
-                    pw.setDescription(pwDto.getDescription());
-                    pw.setFreelancer(freelancer);
-                    currentPastWorks.add(pw);
-                } else if (pwDto.getId() != null && Boolean.TRUE.equals(pwDto.getToDelete())) {
-                    // Already handled by removeIf above
-                    continue;
-                } else if (pwDto.getId() != null) {
+
+                PastWork pw;
+                if (pwDto.getId() != null) {
                     // Update existing
                     log.info("Updating past work with ID: {}", pwDto.getId());
-                    PastWork pw = currentPastWorks.stream()
-                        .filter(existing -> existing.getId().equals(pwDto.getId()))
-                        .findFirst()
-                        .orElseThrow();
-                    pw.setTitle(pwDto.getTitle());
-                    pw.setLink(pwDto.getLink());
-                    pw.setDescription(pwDto.getDescription());
+                    pw = pastWorkRepo.findById(pwDto.getId()).orElseThrow(() -> new RuntimeException("Past work to update not found"));
+                } else {
+                    // Add new
+                    log.info("Adding new past work with title: {}", pwDto.getTitle());
+                    pw = new PastWork();
                 }
+
+                pw.setTitle(pwDto.getTitle());
+                pw.setLink(pwDto.getLink());
+                pw.setDescription(pwDto.getDescription());
+                pw.setFreelancer(freelancer);
+                newPastWorksList.add(pw);
             }
-            log.info("Past works updated.");
+
+            // Clear the original collection and add all from the new list
+            freelancer.getPastWorks().clear();
+            freelancer.getPastWorks().addAll(newPastWorksList);
+
+            log.info("Past works re-synced.");
         }
 
         Freelancer saved = freelancerRepo.save(freelancer);

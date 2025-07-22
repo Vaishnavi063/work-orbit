@@ -30,4 +30,16 @@ public class ContractController {
 		return ResponseEntity.ok(contractService.getContractById(id));
 	}
 	
+	@PutMapping("/{id}")
+	public ResponseEntity<ApiResponse<ContractResponse>> updateContract(
+	        @PathVariable Long id,
+	        @RequestBody String contractStatus) {
+	    return ResponseEntity.ok(contractService.updateContract(id, contractStatus));
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<ApiResponse<String>> deleteContract(@PathVariable Long id) {
+	    return ResponseEntity.ok(contractService.deleteContract(id));
+	}
+	
 }

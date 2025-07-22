@@ -62,6 +62,27 @@ public class ContractServiceImpl implements ContractService {
 		return ApiResponse.success(toDTO(contract));
 	}
 	
+	@Override
+	public ApiResponse<ContractResponse> updateContract(Long id, String contractStatus) {
+	    Contract contract = contractRepository.findById(id)
+	        .orElseThrow(() -> new RuntimeException("Contract not found"));
+	    try {
+	        contract.setContractStatus(Contract.ContractStatus.valueOf(contractStatus));
+	    } catch (IllegalArgumentException e) {
+	        throw new RuntimeException("Invalid contract status");
+	    }
+	    Contract updated = contractRepository.save(contract);
+	    return ApiResponse.success(toDTO(updated));
+	}
+	
+	@Override
+	public ApiResponse<String> deleteContract(Long id) {
+	    Contract contract = contractRepository.findById(id)
+	        .orElseThrow(() -> new RuntimeException("Contract not found"));
+	    contractRepository.delete(contract);
+	    return ApiResponse.success("Contract deleted successfully");
+	}
+	
 	private ContractResponse toDTO(Contract contract) {
         return ContractResponse.builder()
                 .contractId(contract.getContractId())

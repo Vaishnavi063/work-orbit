@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import type { RootState } from "../index";
 import type { ApiResponse, Contract, ContractStatusUpdateRequest } from "@/features/contracts/types";
 import apis from "@/features/contracts/apis";
+import type { UserRoles } from "@/types";
 
 // Note: Removed incorrect import for "@/utils/error-handler"
 
@@ -187,7 +188,26 @@ const contractsSlice = createSlice({
 export const { clearCurrentContract, clearContractErrors } = contractsSlice.actions;
 
 // Selectors
-export const selectContracts = (state: RootState) => state.contracts.contracts;
+export const selectContracts = (state: RootState) => {
+  const { contracts } = state.contracts;
+  const currentUser = state.auth.user;
+  
+  if (!currentUser) {
+    return [];
+  }
+
+  return contracts.filter(contract => {
+    // For clients, check if clientId matches
+    if (currentUser.role === 'ROLE_CLIENT' && contract.clientId === currentUser.id) {
+      return true;
+    }
+    // For freelancers, check if freelancerId matches
+    if (currentUser.role === 'ROLE_FREELANCER' && contract.freelancerId === currentUser.id) {
+      return true;
+    }
+    return false;
+  });
+};
 export const selectCurrentContract = (state: RootState) => state.contracts.currentContract;
 export const selectContractsLoading = (state: RootState) => state.contracts.loading;
 export const selectContractsError = (state: RootState) => state.contracts.error;

@@ -13,10 +13,10 @@ import java.util.List;
 public interface MilestoneRepository extends JpaRepository<Milestone, Long> {
     
     // Find milestones by contract ID ordered by creation date
-    List<Milestone> findByContract_IdOrderByCreatedAtAsc(Long contractId);
+    List<Milestone> findByContract_ContractIdOrderByCreatedAtAsc(Long contractId);
     
     // Find milestones by contract ID and status
-    List<Milestone> findByContract_IdAndStatusOrderByCreatedAtAsc(Long contractId, Milestone.MilestoneStatus status);
+    List<Milestone> findByContract_ContractIdAndStatusOrderByCreatedAtAsc(Long contractId, Milestone.MilestoneStatus status);
     
     // Find milestones by status across all contracts
     List<Milestone> findByStatusOrderByDueDateAsc(Milestone.MilestoneStatus status);
@@ -37,20 +37,20 @@ public interface MilestoneRepository extends JpaRepository<Milestone, Long> {
                                            @Param("endDate") LocalDateTime endDate);
     
     // Find milestones for a specific contract with status filtering
-    List<Milestone> findByContract_IdAndStatusInOrderByCreatedAtAsc(Long contractId, List<Milestone.MilestoneStatus> statuses);
+    List<Milestone> findByContract_ContractIdAndStatusInOrderByCreatedAtAsc(Long contractId, List<Milestone.MilestoneStatus> statuses);
     
     // Count milestones by contract ID and status
-    Long countByContract_IdAndStatus(Long contractId, Milestone.MilestoneStatus status);
+    Long countByContract_ContractIdAndStatus(Long contractId, Milestone.MilestoneStatus status);
     
     // Count total milestones for a contract
-    Long countByContract_Id(Long contractId);
+    Long countByContract_ContractId(Long contractId);
     
     // Find pending milestones for a contract
-    List<Milestone> findByContract_IdAndStatusOrderByDueDateAsc(Long contractId, Milestone.MilestoneStatus status);
+    List<Milestone> findByContract_ContractIdAndStatusOrderByDueDateAsc(Long contractId, Milestone.MilestoneStatus status);
     
     // Find milestones by contract ID with due date filtering
     @Query("SELECT m FROM Milestone m WHERE " +
-           "m.contract.id = :contractId AND " +
+           "m.contract.contractId = :contractId AND " +
            "m.dueDate <= :dueDate " +
            "ORDER BY m.dueDate ASC")
     List<Milestone> findByContractIdAndDueDateBefore(@Param("contractId") Long contractId, 
@@ -60,7 +60,7 @@ public interface MilestoneRepository extends JpaRepository<Milestone, Long> {
     @Query("SELECT " +
            "CAST(COUNT(CASE WHEN m.status = 'COMPLETED' THEN 1 END) AS double) / " +
            "CAST(COUNT(m) AS double) * 100 " +
-           "FROM Milestone m WHERE m.contract.id = :contractId")
+           "FROM Milestone m WHERE m.contract.contractId = :contractId")
     Double getCompletionPercentageByContractId(@Param("contractId") Long contractId);
     
     // Find milestones that need status update (overdue but not marked as overdue)

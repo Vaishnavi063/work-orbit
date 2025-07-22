@@ -90,7 +90,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             throw new RuntimeException("Contract not found with ID: " + contractId);
         }
         
-        List<Milestone> milestones = milestoneRepository.findByContract_IdOrderByCreatedAtAsc(contractId);
+        List<Milestone> milestones = milestoneRepository.findByContract_ContractIdOrderByCreatedAtAsc(contractId);
         log.info("Found {} milestones for contract ID: {}", milestones.size(), contractId);
         
         return milestones.stream()
@@ -108,7 +108,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             throw new RuntimeException("Contract not found with ID: " + contractId);
         }
         
-        List<Milestone> milestones = milestoneRepository.findByContract_IdAndStatusOrderByCreatedAtAsc(contractId, status);
+        List<Milestone> milestones = milestoneRepository.findByContract_ContractIdAndStatusOrderByCreatedAtAsc(contractId, status);
         log.info("Found {} milestones with status {} for contract ID: {}", milestones.size(), status, contractId);
         
         return milestones.stream()

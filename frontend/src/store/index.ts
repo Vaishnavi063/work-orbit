@@ -10,11 +10,13 @@ import storage from "redux-persist/lib/storage";
 import authSlice from "./slices/auth-slice";
 import projectsSlice from "./slices/projects-slice";
 import contractsSlice from "./slices/contracts-slice";
+import chatSlice from "./slices/chat-slice";
 
 const rootReducer = combineReducers({
   auth: authSlice,
   projects: projectsSlice,
   contracts: contractsSlice,
+  chat: chatSlice,
 });
 
 const persistConfig = {

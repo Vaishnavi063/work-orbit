@@ -57,6 +57,7 @@ interface SortConfig {
 }
 import useGetWalletDetails from "@/features/wallet/client/hooks/use-get-wallet-details";
 import { toast } from "sonner";
+import { ChatButton } from "@/features/chat/components/ChatButton";
 
 interface BidListProps {
   bids: BidResponse[];
@@ -322,6 +323,12 @@ const BidCard: React.FC<BidCardProps> = ({
             <Eye className="w-4 h-4 text-green-700" />
             View Freelancer
           </Button>
+                    <ChatButton 
+                        bidId={bid.bidId}
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-foreground"
+                    />
         </div>
       </CardHeader>
 

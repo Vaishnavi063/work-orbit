@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import useAuth from "@/hooks/use-auth";
+import { ChatIndicator } from "@/features/chat/components";
 
 export const navMain = [
   {
@@ -92,7 +93,12 @@ const NavMain = () => {
                   pathname.includes(item.path) && "bg-gray-300 text-active"
                 )}
               >
-                <item.icon size={18} className="shrink-0" />
+                <div className="relative">
+                  <item.icon size={18} className="shrink-0" />
+                  {item.title === "Chats" && (
+                    <ChatIndicator className="absolute -top-2 -right-2" />
+                  )}
+                </div>
                 <span className={cn(!open && !isMobile && "hidden")}>
                   {item.title}
                 </span>

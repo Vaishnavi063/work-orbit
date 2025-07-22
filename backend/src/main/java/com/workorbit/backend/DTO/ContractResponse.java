@@ -8,6 +8,8 @@ public class ContractResponse {
 	private Long contractId;
 	private Long projectId;
 	private String projectName;
+	private Long clientId;
+	private Long freelancerId;
 	private String clientName;
 	private Long bidId;
 	private String contractStatus;

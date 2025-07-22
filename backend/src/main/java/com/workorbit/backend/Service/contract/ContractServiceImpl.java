@@ -3,6 +3,7 @@ package com.workorbit.backend.Service.contract;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.workorbit.backend.Entity.Client;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -85,12 +86,19 @@ public class ContractServiceImpl implements ContractService {
 	
 	private ContractResponse toDTO(Contract contract) {
         Project project = contract.getProject();
-        String clientName = project.getClient() != null ? project.getClient().getName() : "Unknown Client";
+        Client client = project.getClient();
+        String clientName = client != null ? client.getName() : "Unknown Client";
+        Long clientId = client != null ? client.getId() : null;
+        Long freelancerId = contract.getBid() != null && contract.getBid().getFreelancer() != null 
+            ? contract.getBid().getFreelancer().getId() 
+            : null;
         
         return ContractResponse.builder()
                 .contractId(contract.getContractId())
                 .projectId(project.getId())
                 .projectName(project.getTitle())
+                .clientId(clientId)
+                .freelancerId(freelancerId)
                 .clientName(clientName)
                 .bidId(contract.getBid().getId())
                 .contractStatus(contract.getContractStatus().name())

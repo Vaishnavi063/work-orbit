@@ -2,4 +2,6 @@ export * from './ChatInterface';
 export * from './MessageList';
 export * from './MessageInput';
 export * from './TypingIndicator';
-export * from './BidNegotiationChat'; 
+export * from './BidNegotiationChat';
+export * from './ContractChat';
+export * from './MilestonePanel'; 

@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { chatApis } from './apis';
 import { ChatInterface } from './components';
 import { BidNegotiationChat } from './components/BidNegotiationChat';
+import { ContractChat } from './components/ContractChat';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import type { RootState } from '@/store';
 import type { ChatRoom } from '@/types';
@@ -70,6 +71,28 @@ export default function ChatPage() {
     );
   }
   
+  // Determine which chat component to render based on chat type
+  const renderChatComponent = () => {
+    if (!chatRoomId) {
+      return (
+        <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+          Select a conversation to start chatting.
+        </div>
+      );
+    }
+    
+    const chatRoomIdNum = parseInt(chatRoomId, 10);
+    
+    switch (currentChatRoom?.chatType) {
+      case 'BID_NEGOTIATION':
+        return <BidNegotiationChat chatRoomId={chatRoomIdNum} />;
+      case 'CONTRACT':
+        return <ContractChat chatRoomId={chatRoomIdNum} />;
+      default:
+        return <ChatInterface chatRoomId={chatRoomIdNum} />;
+    }
+  };
+  
   return (
     <div className="container py-8 grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Chat rooms sidebar */}
@@ -92,6 +115,10 @@ export default function ChatPage() {
                     <div className="text-sm text-muted-foreground truncate max-w-[200px]">
                       {room.lastMessage?.content || 'No messages yet'}
                     </div>
+                    <div className="text-xs text-muted-foreground">
+                      {room.chatType === 'BID_NEGOTIATION' ? 'Bid Discussion' : 
+                       room.chatType === 'CONTRACT' ? 'Contract' : 'Chat'}
+                    </div>
                   </div>
                   
                   {room.unreadCount > 0 && (
@@ -108,17 +135,7 @@ export default function ChatPage() {
       
       {/* Chat interface */}
       <div className="md:col-span-2">
-        {chatRoomId ? (
-          currentChatRoom?.chatType === 'BID_NEGOTIATION' ? (
-            <BidNegotiationChat chatRoomId={parseInt(chatRoomId, 10)} />
-          ) : (
-            <ChatInterface chatRoomId={parseInt(chatRoomId, 10)} />
-          )
-        ) : (
-          <div className="flex items-center justify-center h-[600px] text-muted-foreground">
-            Select a conversation to start chatting.
-          </div>
-        )}
+        {renderChatComponent()}
       </div>
     </div>
   );

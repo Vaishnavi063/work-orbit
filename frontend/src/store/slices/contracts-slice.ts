@@ -1,17 +1,10 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { 
-  type Contract, 
-  type ApiResponse, 
-  ContractStatus,
-  type ContractStatusUpdateRequest
-} from "@/features/contracts/types";
-import contractApis from "@/features/contracts/apis";
 import type { RootState } from "../index";
-import { extractErrorMessage } from "@/utils/error-handler";
+import type { ApiResponse, Contract, ContractStatusUpdateRequest } from "@/features/contracts/types";
+import apis from "@/features/contracts/apis";
 
-/**
- * Contracts state interface
- */
+// Note: Removed incorrect import for "@/utils/error-handler"
+
 interface ContractsState {
   contracts: Contract[];
   currentContract: Contract | null;
@@ -29,9 +22,6 @@ interface ContractsState {
   };
 }
 
-/**
- * Initial state for contracts slice
- */
 const initialState: ContractsState = {
   contracts: [],
   currentContract: null,
@@ -49,141 +39,62 @@ const initialState: ContractsState = {
   },
 };
 
-/**
- * Async thunk to fetch all contracts
- */
 export const fetchContracts = createAsyncThunk(
   "contracts/fetchContracts",
   async (authToken: string, { rejectWithValue }) => {
     try {
-      const response = await contractApis.getContracts({ authToken });
-      
-      // Check if the API returned an error status
-      if (response.data.status === "error") {
-        return rejectWithValue(response.data.error || "Failed to fetch contracts");
-      }
-      
+      const response = await apis.getContracts({ authToken });
       return response.data as ApiResponse<Contract[]>;
-    } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error);
-      console.error("Error fetching contracts:", error);
-      return rejectWithValue(errorMessage);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || "Failed to fetch contracts");
     }
   }
 );
 
-/**
- * Async thunk to fetch a contract by ID
- */
 export const fetchContractById = createAsyncThunk(
-  "contracts/fetchContractById",
+  "contracts/fetchContractDetails",
   async ({ contractId, authToken }: { contractId: number; authToken: string }, { rejectWithValue }) => {
     try {
-      const response = await contractApis.getContractById({ 
-        params: { id: contractId }, 
-        authToken 
-      });
-      
-      // Check if the API returned an error status
-      if (response.data.status === "error") {
-        return rejectWithValue(response.data.error || "Failed to fetch contract details");
-      }
-      
+      const response = await apis.getContractById({ params: { id: contractId }, authToken });
       return response.data as ApiResponse<Contract>;
-    } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error);
-      console.error(`Error fetching contract ${contractId}:`, error);
-      return rejectWithValue(errorMessage);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || "Failed to fetch contract details");
     }
   }
 );
 
-/**
- * Async thunk to update a contract's status
- */
 export const updateContractStatus = createAsyncThunk(
   "contracts/updateContractStatus",
-  async ({ 
-    contractId, 
-    status, 
-    authToken 
-  }: { 
-    contractId: number; 
-    status: ContractStatus; 
-    authToken: string 
-  }, { rejectWithValue }) => {
+  async ({ contractId, data, authToken }: { contractId: number; data: ContractStatusUpdateRequest; authToken: string }, { rejectWithValue }) => {
     try {
-      // Validate input before making the API call
-      if (!contractId || !status || !authToken) {
-        return rejectWithValue("Missing required information to update contract status");
-      }
-      
-      const data: ContractStatusUpdateRequest = {
-        contractStatus: status
-      };
-      
-      const response = await contractApis.updateContractStatus({ 
-        params: { id: contractId }, 
-        data, 
-        authToken 
-      });
-      
-      // Check if the API returned an error status
-      if (response.data.status === "error") {
-        return rejectWithValue(response.data.error || "Failed to update contract status");
-      }
-      
+      const response = await apis.updateContractStatus({ params: { id: contractId }, data, authToken });
       return response.data as ApiResponse<Contract>;
-    } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error);
-      console.error(`Error updating contract ${contractId} status:`, error);
-      return rejectWithValue(errorMessage);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || "Failed to update contract status");
     }
   }
 );
 
-/**
- * Async thunk to delete a contract
- */
 export const deleteContract = createAsyncThunk(
   "contracts/deleteContract",
   async ({ contractId, authToken }: { contractId: number; authToken: string }, { rejectWithValue }) => {
     try {
-      // Validate input before making the API call
-      if (!contractId || !authToken) {
-        return rejectWithValue("Missing required information to delete contract");
-      }
-      
-      const response = await contractApis.deleteContract({ 
-        params: { id: contractId }, 
-        authToken 
-      });
-      
-      // Check if the API returned an error status
-      if (response.data.status === "error") {
-        return rejectWithValue(response.data.error || "Failed to delete contract");
-      }
-      
-      return { 
-        response: response.data as ApiResponse<void>,
-        contractId 
-      };
-    } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error);
-      console.error(`Error deleting contract ${contractId}:`, error);
-      return rejectWithValue(errorMessage);
+      await apis.deleteContract({ params: { id: contractId }, authToken });
+      return contractId; // Return ID for optimistic update
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || "Failed to delete contract");
     }
   }
 );
 
-/**
- * Contracts slice
- */
 const contractsSlice = createSlice({
   name: "contracts",
   initialState,
   reducers: {
-    clearContractErrors: (state) => {
+    clearCurrentContract(state) {
+      state.currentContract = null;
+    },
+    clearContractErrors(state) {
       state.error = {
         contracts: null,
         contractDetails: null,
@@ -191,34 +102,15 @@ const contractsSlice = createSlice({
         deleteContract: null,
       };
     },
-    clearCurrentContract: (state) => {
-      state.currentContract = null;
-    },
-    updateContractStatusOptimistic: (state, action: PayloadAction<{ contractId: number; status: ContractStatus }>) => {
-      const { contractId, status } = action.payload;
-      
-      // Update in contracts list
-      const contract = state.contracts.find(c => c.contractId === contractId);
-      if (contract) {
-        contract.contractStatus = status;
-        contract.updatedAt = new Date().toISOString();
-      }
-      
-      // Update current contract if it's the one being modified
-      if (state.currentContract && state.currentContract.contractId === contractId) {
-        state.currentContract.contractStatus = status;
-        state.currentContract.updatedAt = new Date().toISOString();
-      }
-    },
   },
   extraReducers: (builder) => {
-    // Fetch contracts reducers
     builder
+      // Fetch All Contracts
       .addCase(fetchContracts.pending, (state) => {
         state.loading.contracts = true;
         state.error.contracts = null;
       })
-      .addCase(fetchContracts.fulfilled, (state, action) => {
+      .addCase(fetchContracts.fulfilled, (state, action: PayloadAction<ApiResponse<Contract[]>>) => {
         state.loading.contracts = false;
         if (action.payload.status === "success" && action.payload.data) {
           state.contracts = action.payload.data;
@@ -229,15 +121,14 @@ const contractsSlice = createSlice({
       .addCase(fetchContracts.rejected, (state, action) => {
         state.loading.contracts = false;
         state.error.contracts = action.payload as string;
-      });
+      })
 
-    // Fetch contract by ID reducers
-    builder
+      // Fetch Contract Details
       .addCase(fetchContractById.pending, (state) => {
         state.loading.contractDetails = true;
         state.error.contractDetails = null;
       })
-      .addCase(fetchContractById.fulfilled, (state, action) => {
+      .addCase(fetchContractById.fulfilled, (state, action: PayloadAction<ApiResponse<Contract>>) => {
         state.loading.contractDetails = false;
         if (action.payload.status === "success" && action.payload.data) {
           state.currentContract = action.payload.data;
@@ -248,59 +139,43 @@ const contractsSlice = createSlice({
       .addCase(fetchContractById.rejected, (state, action) => {
         state.loading.contractDetails = false;
         state.error.contractDetails = action.payload as string;
-      });
+      })
 
-    // Update contract status reducers
-    builder
+      // Update Contract Status
       .addCase(updateContractStatus.pending, (state) => {
         state.loading.updateStatus = true;
         state.error.updateStatus = null;
       })
-      .addCase(updateContractStatus.fulfilled, (state, action) => {
+      .addCase(updateContractStatus.fulfilled, (state, action: PayloadAction<ApiResponse<Contract>>) => {
         state.loading.updateStatus = false;
-        if (action.payload.status === "success" && action.payload.data) {
-          // Update the contract in the contracts list
+        if (action.payload.status === 'success' && action.payload.data) {
           const updatedContract = action.payload.data;
+          // Update in the main list
           const index = state.contracts.findIndex(c => c.contractId === updatedContract.contractId);
-          
           if (index !== -1) {
             state.contracts[index] = updatedContract;
           }
-          
-          // Update current contract if it's the one being modified
-          if (state.currentContract && state.currentContract.contractId === updatedContract.contractId) {
+          // Update the current contract if it's the one being viewed
+          if (state.currentContract?.contractId === updatedContract.contractId) {
             state.currentContract = updatedContract;
           }
         } else {
-          state.error.updateStatus = action.payload.error || "Failed to update contract status";
+          state.error.updateStatus = action.payload.error || "Failed to update status";
         }
       })
       .addCase(updateContractStatus.rejected, (state, action) => {
         state.loading.updateStatus = false;
         state.error.updateStatus = action.payload as string;
-      });
+      })
 
-    // Delete contract reducers
-    builder
+      // Delete Contract
       .addCase(deleteContract.pending, (state) => {
         state.loading.deleteContract = true;
         state.error.deleteContract = null;
       })
-      .addCase(deleteContract.fulfilled, (state, action) => {
+      .addCase(deleteContract.fulfilled, (state, action: PayloadAction<number>) => {
         state.loading.deleteContract = false;
-        const { response, contractId } = action.payload;
-        
-        if (response.status === "success") {
-          // Remove the contract from the contracts list
-          state.contracts = state.contracts.filter(c => c.contractId !== contractId);
-          
-          // Clear current contract if it's the one being deleted
-          if (state.currentContract && state.currentContract.contractId === contractId) {
-            state.currentContract = null;
-          }
-        } else {
-          state.error.deleteContract = response.error || "Failed to delete contract";
-        }
+        state.contracts = state.contracts.filter(c => c.contractId !== action.payload);
       })
       .addCase(deleteContract.rejected, (state, action) => {
         state.loading.deleteContract = false;
@@ -309,12 +184,7 @@ const contractsSlice = createSlice({
   },
 });
 
-// Export actions
-export const { 
-  clearContractErrors, 
-  clearCurrentContract, 
-  updateContractStatusOptimistic 
-} = contractsSlice.actions;
+export const { clearCurrentContract, clearContractErrors } = contractsSlice.actions;
 
 // Selectors
 export const selectContracts = (state: RootState) => state.contracts.contracts;
@@ -322,22 +192,4 @@ export const selectCurrentContract = (state: RootState) => state.contracts.curre
 export const selectContractsLoading = (state: RootState) => state.contracts.loading;
 export const selectContractsError = (state: RootState) => state.contracts.error;
 
-// Filter selectors
-export const selectContractsByStatus = (status: ContractStatus | null) => (state: RootState) => {
-  if (status === null) {
-    return state.contracts.contracts; // Return all contracts
-  }
-  return state.contracts.contracts.filter(contract => contract.contractStatus === status);
-};
-
-export const selectInProgressContracts = (state: RootState) => 
-  state.contracts.contracts.filter(contract => contract.contractStatus === ContractStatus.IN_PROGRESS);
-
-export const selectCompletedContracts = (state: RootState) => 
-  state.contracts.contracts.filter(contract => contract.contractStatus === ContractStatus.COMPLETED);
-
-export const selectContractById = (contractId: number) => (state: RootState) =>
-  state.contracts.contracts.find(contract => contract.contractId === contractId);
-
-// Export reducer
 export default contractsSlice.reducer;

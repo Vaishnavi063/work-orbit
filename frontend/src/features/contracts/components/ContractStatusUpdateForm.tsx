@@ -151,7 +151,7 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
     
     const result = await dispatch(updateContractStatus({
       contractId: contract.contractId,
-      status: selectedStatus as ContractStatus,
+      data: { contractStatus: selectedStatus as ContractStatus },
       authToken
     }));
     

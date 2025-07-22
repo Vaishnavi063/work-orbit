@@ -2,17 +2,11 @@ import { useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Clock } from 'lucide-react';
 import type { ChatMessage } from '@/types';
 import type { RootState } from '@/store';
 
-// Add the OptimisticChatMessage interface
-interface OptimisticChatMessage extends ChatMessage {
-  isPending?: boolean;
-}
-
 interface MessageListProps {
-  messages: OptimisticChatMessage[];
+  messages: ChatMessage[];
   isLoading: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
@@ -68,7 +62,7 @@ export const MessageList = ({ messages, isLoading, hasMore, onLoadMore }: Messag
   return (
     <div 
       ref={messagesContainerRef}
-      className="flex flex-col-reverse gap-3 overflow-y-auto p-4 flex-grow"
+      className="flex flex-col-reverse gap-3 overflow-y-auto p-4 h-[calc(100%-120px)]"
     >
       <div ref={messagesEndRef} />
       
@@ -120,11 +114,7 @@ export const MessageList = ({ messages, isLoading, hasMore, onLoadMore }: Messag
                 {formatTime(message.createdAt)}
                 {isCurrentUser && (
                   <span className="ml-1">
-                    {message.isPending ? (
-                      <Clock className="inline h-3 w-3" />
-                    ) : (
-                      message.isRead ? "✓✓" : "✓"
-                    )}
+                    {message.isRead ? "✓✓" : "✓"}
                   </span>
                 )}
               </div>

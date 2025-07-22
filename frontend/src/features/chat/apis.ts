@@ -20,30 +20,6 @@ interface MarkAsReadParams {
 
 export const chatApis = {
   /**
-   * Create a chat room for a bid
-   */
-  createBidChatRoom: (bidId: number, authToken: string) => {
-    return request({
-      method: 'POST',
-      url: '/api/chat/rooms/bid',
-      data: { bidId },
-      authToken,
-    });
-  },
-  
-  /**
-   * Get or create a chat room for a contract
-   */
-  getContractChatRoom: (contractId: number, authToken: string) => {
-    return request({
-      method: 'POST',
-      url: '/api/chat/rooms/contract',
-      data: { contractId },
-      authToken,
-    });
-  },
-
-  /**
    * Get all chat rooms for the current user
    */
   getUserChatRooms: (authToken: string) => {

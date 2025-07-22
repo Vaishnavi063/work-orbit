@@ -3,21 +3,14 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { chatApis } from '@/features/chat/apis';
 import type { ChatMessage } from '@/types';
-import { ablyClientManager, AblyChannelUtils } from '@/lib/ably-client';
-
-// Add a custom property to ChatMessage for pending status
-interface OptimisticChatMessage extends ChatMessage {
-  isPending?: boolean;
-}
+import { ablyClientManager } from '@/lib/ably-client';
 
 interface UseChatParams {
   chatRoomId?: number;
-  chatType?: 'BID_NEGOTIATION' | 'CONTRACT';
-  referenceId?: number;
 }
 
 interface UseChatReturn {
-  messages: OptimisticChatMessage[];
+  messages: ChatMessage[];
   isLoading: boolean;
   error: string | null;
   sendMessage: (content: string) => Promise<void>;
@@ -26,19 +19,18 @@ interface UseChatReturn {
   loadMore: () => Promise<void>;
 }
 
-export const useChat = ({ chatRoomId, chatType, referenceId }: UseChatParams = {}): UseChatReturn => {
-  const [messages, setMessages] = useState<OptimisticChatMessage[]>([]);
+export const useChat = ({ chatRoomId }: UseChatParams = {}): UseChatReturn => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
   
   const authToken = useSelector((state: RootState) => state.auth?.authToken);
-  const user = useSelector((state: RootState) => state.auth?.user);
   
   // Load initial messages
   useEffect(() => {
-    if (!chatRoomId || !authToken || !chatType || !referenceId) return;
+    if (!chatRoomId || !authToken) return;
     
     const loadInitialMessages = async () => {
       setIsLoading(true);
@@ -68,9 +60,8 @@ export const useChat = ({ chatRoomId, chatType, referenceId }: UseChatParams = {
     
     loadInitialMessages();
     
-    // Subscribe to real-time updates using correct channel name
-    const channelName = AblyChannelUtils.createChannelName(chatType, referenceId);
-    const channel = ablyClientManager.getChannel(channelName);
+    // Subscribe to real-time updates
+    const channel = ablyClientManager.getChannel(`chat:${chatRoomId}`);
     if (channel) {
       const onMessage = (message: any) => {
         const newMessage = message.data as ChatMessage;
@@ -83,28 +74,11 @@ export const useChat = ({ chatRoomId, chatType, referenceId }: UseChatParams = {
         channel.unsubscribe('message', onMessage);
       };
     }
-  }, [chatRoomId, authToken, chatType, referenceId]);
+  }, [chatRoomId, authToken]);
   
   // Send a message
   const sendMessage = useCallback(async (content: string) => {
-    if (!chatRoomId || !authToken || !content.trim() || !user) return;
-    
-    const senderType = user.role === 'ROLE_CLIENT' ? 'CLIENT' : 'FREELANCER';
-    
-    const optimisticMessage: OptimisticChatMessage = {
-      id: -Date.now(),
-      chatRoomId: chatRoomId,
-      senderType: senderType,
-      senderId: user.id,
-      senderName: user.name || 'You',
-      content: content,
-      messageType: 'TEXT',
-      isRead: false,
-      isPending: true,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setMessages(prev => [optimisticMessage, ...prev]);
+    if (!chatRoomId || !authToken || !content.trim()) return;
     
     try {
       await chatApis.sendMessage({
@@ -112,10 +86,11 @@ export const useChat = ({ chatRoomId, chatType, referenceId }: UseChatParams = {
         content,
         authToken,
       });
+      // The message will be added via the real-time subscription
     } catch (err: any) {
       setError(err?.response?.data?.error?.message || 'Failed to send message');
     }
-  }, [chatRoomId, authToken, user]);
+  }, [chatRoomId, authToken]);
   
   // Mark messages as read
   const markAsRead = useCallback(async () => {

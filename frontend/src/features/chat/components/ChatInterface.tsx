@@ -8,12 +8,10 @@ import { TypingIndicator } from './TypingIndicator';
 
 interface ChatInterfaceProps {
   chatRoomId: number;
-  chatType: 'BID_NEGOTIATION' | 'CONTRACT';
-  referenceId: number;
   className?: string;
 }
 
-export const ChatInterface = ({ chatRoomId, chatType, referenceId, className }: ChatInterfaceProps) => {
+export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => {
   const { 
     messages, 
     isLoading, 
@@ -22,13 +20,13 @@ export const ChatInterface = ({ chatRoomId, chatType, referenceId, className }: 
     markAsRead, 
     hasMore, 
     loadMore 
-  } = useChat({ chatRoomId, chatType, referenceId });
+  } = useChat({ chatRoomId });
   
   const { 
     isTyping, 
     typingUser, 
     startTyping 
-  } = useTypingIndicator({ chatRoomId, chatType, referenceId });
+  } = useTypingIndicator({ chatRoomId });
   
   // Mark messages as read when chat is opened
   useEffect(() => {
@@ -44,8 +42,8 @@ export const ChatInterface = ({ chatRoomId, chatType, referenceId, className }: 
   };
   
   return (
-    <Card className={`h-full flex flex-col ${className || ''}`}>
-      <CardContent className="p-0 flex flex-col h-full">
+    <Card className={className}>
+      <CardContent className="p-0 h-[600px] flex flex-col">
         {error && (
           <div className="bg-destructive/10 text-destructive text-sm p-2 text-center">
             {error}

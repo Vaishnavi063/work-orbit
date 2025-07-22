@@ -8,25 +8,27 @@ import io.ably.lib.rest.Channel;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.rest.Auth.TokenDetails;
 import io.ably.lib.rest.Auth.TokenParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.ably.lib.rest.Auth.AuthOptions;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 
 /**
  * Service class for managing Ably real-time messaging operations.
  * Handles token generation, message publishing, and channel management.
  */
 @Service
+@Slf4j
 public class AblyService {
-
-    private static final Logger logger = LoggerFactory.getLogger(AblyService.class);
     
     private final AblyRest ablyRest;
     private final AblyConfig ablyConfig;
+    private final Gson gson = new Gson();
     
     // Channel naming constants
     private static final String BID_CHANNEL_PREFIX = "bid-chat:";
@@ -48,30 +50,33 @@ public class AblyService {
      * @throws AblyException if token generation fails
      */
     public TokenDetails generateAblyToken(String userId, String[] channels) throws AblyException {
-        logger.debug("Generating Ably token for user: {} with channels: {}", userId, String.join(", ", channels));
+        log.debug("Generating Ably token for user: {}", userId);
         
-        try {
-            TokenParams tokenParams = new TokenParams();
-            tokenParams.clientId = userId;
-            tokenParams.ttl = ablyConfig.getTokenTtl() * 1000L; // Convert to milliseconds
-            
-            // Set channel-specific capabilities
-            Map<String, String> capabilities = new HashMap<>();
+        // Create token parameters
+        TokenParams tokenParams = new TokenParams();
+        tokenParams.clientId = userId;
+        tokenParams.ttl = ablyConfig.getTokenTtl() * 1000L; // Convert to milliseconds
+        
+        // Set channel-specific capabilities
+        Map<String, Object> capabilities = new HashMap<>();
+        
+        // If channels array is empty or contains "*", grant access to all channels
+        if (channels == null || channels.length == 0 || Arrays.asList(channels).contains("*")) {
+            capabilities.put("*", new String[]{"publish", "subscribe", "presence"});
+        } else {
             for (String channel : channels) {
-                capabilities.put(channel, "publish,subscribe,presence");
+                capabilities.put(channel, new String[]{"publish", "subscribe", "presence"});
                 // Also grant access to typing indicator channel
-                capabilities.put(channel + TYPING_SUFFIX, "publish,subscribe,presence");
+                capabilities.put(channel + TYPING_SUFFIX, new String[]{"publish", "subscribe", "presence"});
             }
-            tokenParams.capability = capabilities.toString();
-            
-            TokenDetails tokenDetails = ablyRest.auth.requestToken(tokenParams, null);
-            logger.info("Successfully generated Ably token for user: {}", userId);
-            return tokenDetails;
-            
-        } catch (AblyException e) {
-            logger.error("Failed to generate Ably token for user: {}", userId, e);
-            throw new AblyServiceException("Failed to generate authentication token", e);
         }
+        
+        // Convert capabilities to proper JSON format
+        tokenParams.capability = gson.toJson(capabilities);
+        
+        // For JWT tokens, we need to use the existing AblyRest instance
+        // which was already configured with the JWT token
+        return ablyRest.auth.authorize(tokenParams, null);
     }
     
     /**
@@ -81,19 +86,12 @@ public class AblyService {
      * @param message the chat message to publish
      */
     public void publishMessage(String channelName, ChatMessage message) {
-        logger.debug("Publishing message to channel: {}", channelName);
-        
         try {
             Channel channel = ablyRest.channels.get(channelName);
-            
-            // Create message data for Ably
-            Map<String, Object> messageData = createMessageData(message);
-            
-            channel.publish("message", messageData);
-            logger.info("Successfully published message to channel: {}", channelName);
-            
+            channel.publish("message", createMessageData(message));
+            log.debug("Published message to channel: {}", channelName);
         } catch (AblyException e) {
-            logger.error("Failed to publish message to channel: {}", channelName, e);
+            log.error("Failed to publish message to channel: {}", channelName, e);
             throw new AblyServiceException("Failed to publish message to real-time channel", e);
         }
     }
@@ -105,8 +103,6 @@ public class AblyService {
      * @param notification the notification message
      */
     public void publishSystemNotification(String channelName, String notification) {
-        logger.debug("Publishing system notification to channel: {}", channelName);
-        
         try {
             Channel channel = ablyRest.channels.get(channelName);
             
@@ -116,10 +112,9 @@ public class AblyService {
             notificationData.put("timestamp", System.currentTimeMillis());
             
             channel.publish("system", notificationData);
-            logger.info("Successfully published system notification to channel: {}", channelName);
-            
+            log.debug("Published system notification to channel: {}", channelName);
         } catch (AblyException e) {
-            logger.error("Failed to publish system notification to channel: {}", channelName, e);
+            log.error("Failed to publish system notification to channel: {}", channelName, e);
             throw new AblyServiceException("Failed to publish system notification", e);
         }
     }
@@ -132,16 +127,10 @@ public class AblyService {
      * @return formatted channel name
      */
     public String createChannelName(ChatType chatType, Long referenceId) {
-        String channelName;
-        
-        channelName = switch (chatType) {
+        return switch (chatType) {
             case BID_NEGOTIATION -> BID_CHANNEL_PREFIX + referenceId;
             case CONTRACT -> CONTRACT_CHANNEL_PREFIX + referenceId;
         };
-        
-        logger.debug("Created channel name: {} for type: {} and reference ID: {}", 
-                    channelName, chatType, referenceId);
-        return channelName;
     }
     
     /**
@@ -163,7 +152,6 @@ public class AblyService {
      */
     public void publishTypingIndicator(String channelName, String userId, boolean isTyping) {
         String typingChannelName = createTypingChannelName(channelName);
-        logger.debug("Publishing typing indicator for user: {} on channel: {}", userId, typingChannelName);
         
         try {
             Channel channel = ablyRest.channels.get(typingChannelName);
@@ -174,11 +162,9 @@ public class AblyService {
             typingData.put("timestamp", System.currentTimeMillis());
             
             channel.publish("typing", typingData);
-            logger.debug("Successfully published typing indicator for user: {}", userId);
-            
+            log.debug("Published typing indicator for user: {} on channel: {}", userId, typingChannelName);
         } catch (AblyException e) {
-            logger.error("Failed to publish typing indicator for user: {} on channel: {}", 
-                        userId, typingChannelName, e);
+            log.error("Failed to publish typing indicator for user: {} on channel: {}", userId, typingChannelName, e);
             throw new AblyServiceException("Failed to publish typing indicator", e);
         }
     }

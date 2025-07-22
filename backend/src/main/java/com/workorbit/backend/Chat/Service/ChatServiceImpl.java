@@ -1,0 +1,362 @@
+package com.workorbit.backend.Chat.Service;
+
+import com.workorbit.backend.Chat.DTO.*;
+import com.workorbit.backend.Chat.Entity.ChatMessage;
+import com.workorbit.backend.Chat.Entity.ChatRoom;
+import com.workorbit.backend.Chat.Repository.ChatMessageRepository;
+import com.workorbit.backend.Chat.Repository.ChatRoomRepository;
+import com.workorbit.backend.Entity.*;
+import com.workorbit.backend.Repository.*;
+import io.ably.lib.types.AblyException;
+import io.ably.lib.rest.Auth.TokenDetails;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Implementation of ChatService for managing chat operations including room creation,
+ * message handling, and real-time communication integration.
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ChatServiceImpl implements ChatService {
+
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final BidRepository bidRepository;
+    private final ContractRepository contractRepository;
+    private final ClientRepository clientRepository;
+    private final FreelancerRepository freelancerRepository;
+    private final AblyService ablyService;
+
+    @Transactional
+    @Override
+    public ChatRoom createBidNegotiationChat(Long bidId) {
+        log.info("Creating bid negotiation chat for bid ID: {}", bidId);
+        
+        // Check if chat room already exists
+        if (chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId).isPresent()) {
+            log.info("Bid negotiation chat already exists for bid ID: {}", bidId);
+            return chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId).get();
+        }
+        
+        // Fetch bid to get client and freelancer information
+        Bids bid = bidRepository.findById(bidId)
+                .orElseThrow(() -> new RuntimeException("Bid not found with ID: " + bidId));
+        
+        log.info("Creating chat room for bid between client: {} and freelancer: {}", 
+                bid.getProject().getClient().getName(), bid.getFreelancer().getName());
+        
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setChatType(ChatRoom.ChatType.BID_NEGOTIATION);
+        chatRoom.setReferenceId(bidId);
+        chatRoom.setClient(bid.getProject().getClient());
+        chatRoom.setFreelancer(bid.getFreelancer());
+        chatRoom.setStatus(ChatRoom.ChatStatus.ACTIVE);
+        
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        log.info("Successfully created bid negotiation chat room with ID: {}", savedChatRoom.getId());
+        
+        // Send welcome system message
+        sendSystemNotification(savedChatRoom.getId(), 
+                "Chat created for bid negotiation. You can now discuss project details.");
+        
+        return savedChatRoom;
+    }
+
+    @Override
+    @Transactional
+    public ChatRoom createContractChat(Long contractId) {
+        log.info("Creating contract chat for contract ID: {}", contractId);
+        
+        // Check if chat room already exists
+        if (chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.CONTRACT, contractId).isPresent()) {
+            log.info("Contract chat already exists for contract ID: {}", contractId);
+            return chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.CONTRACT, contractId).get();
+        }
+        
+        // Fetch contract to get client and freelancer information through bid and project relationships
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new RuntimeException("Contract not found with ID: " + contractId));
+        
+        Client client = contract.getBid().getProject().getClient();
+        Freelancer freelancer = contract.getBid().getFreelancer();
+        
+        log.info("Creating contract chat between client: {} and freelancer: {}", 
+                client.getName(), freelancer.getName());
+        
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setChatType(ChatRoom.ChatType.CONTRACT);
+        chatRoom.setReferenceId(contractId);
+        chatRoom.setClient(client);
+        chatRoom.setFreelancer(freelancer);
+        chatRoom.setStatus(ChatRoom.ChatStatus.ACTIVE);
+        
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        log.info("Successfully created contract chat room with ID: {}", savedChatRoom.getId());
+        
+        // Send welcome system message
+        sendSystemNotification(savedChatRoom.getId(), 
+                "Contract chat created. You can now manage milestones and track project progress.");
+        
+        return savedChatRoom;
+    }
+
+    @Override
+    @Transactional
+    public ChatMessageResponse sendMessage(ChatMessageRequest request, Long userId, String userType) {
+        log.info("Sending message to chat room: {} from user: {} ({})", 
+                request.getChatRoomId(), userId, userType);
+        
+        // Validate chat room access
+        ChatRoom chatRoom = findChatRoomById(request.getChatRoomId(), userId, userType);
+        
+        // Create and save message
+        ChatMessage message = new ChatMessage();
+        message.setChatRoom(chatRoom);
+        message.setSenderType(ChatMessage.SenderType.valueOf(userType));
+        message.setSenderId(userId);
+        message.setContent(request.getContent());
+        message.setMessageType(request.getMessageType());
+        message.setRead(false);
+        
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+        log.info("Message saved with ID: {}", savedMessage.getId());
+        
+        // Update chat room's updated timestamp
+        chatRoom.setUpdatedAt(LocalDateTime.now());
+        chatRoomRepository.save(chatRoom);
+        
+        // Publish message to Ably for real-time delivery
+        try {
+            String channelName = ablyService.createChannelName(chatRoom.getChatType(), chatRoom.getReferenceId());
+            ablyService.publishMessage(channelName, savedMessage);
+            log.info("Message published to Ably channel: {}", channelName);
+        } catch (Exception e) {
+            log.error("Failed to publish message to Ably", e);
+            // Don't fail the entire operation if Ably publishing fails
+        }
+        
+        return mapToMessageResponse(savedMessage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ChatMessageResponse> getChatHistory(Long chatRoomId, Pageable pageable, Long userId, String userType) {
+        log.info("Retrieving chat history for room: {} by user: {} ({})", chatRoomId, userId, userType);
+        
+        // Validate chat room access
+        findChatRoomById(chatRoomId, userId, userType);
+        
+        Page<ChatMessage> messages = chatMessageRepository.findByChatRoom_IdOrderByCreatedAtDesc(chatRoomId, pageable);
+        log.info("Retrieved {} messages for chat room: {}", messages.getContent().size(), chatRoomId);
+        
+        return messages.map(this::mapToMessageResponse);
+    }
+
+    @Override
+    @Transactional
+    public int markMessagesAsRead(Long chatRoomId, Long userId, String userType) {
+        log.info("Marking messages as read for chat room: {} by user: {} ({})", chatRoomId, userId, userType);
+        
+        // Validate chat room access
+        findChatRoomById(chatRoomId, userId, userType);
+        
+        int markedCount = chatMessageRepository.markMessagesAsReadForUser(chatRoomId, userType);
+        log.info("Marked {} messages as read in chat room: {}", markedCount, chatRoomId);
+        
+        return markedCount;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatRoomResponse> getUserChatRooms(Long userId, String userType) {
+        log.info("Retrieving chat rooms for user: {} ({})", userId, userType);
+        
+        List<ChatRoom> chatRooms = chatRoomRepository.findUserChatRooms(userId, userType);
+        log.info("Found {} chat rooms for user: {}", chatRooms.size(), userId);
+        
+        return chatRooms.stream()
+                .map(chatRoom -> mapToChatRoomResponse(chatRoom, userId, userType))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatRoomResponse> getActiveChatRooms(Long userId, String userType) {
+        log.info("Retrieving active chat rooms for user: {} ({})", userId, userType);
+        
+        List<ChatRoom> activeChatRooms = chatRoomRepository.findActiveChatRoomsForUser(userId, userType);
+        log.info("Found {} active chat rooms for user: {}", activeChatRooms.size(), userId);
+        
+        return activeChatRooms.stream()
+                .map(chatRoom -> mapToChatRoomResponse(chatRoom, userId, userType))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AblyTokenResponse getAblyToken(AblyTokenRequest request, Long userId) {
+        log.info("Generating Ably token for user: {} with channels: {}", userId, String.join(", ", request.getChannels()));
+        
+        try {
+            TokenDetails tokenDetails = ablyService.generateAblyToken(userId.toString(), request.getChannels());
+            
+            AblyTokenResponse response = new AblyTokenResponse();
+            response.setToken(tokenDetails.token);
+            response.setExpiresAt(tokenDetails.expires);
+            response.setClientId(tokenDetails.clientId);
+            
+            log.info("Successfully generated Ably token for user: {}", userId);
+            return response;
+            
+        } catch (AblyException e) {
+            log.error("Failed to generate Ably token for user: {}", userId, e);
+            throw new RuntimeException("Failed to generate authentication token", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ChatRoom findChatRoomById(Long chatRoomId, Long userId, String userType) {
+        log.debug("Finding chat room: {} for user: {} ({})", chatRoomId, userId, userType);
+        
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found with ID: " + chatRoomId));
+        
+        // Validate user access to the chat room
+        boolean hasAccess = false;
+        if ("CLIENT".equals(userType) && chatRoom.getClient().getId().equals(userId)) {
+            hasAccess = true;
+        } else if ("FREELANCER".equals(userType) && chatRoom.getFreelancer().getId().equals(userId)) {
+            hasAccess = true;
+        }
+        
+        if (!hasAccess) {
+            log.error("User: {} ({}) does not have access to chat room: {}", userId, userType, chatRoomId);
+            throw new RuntimeException("Access denied to chat room");
+        }
+        
+        return chatRoom;
+    }
+
+    @Override
+    @Transactional
+    public void sendSystemNotification(Long chatRoomId, String notification) {
+        log.info("Sending system notification to chat room: {}", chatRoomId);
+        
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found with ID: " + chatRoomId));
+        
+        // Create system message
+        ChatMessage systemMessage = new ChatMessage();
+        systemMessage.setChatRoom(chatRoom);
+        systemMessage.setSenderType(ChatMessage.SenderType.SYSTEM);
+        systemMessage.setSenderId(null);
+        systemMessage.setContent(notification);
+        systemMessage.setMessageType(ChatMessage.MessageType.SYSTEM_NOTIFICATION);
+        systemMessage.setIsRead(false);
+        
+        ChatMessage savedMessage = chatMessageRepository.save(systemMessage);
+        log.info("System notification saved with ID: {}", savedMessage.getId());
+        
+        // Publish to Ably
+        try {
+            String channelName = ablyService.createChannelName(chatRoom.getChatType(), chatRoom.getReferenceId());
+            ablyService.publishSystemNotification(channelName, notification);
+            log.info("System notification published to Ably channel: {}", channelName);
+        } catch (Exception e) {
+            log.error("Failed to publish system notification to Ably", e);
+        }
+    }
+
+    /**
+     * Maps ChatMessage entity to ChatMessageResponse DTO.
+     */
+    private ChatMessageResponse mapToMessageResponse(ChatMessage message) {
+        ChatMessageResponse response = new ChatMessageResponse();
+        response.setId(message.getId());
+        response.setChatRoomId(message.getChatRoom().getId());
+        response.setSenderType(message.getSenderType());
+        response.setSenderId(message.getSenderId());
+        response.setSenderName(getSenderName(message));
+        response.setContent(message.getContent());
+        response.setMessageType(message.getMessageType());
+        response.setRead(message.isRead());
+        response.setCreatedAt(message.getCreatedAt());
+        
+        return response;
+    }
+
+    /**
+     * Maps ChatRoom entity to ChatRoomResponse DTO.
+     */
+    private ChatRoomResponse mapToChatRoomResponse(ChatRoom chatRoom, Long currentUserId, String currentUserType) {
+        ChatRoomResponse response = new ChatRoomResponse();
+        response.setId(chatRoom.getId());
+        response.setChatType(chatRoom.getChatType());
+        response.setReferenceId(chatRoom.getReferenceId());
+        response.setStatus(chatRoom.getStatus());
+        response.setCreatedAt(chatRoom.getCreatedAt());
+        response.setUpdatedAt(chatRoom.getUpdatedAt());
+        
+        // Set other party information
+        ChatRoomResponse.OtherParty otherParty = new ChatRoomResponse.OtherParty();
+        if ("CLIENT".equals(currentUserType)) {
+            otherParty.setId(chatRoom.getFreelancer().getId());
+            otherParty.setName(chatRoom.getFreelancer().getName());
+            otherParty.setType("FREELANCER");
+        } else {
+            otherParty.setId(chatRoom.getClient().getId());
+            otherParty.setName(chatRoom.getClient().getName());
+            otherParty.setType("CLIENT");
+        }
+        response.setOtherParty(otherParty);
+        
+        // Get last message
+        ChatMessage lastMessage = chatMessageRepository.findLatestMessageInChatRoom(chatRoom.getId());
+        if (lastMessage != null) {
+            response.setLastMessage(mapToMessageResponse(lastMessage));
+        }
+        
+        // Get unread count
+        Long unreadCount = chatMessageRepository.countUnreadMessagesForUser(chatRoom.getId(), currentUserType);
+        response.setUnreadCount(unreadCount);
+        
+        return response;
+    }
+
+    /**
+     * Gets the sender name for a chat message.
+     */
+    private String getSenderName(ChatMessage message) {
+        if (message.getSenderType() == ChatMessage.SenderType.SYSTEM) {
+            return "System";
+        }
+        
+        if (message.getSenderId() == null) {
+            return "Unknown";
+        }
+        
+        try {
+            if (message.getSenderType() == ChatMessage.SenderType.CLIENT) {
+                Client client = clientRepository.findById(message.getSenderId()).orElse(null);
+                return client != null ? client.getName() : "Unknown Client";
+            } else if (message.getSenderType() == ChatMessage.SenderType.FREELANCER) {
+                Freelancer freelancer = freelancerRepository.findById(message.getSenderId()).orElse(null);
+                return freelancer != null ? freelancer.getName() : "Unknown Freelancer";
+            }
+        } catch (Exception e) {
+            log.warn("Failed to get sender name for message: {}", message.getId(), e);
+        }
+        
+        return "Unknown";
+    }
+}

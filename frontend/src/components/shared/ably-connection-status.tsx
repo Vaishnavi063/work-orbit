@@ -2,18 +2,13 @@ import React from 'react';
 import { AlertCircle, CheckCircle, Loader2, WifiOff } from 'lucide-react';
 import { useAblyConnection } from '@/hooks/use-ably-connection';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface AblyConnectionStatusProps {
-  showWhenConnected?: boolean;
+interface AblyConnectionIndicatorProps {
   className?: string;
 }
 
-/**
- * Component to display Ably connection status and provide reconnection controls
- */
-export const AblyConnectionStatus: React.FC<AblyConnectionStatusProps> = ({
-  showWhenConnected = false,
+export const AblyConnectionIndicator: React.FC<AblyConnectionIndicatorProps> = ({
   className = '',
 }) => {
   const { 
@@ -23,11 +18,6 @@ export const AblyConnectionStatus: React.FC<AblyConnectionStatusProps> = ({
     error, 
     reconnect 
   } = useAblyConnection();
-
-  // Don't show anything if connected and showWhenConnected is false
-  if (isConnected && !showWhenConnected) {
-    return null;
-  }
 
   const getStatusIcon = () => {
     if (isConnected) {
@@ -55,28 +45,26 @@ export const AblyConnectionStatus: React.FC<AblyConnectionStatusProps> = ({
     return 'Real-time messaging disconnected';
   };
 
-  const getAlertVariant = () => {
-    if (isConnected) return 'default';
-    if (isFailed) return 'destructive';
-    return 'default';
-  };
-
   return (
-    <Alert variant={getAlertVariant()} className={className}>
-      {getStatusIcon()}
-      <AlertDescription className="flex items-center justify-between">
-        <span>{getStatusText()}</span>
-        {(isFailed || (!isConnected && !isConnecting)) && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={reconnect}
-            className="ml-2"
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`size-8 p-0 ${className}`}
+            onClick={!isConnected && !isConnecting ? reconnect : undefined}
           >
-            Reconnect
+            {getStatusIcon()}
           </Button>
-        )}
-      </AlertDescription>
-    </Alert>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{getStatusText()}</p>
+          {(isFailed || (!isConnected && !isConnecting)) && (
+            <p className="text-xs text-muted-foreground">Click to reconnect</p>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };

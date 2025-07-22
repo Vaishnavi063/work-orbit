@@ -6,7 +6,7 @@ import ModeToggle from "./shared/mode-toggle";
 import AuthButtons from "./shared/auth-buttons";
 import ListComponent from "./shared/list-component";
 import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
-import { AblyConnectionStatus } from "./shared/ably-connection-status";
+import { AblyConnectionIndicator } from "./shared/ably-connection-status";
 import type LogoLink from "./shared/logo-link";
 import type Logo from "./shared/logo";
 
@@ -19,7 +19,7 @@ export {
   SiteFooter,
   SiteHeader,
   ListComponent,
-  AblyConnectionStatus
+  AblyConnectionIndicator
 };
 
 export type { Logo, LogoLink };

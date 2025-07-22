@@ -68,6 +68,25 @@ public class ContractServiceImpl implements ContractService {
 		    // Don't fail the contract creation if chat transition fails
 		}
 		
+		
+		// Create contract chat room
+		try {
+		    chatService.createContractChat(savedContract.getContractId());
+		    log.info("Contract chat created for contract ID: {}", savedContract.getContractId());
+		} catch (Exception e) {
+		    log.error("Failed to create contract chat for contract ID: {}", savedContract.getContractId(), e);
+		    // Don't fail the contract creation if chat creation fails
+		}
+		
+		// Transition bid negotiation chat to contract
+		try {
+		    chatService.transitionBidChatToContract(bid.getId(), savedContract.getContractId());
+		    log.info("Bid chat transitioned to contract for bid: {} and contract: {}", bid.getId(), savedContract.getContractId());
+		} catch (Exception e) {
+		    log.error("Failed to transition bid chat to contract for bid: {} and contract: {}", bid.getId(), savedContract.getContractId(), e);
+		    // Don't fail the contract creation if chat transition fails
+		}
+		
         toDTO(savedContract);
     }
 	

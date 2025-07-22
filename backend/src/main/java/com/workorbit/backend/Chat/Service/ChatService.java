@@ -136,14 +136,4 @@ public interface ChatService {
      * @return contract details response
      */
     ContractDetailsResponse getContractDetailsForChat(Long chatRoomId, Long userId, String userType);
-    
-    /**
-     * Converts a ChatRoom entity to ChatRoomResponse DTO.
-     * 
-     * @param chatRoom the ChatRoom entity
-     * @param userId the ID of the requesting user
-     * @param userType the type of user (CLIENT or FREELANCER)
-     * @return chat room response DTO
-     */
-    ChatRoomResponse getChatRoomResponse(ChatRoom chatRoom, Long userId, String userType);
 }

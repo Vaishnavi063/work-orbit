@@ -84,9 +84,14 @@ public class ContractServiceImpl implements ContractService {
 	}
 	
 	private ContractResponse toDTO(Contract contract) {
+        Project project = contract.getProject();
+        String clientName = project.getClient() != null ? project.getClient().getName() : "Unknown Client";
+        
         return ContractResponse.builder()
                 .contractId(contract.getContractId())
-                .projectId(contract.getProject().getId())
+                .projectId(project.getId())
+                .projectName(project.getTitle())
+                .clientName(clientName)
                 .bidId(contract.getBid().getId())
                 .contractStatus(contract.getContractStatus().name())
                 .createdAt(contract.getCreatedAt())

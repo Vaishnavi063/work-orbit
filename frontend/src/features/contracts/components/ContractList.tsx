@@ -147,7 +147,7 @@ const ContractList: React.FC = () => {
                         to={`/contracts/${contract.contractId}`}
                         className="text-blue-600 hover:underline"
                       >
-                        {contract.projectTitle}
+                        {contract.projectName}
                       </Link>
                     </TableCell>
                     <TableCell>{getOtherParty(contract)}</TableCell>

@@ -123,7 +123,7 @@ const ContractDetails: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Project: {contract.projectTitle}</span>
+            <span>Project: {contract.projectName}</span>
             {renderStatusBadge(contract.contractStatus)}
           </CardTitle>
         </CardHeader>

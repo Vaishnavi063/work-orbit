@@ -8,7 +8,7 @@
 export interface Contract {
   contractId: number;
   projectId: number;
-  projectTitle: string;
+  projectName: string;
   bidId: number;
   clientId: number;
   clientName: string;

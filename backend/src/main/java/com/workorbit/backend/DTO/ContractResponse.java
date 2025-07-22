@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 public class ContractResponse {
 	private Long contractId;
 	private Long projectId;
+	private String projectName;
+	private String clientName;
 	private Long bidId;
 	private String contractStatus;
 	private LocalDateTime createdAt;

@@ -84,15 +84,31 @@ public class AblyService {
      * 
      * @param channelName the name of the channel to publish to
      * @param message the chat message to publish
+     * @param chatRoomId the chat room ID to avoid lazy loading issues
+     * @param senderName the sender's name
      */
-    public void publishMessage(String channelName, ChatMessage message) {
+    public void publishMessage(String channelName, ChatMessage message, Long chatRoomId, String senderName) {
         try {
+            log.info("Attempting to publish message to channel: {}", channelName);
+            log.info("Message details - ID: {}, Content: {}, SenderType: {}, SenderId: {}", 
+                message.getId(), message.getContent(), message.getSenderType(), message.getSenderId());
+            
             Channel channel = ablyRest.channels.get(channelName);
-            channel.publish("message", createMessageData(message));
-            log.debug("Published message to channel: {}", channelName);
+            Map<String, Object> messageData = createMessageData(message, chatRoomId, senderName);
+            
+            log.info("Publishing message to channel: {} with data: {}", channelName, messageData);
+            
+            channel.publish("message", messageData);
+            log.info("Successfully published message to channel: {}", channelName);
+            
         } catch (AblyException e) {
-            log.error("Failed to publish message to channel: {}", channelName, e);
+            log.error("AblyException occurred while publishing to channel: {} - Error code: {}, Message: {}", 
+                channelName, e.errorInfo.code, e.getMessage(), e);
             throw new AblyServiceException("Failed to publish message to real-time channel", e);
+        } catch (Exception e) {
+            log.error("Unexpected error while publishing to channel: {} - Error: {}", 
+                channelName, e.getMessage(), e);
+            throw new AblyServiceException("Unexpected error during message publishing", e);
         }
     }
     
@@ -173,17 +189,37 @@ public class AblyService {
      * Creates message data map for Ably publishing.
      * 
      * @param message the chat message
+     * @param chatRoomId the chat room ID to avoid lazy loading issues
+     * @param senderName the sender's name
      * @return map containing message data
      */
-    private Map<String, Object> createMessageData(ChatMessage message) {
+    private Map<String, Object> createMessageData(ChatMessage message, Long chatRoomId, String senderName) {
         Map<String, Object> messageData = new HashMap<>();
-        messageData.put("id", message.getId());
-        messageData.put("chatRoomId", message.getChatRoom().getId());
-        messageData.put("senderType", message.getSenderType().toString());
-        messageData.put("senderId", message.getSenderId());
-        messageData.put("content", message.getContent());
-        messageData.put("messageType", message.getMessageType().toString());
-        messageData.put("createdAt", message.getCreatedAt().toString());
+        
+        try {
+            // Use simple, guaranteed serializable values
+            messageData.put("id", message.getId() != null ? message.getId().longValue() : 0L);
+            messageData.put("chatRoomId", chatRoomId != null ? chatRoomId.longValue() : 0L);
+            messageData.put("senderType", message.getSenderType() != null ? message.getSenderType().name() : "UNKNOWN");
+            messageData.put("senderId", message.getSenderId() != null ? message.getSenderId().longValue() : 0L);
+            messageData.put("senderName", senderName != null ? senderName : "Unknown");
+            messageData.put("content", message.getContent() != null ? message.getContent() : "");
+            messageData.put("messageType", message.getMessageType() != null ? message.getMessageType().name() : "TEXT");
+            messageData.put("isRead", Boolean.valueOf(message.isRead()));
+            
+            // Use ISO string format for date
+            if (message.getCreatedAt() != null) {
+                messageData.put("createdAt", message.getCreatedAt().toString());
+            } else {
+                messageData.put("createdAt", java.time.LocalDateTime.now().toString());
+            }
+            
+            log.info("Created message data for Ably: {}", messageData);
+            
+        } catch (Exception e) {
+            log.error("Error creating message data: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create message data for Ably", e);
+        }
         
         return messageData;
     }

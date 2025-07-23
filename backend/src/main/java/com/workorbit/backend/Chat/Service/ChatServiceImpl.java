@@ -139,7 +139,8 @@ public class ChatServiceImpl implements ChatService {
         // Publish message to Ably for real-time delivery
         try {
             String channelName = ablyService.createChannelName(chatRoom.getChatType(), chatRoom.getReferenceId());
-            ablyService.publishMessage(channelName, savedMessage);
+            String senderName = getSenderName(savedMessage);
+            ablyService.publishMessage(channelName, savedMessage, chatRoom.getId(), senderName);
             log.info("Message published to Ably channel: {}", channelName);
         } catch (Exception e) {
             log.error("Failed to publish message to Ably", e);

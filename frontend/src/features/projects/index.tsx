@@ -76,15 +76,15 @@ const ProjectsListView: React.FC = () => {
           </TabsList>
           
           <TabsContent value="list" className="mt-2">
-            <ProjectList />
+            <ProjectList onCreateProject={handleCreateProject} />
           </TabsContent>
           
           <TabsContent value="open" className="mt-2">
-            <ProjectList filterStatus="OPEN" />
+            <ProjectList filterStatus="OPEN" onCreateProject={handleCreateProject} />
           </TabsContent>
           
           <TabsContent value="closed" className="mt-2">
-            <ProjectList filterStatus="CLOSED" />
+            <ProjectList filterStatus="CLOSED" onCreateProject={handleCreateProject} />
           </TabsContent>
         </Tabs>
       </div>

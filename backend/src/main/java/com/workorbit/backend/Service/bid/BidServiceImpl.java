@@ -178,12 +178,13 @@ public class BidServiceImpl implements BidService {
         // Create contract for accepted bid
         Long contractId = contractService.createContract(bid);
         
-        // Send system notification to bid negotiation chat
+        // Convert bid negotiation chat to contract chat
         try {
-            chatService.sendBidSystemNotification(bidId, "Bid has been accepted! A contract has been created.");
-            log.info("System notification sent for accepted bid: {}", bidId);
+            chatService.convertToContractChat(bidId, contractId);
+            log.info("Bid chat converted to contract chat for bid: {} and contract: {}", bidId, contractId);
         } catch (Exception e) {
-            log.error("Failed to send system notification for accepted bid: {}", bidId, e);
+            log.error("Failed to convert bid chat to contract chat for bid: {} and contract: {}", bidId, contractId, e);
+            // Don't fail the bid acceptance if chat conversion fails
         }
         
         log.info("Bid {} accepted successfully, contract {} created", bidId, contractId);

@@ -99,6 +99,14 @@ public interface ChatService {
     ChatRoom findChatRoomById(Long chatRoomId, Long userId, String userType);
     
     /**
+     * Finds a bid chat room by bid ID.
+     * 
+     * @param bidId the ID of the bid
+     * @return the ChatRoom entity for the bid
+     */
+    ChatRoom findBidChatRoom(Long bidId);
+    
+    /**
      * Sends a system notification to a chat room.
      * 
      * @param chatRoomId the ID of the chat room

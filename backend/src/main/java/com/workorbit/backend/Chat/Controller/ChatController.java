@@ -15,6 +15,7 @@ import com.workorbit.backend.Chat.Exception.ChatRoomNotFoundException;
 import com.workorbit.backend.Chat.Exception.ChatTransitionException;
 import com.workorbit.backend.Chat.Exception.InvalidChatOperationException;
 import com.workorbit.backend.Chat.Service.ChatService;
+import com.workorbit.backend.Chat.Repository.ChatRoomRepository;
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.Service.bid.BidService;
 import jakarta.validation.Valid;
@@ -47,6 +48,7 @@ public class ChatController {
     private final ChatService chatService;
     private final BidService bidService;
     private final MilestoneService milestoneService;
+    private final ChatRoomRepository chatRoomRepository;
 
     /**
      * Sends a message in a chat room.
@@ -328,17 +330,23 @@ public class ChatController {
                 throw new ChatAccessDeniedException("Only clients can accept bids");
             }
             
-            // Delegate to BidService for bid acceptance
+            log.info("Accepting bid {} through chat interface by client {}", bidId, userDetails.getProfileId());
+            
+            // This will create the contract and handle chat conversion automatically
             Long contractId = bidService.acceptBid(bidId, userDetails.getProfileId());
             
-            // Convert the bid chat to contract chat
-            ChatRoom contractChatRoom = chatService.convertToContractChat(bidId, contractId);
+            log.info("Bid {} accepted successfully, contract {} created", bidId, contractId);
+            
+            // Find the converted contract chat room
+            ChatRoom contractChatRoom = chatRoomRepository.findByChatTypeAndReferenceId(
+                ChatRoom.ChatType.CONTRACT, contractId)
+                .orElseThrow(() -> new RuntimeException("Contract chat room not found after bid acceptance"));
             
             // Get the updated chat room response
             ChatRoomResponse chatRoomResponse = chatService.getChatRoomResponse(
                 contractChatRoom, userDetails.getProfileId(), userType);
             
-            log.info("Bid {} accepted by client {} and chat transitioned to contract chat {}", 
+            log.info("Bid {} accepted by client {} and chat {} transitioned to contract chat", 
                 bidId, userDetails.getProfileId(), contractChatRoom.getId());
             
             return ResponseEntity.ok(ApiResponse.success(chatRoomResponse));
@@ -352,7 +360,7 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
-            log.error("Error accepting bid: {}", e.getMessage());
+            log.error("Error accepting bid through chat: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Failed to accept bid: " + e.getMessage()));
         }

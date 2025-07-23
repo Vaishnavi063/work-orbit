@@ -66,7 +66,15 @@ interface MilestoneResponse {
 
 interface MilestonePanelProps {
   contractId: number;
+  chatRoomId?: number;
   className?: string;
+  onMilestoneNotification?: (notification: {
+    id: number;
+    title: string;
+    status: string;
+    action: string;
+  }) => void;
+  onMilestoneStatusUpdate?: (milestoneId: number, title: string, status: string) => void;
 }
 
 // Form schema for milestone creation/editing
@@ -81,7 +89,13 @@ const milestoneFormSchema = z.object({
 
 type MilestoneFormValues = z.infer<typeof milestoneFormSchema>;
 
-export const MilestonePanel = ({ contractId, className }: MilestonePanelProps) => {
+export const MilestonePanel = ({ 
+  contractId, 
+  chatRoomId, 
+  className,
+  onMilestoneNotification,
+  onMilestoneStatusUpdate
+}: MilestonePanelProps) => {
   const [milestones, setMilestones] = useState<MilestoneResponse[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -158,25 +172,55 @@ export const MilestonePanel = ({ contractId, className }: MilestonePanelProps) =
     try {
       setIsSubmitting(true);
       
-      const endpoint = editingMilestone 
-        ? `/api/milestones/${editingMilestone.id}` 
-        : `/api/milestones/contract/${contractId}`;
+      const milestoneData = {
+        title: values.title,
+        description: values.description,
+        amount: values.amount,
+        dueDate: new Date(values.dueDate).toISOString()
+      };
       
-      const method = editingMilestone ? 'PUT' : 'POST';
+      let response;
       
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: values.title,
-          description: values.description,
-          amount: values.amount,
-          dueDate: new Date(values.dueDate).toISOString()
-        })
-      });
+      // Use chat API if chatRoomId is provided, otherwise use direct milestone API
+      if (chatRoomId && onMilestoneNotification) {
+        if (editingMilestone) {
+          // Update milestone through regular API
+          response = await fetch(`/api/milestones/${editingMilestone.id}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(milestoneData)
+          });
+        } else {
+          // Create milestone through chat API
+          response = await fetch(`/api/chat/rooms/${chatRoomId}/create-milestone`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(milestoneData)
+          });
+        }
+      } else {
+        // Use regular milestone API
+        const endpoint = editingMilestone 
+          ? `/api/milestones/${editingMilestone.id}` 
+          : `/api/milestones/contract/${contractId}`;
+        
+        const method = editingMilestone ? 'PUT' : 'POST';
+        
+        response = await fetch(endpoint, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(milestoneData)
+        });
+      }
       
       const data = await response.json();
       
@@ -184,6 +228,17 @@ export const MilestonePanel = ({ contractId, className }: MilestonePanelProps) =
         // Refresh milestones
         fetchMilestones();
         setIsDialogOpen(false);
+        
+        // Send notification if callback is provided
+        if (onMilestoneNotification && data.data) {
+          onMilestoneNotification({
+            id: data.data.id || editingMilestone?.id || 0,
+            title: values.title,
+            status: editingMilestone?.status || 'PENDING',
+            action: editingMilestone ? 'updated' : 'created'
+          });
+        }
+        
         setEditingMilestone(null);
       } else {
         setError(data.error?.message || 'Failed to save milestone');
@@ -202,26 +257,52 @@ export const MilestonePanel = ({ contractId, className }: MilestonePanelProps) =
     try {
       setIsSubmitting(true);
       
-      const response = await fetch(`/api/milestones/${milestoneId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          status
-        })
-      });
+      // Find the milestone to get its title
+      const milestone = milestones.find(m => m.id === milestoneId);
+      if (!milestone) {
+        throw new Error('Milestone not found');
+      }
       
-      const data = await response.json();
-      
-      if (data.status === 'success') {
+      // Use the callback if provided, otherwise use direct API
+      if (chatRoomId && onMilestoneStatusUpdate) {
+        await onMilestoneStatusUpdate(milestoneId, milestone.title, status);
+        
         // Update local state
         setMilestones(prev => 
           prev.map(m => m.id === milestoneId ? { ...m, status: status as any } : m)
         );
       } else {
-        setError(data.error?.message || 'Failed to update milestone status');
+        const response = await fetch(`/api/milestones/${milestoneId}/status`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            status
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          // Update local state
+          setMilestones(prev => 
+            prev.map(m => m.id === milestoneId ? { ...m, status: status as any } : m)
+          );
+          
+          // Send notification if callback is provided
+          if (onMilestoneNotification) {
+            onMilestoneNotification({
+              id: milestoneId,
+              title: milestone.title,
+              status,
+              action: 'status_change'
+            });
+          }
+        } else {
+          setError(data.error?.message || 'Failed to update milestone status');
+        }
       }
     } catch (err: any) {
       setError(err?.message || 'Failed to update milestone status');
@@ -237,6 +318,12 @@ export const MilestonePanel = ({ contractId, className }: MilestonePanelProps) =
     try {
       setIsSubmitting(true);
       
+      // Find the milestone to get its title
+      const milestone = milestones.find(m => m.id === milestoneId);
+      if (!milestone) {
+        throw new Error('Milestone not found');
+      }
+      
       const response = await fetch(`/api/milestones/${milestoneId}`, {
         method: 'DELETE',
         headers: {
@@ -249,6 +336,16 @@ export const MilestonePanel = ({ contractId, className }: MilestonePanelProps) =
       if (data.status === 'success') {
         // Remove from local state
         setMilestones(prev => prev.filter(m => m.id !== milestoneId));
+        
+        // Send notification if callback is provided
+        if (onMilestoneNotification) {
+          onMilestoneNotification({
+            id: milestoneId,
+            title: milestone.title,
+            status: milestone.status,
+            action: 'deleted'
+          });
+        }
       } else {
         setError(data.error?.message || 'Failed to delete milestone');
       }

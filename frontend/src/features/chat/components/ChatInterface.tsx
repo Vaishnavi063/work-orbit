@@ -11,9 +11,17 @@ interface ChatInterfaceProps {
   chatRoomId: number;
   className?: string;
   disabled?: boolean;
+  onMilestoneAction?: (action: string) => void;
 }
 
-export const ChatInterface = ({ chatRoomId, chatType, referenceId, className, disabled = false }: ChatInterfaceProps) => {
+export const ChatInterface = ({ 
+  chatRoomId, 
+  chatType, 
+  referenceId, 
+  className, 
+  disabled = false,
+  onMilestoneAction
+}: ChatInterfaceProps) => {
   const { 
     messages, 
     isLoading, 
@@ -42,11 +50,27 @@ export const ChatInterface = ({ chatRoomId, chatType, referenceId, className, di
     try {
       await sendMessage(content);
       setSendingState('idle');
+      
+      // Check for milestone commands in contract chat
+      if (chatType === 'CONTRACT' && onMilestoneAction) {
+        const lowerContent = content.toLowerCase();
+        
+        // Simple command parsing for milestone actions
+        if (lowerContent.startsWith('/milestone')) {
+          const parts = content.split(' ');
+          if (parts.length > 1) {
+            const action = parts[1].toLowerCase();
+            if (['create', 'list', 'update', 'complete'].includes(action)) {
+              onMilestoneAction(action);
+            }
+          }
+        }
+      }
     } catch (err) {
       console.error('Failed to send message:', err);
       setSendingState('error');
     }
-  }, [sendMessage]);
+  }, [sendMessage, chatType, onMilestoneAction]);
   
   // Handle retry for all failed messages
   const handleRetryAll = useCallback(() => {

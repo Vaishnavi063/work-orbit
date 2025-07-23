@@ -29,7 +29,7 @@ public class Freelancer {
     @JoinColumn(name = "app_user_id", referencedColumnName = "id")
     private AppUser appUser;
 
-    private Double rating;
+    private Double rating = 0.0;
 
     @CreatedDate
     private LocalDateTime createdAt;

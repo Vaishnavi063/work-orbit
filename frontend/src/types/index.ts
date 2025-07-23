@@ -80,3 +80,34 @@ export interface BidType {
     deadline: string; 
   };
 }
+
+
+export interface Transaction {
+  projectId: number;
+  projectTitle: string;
+  clientName: string;
+  amount: number;
+  receivedAt: string;
+  status: string;
+}
+
+export interface RevenueData {
+  freelancerId: number;
+  freelancerName: string;
+  totalEarnings: number;
+  currentBalance: number;
+  totalWithdrawn: number;
+  completedProjects: number;
+  recentTransactions: Transaction[];
+  monthlyBreakdown: {
+    currentMonth: number;
+    lastMonth: number;
+    currentYear: number;
+  };
+}
+
+export const CHART_COLORS = {
+  available: "#22c55e",
+  withdrawn: "#f59e0b",
+  bar: "#8884d8",
+} as const;

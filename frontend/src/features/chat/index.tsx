@@ -122,7 +122,11 @@ export default function ChatPage() {
             case "CONTRACT":
                 return <ContractChat chatRoomId={chatRoomIdNum} />;
             default:
-                return <ChatInterface chatRoomId={chatRoomIdNum} />;
+                return <ChatInterface 
+                    chatRoomId={chatRoomIdNum} 
+                    chatType={currentChatRoom.chatType} 
+                    referenceId={currentChatRoom.referenceId} 
+                />;
         }
     };
 

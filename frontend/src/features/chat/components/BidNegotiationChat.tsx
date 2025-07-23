@@ -283,7 +283,12 @@ export const BidNegotiationChat = ({ chatRoomId, className }: BidNegotiationChat
       
       {/* Chat interface - takes remaining height */}
       <div className="flex-grow overflow-hidden">
-        <ChatInterface chatRoomId={chatRoomId} className="h-full" />
+        <ChatInterface 
+          chatRoomId={chatRoomId} 
+          chatType="BID_NEGOTIATION" 
+          referenceId={bidDetails?.bidId || 0} 
+          className="h-full" 
+        />
       </div>
     </div>
   );

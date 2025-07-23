@@ -8,10 +8,12 @@ import { TypingIndicator } from './TypingIndicator';
 
 interface ChatInterfaceProps {
   chatRoomId: number;
+  chatType: 'BID_NEGOTIATION' | 'CONTRACT';
+  referenceId: number;
   className?: string;
 }
 
-export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => {
+export const ChatInterface = ({ chatRoomId, chatType, referenceId, className }: ChatInterfaceProps) => {
   const { 
     messages, 
     isLoading, 
@@ -20,13 +22,13 @@ export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => 
     markAsRead, 
     hasMore, 
     loadMore 
-  } = useChat({ chatRoomId });
+  } = useChat({ chatRoomId, chatType, referenceId });
   
   const { 
     isTyping, 
     typingUser, 
     startTyping 
-  } = useTypingIndicator({ chatRoomId });
+  } = useTypingIndicator({ chatRoomId, chatType, referenceId });
   
   // Mark messages as read when chat is opened
   useEffect(() => {

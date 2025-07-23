@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
-import { ablyClientManager } from '@/lib/ably-client';
+import { ablyClientManager, AblyChannelUtils } from '@/lib/ably-client';
 import { debounce } from '@/lib/utils';
 
 interface UseTypingIndicatorParams {
   chatRoomId?: number;
+  chatType?: 'BID_NEGOTIATION' | 'CONTRACT';
+  referenceId?: number;
 }
 
 interface UseTypingIndicatorReturn {
@@ -15,7 +17,7 @@ interface UseTypingIndicatorReturn {
   stopTyping: () => void;
 }
 
-export const useTypingIndicator = ({ chatRoomId }: UseTypingIndicatorParams = {}): UseTypingIndicatorReturn => {
+export const useTypingIndicator = ({ chatRoomId, chatType, referenceId }: UseTypingIndicatorParams = {}): UseTypingIndicatorReturn => {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [typingUser, setTypingUser] = useState<string | null>(null);
   
@@ -24,9 +26,11 @@ export const useTypingIndicator = ({ chatRoomId }: UseTypingIndicatorParams = {}
   
   // Setup typing indicator subscription
   useEffect(() => {
-    if (!chatRoomId || !authToken) return;
+    if (!chatRoomId || !authToken || !chatType || !referenceId) return;
     
-    const channel = ablyClientManager.getChannel(`chat:${chatRoomId}`);
+    const channelName = AblyChannelUtils.createChannelName(chatType, referenceId);
+    const typingChannelName = AblyChannelUtils.createTypingChannelName(channelName);
+    const channel = ablyClientManager.getChannel(typingChannelName);
     if (!channel) return;
     
     const onTypingStart = (message: any) => {
@@ -50,12 +54,16 @@ export const useTypingIndicator = ({ chatRoomId }: UseTypingIndicatorParams = {}
     return () => {
       channel.unsubscribe('typing:start', onTypingStart);
     };
-  }, [chatRoomId, authToken, user?.id]);
+  }, [chatRoomId, authToken, chatType, referenceId, user?.id]);
   
   // Debounced function to send typing indicator
   const debouncedSendTypingIndicator = useCallback(
     debounce(() => {
-      const channel = ablyClientManager.getChannel(`chat:${chatRoomId}`);
+      if (!chatType || !referenceId) return;
+      
+      const channelName = AblyChannelUtils.createChannelName(chatType, referenceId);
+      const typingChannelName = AblyChannelUtils.createTypingChannelName(channelName);
+      const channel = ablyClientManager.getChannel(typingChannelName);
       if (!channel) return;
       
       channel.publish('typing:start', {
@@ -63,14 +71,14 @@ export const useTypingIndicator = ({ chatRoomId }: UseTypingIndicatorParams = {}
         userName: user?.name,
       });
     }, 500),
-    [chatRoomId, user?.id, user?.name]
+    [chatRoomId, chatType, referenceId, user?.id, user?.name]
   );
   
   // Start typing indicator
   const startTyping = useCallback(() => {
-    if (!chatRoomId || !authToken || !user) return;
+    if (!chatRoomId || !authToken || !user || !chatType || !referenceId) return;
     debouncedSendTypingIndicator();
-  }, [chatRoomId, authToken, user, debouncedSendTypingIndicator]);
+  }, [chatRoomId, authToken, user, chatType, referenceId, debouncedSendTypingIndicator]);
   
   // Stop typing indicator (not really needed with debounce)
   const stopTyping = useCallback(() => {

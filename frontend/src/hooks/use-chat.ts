@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { chatApis } from '@/features/chat/apis';
 import type { ChatMessage } from '@/types';
-import { ablyClientManager } from '@/lib/ably-client';
+import { ablyClientManager, AblyChannelUtils } from '@/lib/ably-client';
 
 // Add a custom property to ChatMessage for pending status
 interface OptimisticChatMessage extends ChatMessage {
@@ -12,6 +12,8 @@ interface OptimisticChatMessage extends ChatMessage {
 
 interface UseChatParams {
   chatRoomId?: number;
+  chatType?: 'BID_NEGOTIATION' | 'CONTRACT';
+  referenceId?: number;
 }
 
 interface UseChatReturn {
@@ -24,7 +26,7 @@ interface UseChatReturn {
   loadMore: () => Promise<void>;
 }
 
-export const useChat = ({ chatRoomId }: UseChatParams = {}): UseChatReturn => {
+export const useChat = ({ chatRoomId, chatType, referenceId }: UseChatParams = {}): UseChatReturn => {
   const [messages, setMessages] = useState<OptimisticChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export const useChat = ({ chatRoomId }: UseChatParams = {}): UseChatReturn => {
   
   // Load initial messages
   useEffect(() => {
-    if (!chatRoomId || !authToken) return;
+    if (!chatRoomId || !authToken || !chatType || !referenceId) return;
     
     const loadInitialMessages = async () => {
       setIsLoading(true);
@@ -66,8 +68,9 @@ export const useChat = ({ chatRoomId }: UseChatParams = {}): UseChatReturn => {
     
     loadInitialMessages();
     
-    // Subscribe to real-time updates
-    const channel = ablyClientManager.getChannel(`chat:${chatRoomId}`);
+    // Subscribe to real-time updates using correct channel name
+    const channelName = AblyChannelUtils.createChannelName(chatType, referenceId);
+    const channel = ablyClientManager.getChannel(channelName);
     if (channel) {
       const onMessage = (message: any) => {
         const newMessage = message.data as ChatMessage;
@@ -80,7 +83,7 @@ export const useChat = ({ chatRoomId }: UseChatParams = {}): UseChatReturn => {
         channel.unsubscribe('message', onMessage);
       };
     }
-  }, [chatRoomId, authToken]);
+  }, [chatRoomId, authToken, chatType, referenceId]);
   
   // Send a message
   const sendMessage = useCallback(async (content: string) => {

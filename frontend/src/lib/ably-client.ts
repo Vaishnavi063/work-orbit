@@ -4,6 +4,7 @@ import { request } from '@/apis';
 export interface AblyTokenResponse {
   token: string;
   expires: number;
+  clientId: string;
 }
 
 export interface AblyConnectionStatus {
@@ -17,7 +18,7 @@ export interface AblyConnectionStatus {
 
 class AblyClientManager {
   private client: Ably.Realtime | null = null;
-  private tokenRefreshPromise: Promise<string> | null = null;
+  private tokenRefreshPromise: Promise<AblyTokenResponse> | null = null;
   private connectionStatusCallbacks: Set<(status: AblyConnectionStatus) => void> = new Set();
   private isInitialized = false;
 
@@ -30,15 +31,19 @@ class AblyClientManager {
     }
 
     try {
+      // First get a token to get the clientId
+      const tokenResponse = await this.refreshAblyToken(authToken);
+      
       this.client = new Ably.Realtime({
         authCallback: async (_tokenParams, callback) => {
           try {
-            const token = await this.refreshAblyToken(authToken);
-            callback(null, token);
+            const tokenData = await this.refreshAblyToken(authToken);
+            callback(null, tokenData.token);
           } catch (error) {
             callback(error as Ably.ErrorInfo, null);
           }
         },
+        clientId: tokenResponse.clientId,
         autoConnect: true,
         disconnectedRetryTimeout: 5000,
         suspendedRetryTimeout: 10000,
@@ -47,7 +52,6 @@ class AblyClientManager {
       this.setupConnectionListeners();
       this.isInitialized = true;
     } catch (error) {
-      console.error('Failed to initialize Ably client:', error);
       throw error;
     }
   }
@@ -62,7 +66,7 @@ class AblyClientManager {
   /**
    * Refresh Ably token from backend
    */
-  private async refreshAblyToken(authToken: string): Promise<string> {
+  private async refreshAblyToken(authToken: string): Promise<AblyTokenResponse> {
     // Prevent multiple simultaneous token refresh requests
     if (this.tokenRefreshPromise) {
       return this.tokenRefreshPromise;
@@ -71,8 +75,8 @@ class AblyClientManager {
     this.tokenRefreshPromise = this.performTokenRefresh(authToken);
     
     try {
-      const token = await this.tokenRefreshPromise;
-      return token;
+      const tokenData = await this.tokenRefreshPromise;
+      return tokenData;
     } finally {
       this.tokenRefreshPromise = null;
     }
@@ -81,7 +85,7 @@ class AblyClientManager {
   /**
    * Perform the actual token refresh request
    */
-  private async performTokenRefresh(authToken: string): Promise<string> {
+  private async performTokenRefresh(authToken: string): Promise<AblyTokenResponse> {
     try {
       const response = await request({
         method: 'POST',
@@ -93,10 +97,17 @@ class AblyClientManager {
       });
 
       const tokenData: AblyTokenResponse = response.data.data;
-      return tokenData.token;
-    } catch (error) {
-      console.error('Failed to refresh Ably token:', error);
-      throw new Error('Failed to authenticate with real-time service');
+      return tokenData;
+    } catch (error: any) {
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response.status === 401) {
+          throw new Error('Authentication failed. JWT token may be invalid or expired.');
+        }
+      } 
+      
+      throw new Error(`Failed to authenticate with real-time service: ${error.message || 'Unknown error'}`);
     }
   }
 
@@ -107,32 +118,26 @@ class AblyClientManager {
     if (!this.client) return;
 
     this.client.connection.on('connected', () => {
-      console.log('Ably client connected');
       this.notifyConnectionStatus();
     });
 
     this.client.connection.on('connecting', () => {
-      console.log('Ably client connecting...');
       this.notifyConnectionStatus();
     });
 
     this.client.connection.on('disconnected', () => {
-      console.log('Ably client disconnected');
       this.notifyConnectionStatus();
     });
 
     this.client.connection.on('suspended', () => {
-      console.log('Ably client connection suspended');
       this.notifyConnectionStatus();
     });
 
-    this.client.connection.on('failed', (error) => {
-      console.error('Ably client connection failed:', error);
+    this.client.connection.on('failed', () => {
       this.notifyConnectionStatus();
     });
 
     this.client.connection.on('closed', () => {
-      console.log('Ably client connection closed');
       this.notifyConnectionStatus();
     });
   }
@@ -186,7 +191,7 @@ class AblyClientManager {
       try {
         callback(status);
       } catch (error) {
-        console.error('Error in connection status callback:', error);
+        // Silent error handling
       }
     });
   }
@@ -196,7 +201,6 @@ class AblyClientManager {
    */
   getChannel(channelName: string): Ably.RealtimeChannel | null {
     if (!this.client) {
-      console.warn('Ably client not initialized');
       return null;
     }
     return this.client.channels.get(channelName);
@@ -233,6 +237,42 @@ class AblyClientManager {
 
 // Export singleton instance
 export const ablyClientManager = new AblyClientManager();
+
+/**
+ * Channel naming utilities that match backend AblyService
+ */
+export const AblyChannelUtils = {
+  /**
+   * Creates a standardized channel name for different chat types.
+   * This matches the backend AblyService.createChannelName() method.
+   */
+  createChannelName(chatType: 'BID_NEGOTIATION' | 'CONTRACT', referenceId: number): string {
+    switch (chatType) {
+      case 'BID_NEGOTIATION':
+        return `bid-chat:${referenceId}`;
+      case 'CONTRACT':
+        return `contract-chat:${referenceId}`;
+      default:
+        throw new Error(`Unknown chat type: ${chatType}`);
+    }
+  },
+
+  /**
+   * Creates a typing indicator channel name for the given chat channel.
+   * This matches the backend AblyService.createTypingChannelName() method.
+   */
+  createTypingChannelName(baseChannelName: string): string {
+    return `${baseChannelName}:typing`;
+  },
+
+  /**
+   * Creates a typing indicator channel name directly from chat room data.
+   */
+  createTypingChannelNameFromChatRoom(chatType: 'BID_NEGOTIATION' | 'CONTRACT', referenceId: number): string {
+    const baseChannel = this.createChannelName(chatType, referenceId);
+    return this.createTypingChannelName(baseChannel);
+  }
+};
 
 // Export types and utilities
 export type { Ably };

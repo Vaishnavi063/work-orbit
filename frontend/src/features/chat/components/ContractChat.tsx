@@ -165,7 +165,12 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
         </TabsList>
         
         <TabsContent value="chat" className="mt-2 flex-grow overflow-hidden">
-          <ChatInterface chatRoomId={chatRoomId} className="h-full" />
+          <ChatInterface 
+            chatRoomId={chatRoomId} 
+            chatType="CONTRACT" 
+            referenceId={contractDetails?.contractId || 0} 
+            className="h-full" 
+          />
         </TabsContent>
         
         <TabsContent value="milestones" className="mt-2 flex-grow overflow-auto">

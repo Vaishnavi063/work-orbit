@@ -20,6 +20,7 @@ import ProjectDetails from "@/features/freelancer/components/project-details";
 import FreelancerBids from "@/features/freelancer/components/freelancer-bids";
 import ClientProjectsDashboard from "@/features/projects";
 import ContractsFeature from "@/features/contracts";
+import RevenueDetail from "@/features/wallet/freelancer";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -40,6 +41,7 @@ const router = createBrowserRouter(
         <Route path="browse-projects" element={<BrowseProjects />} />
         <Route path="bids" element={<FreelancerBids />} />
         <Route path="browse-projects/:id" element={<ProjectDetails />} />
+        <Route path="revenue" element={<RevenueDetail />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Route>

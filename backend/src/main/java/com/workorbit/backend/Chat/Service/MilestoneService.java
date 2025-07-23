@@ -3,6 +3,7 @@ package com.workorbit.backend.Chat.Service;
 import com.workorbit.backend.Chat.DTO.MilestoneRequest;
 import com.workorbit.backend.Chat.DTO.MilestoneResponse;
 import com.workorbit.backend.Chat.Entity.Milestone;
+import com.workorbit.backend.Chat.Enum.MilestoneStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public interface MilestoneService {
      * @return the updated milestone response
      */
     @Transactional
-    MilestoneResponse updateMilestoneStatus(Long milestoneId, Milestone.MilestoneStatus status);
+    MilestoneResponse updateMilestoneStatus(Long milestoneId, MilestoneStatus status);
     
     /**
      * Retrieves all milestones for a specific contract.
@@ -50,7 +51,7 @@ public interface MilestoneService {
      * @return list of milestone responses
      */
     @Transactional(readOnly = true)
-    List<MilestoneResponse> getContractMilestonesByStatus(Long contractId, Milestone.MilestoneStatus status);
+    List<MilestoneResponse> getContractMilestonesByStatus(Long contractId, MilestoneStatus status);
     
     /**
      * Gets a milestone by its ID.

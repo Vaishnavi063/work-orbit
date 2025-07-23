@@ -1,5 +1,6 @@
 package com.workorbit.backend.Chat.Entity;
 
+import com.workorbit.backend.Chat.Enum.MilestoneStatus;
 import com.workorbit.backend.Entity.Contract;
 import jakarta.persistence.*;
 import lombok.*;
@@ -56,11 +57,4 @@ public class Milestone {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public enum MilestoneStatus {
-        PENDING,
-        IN_PROGRESS,
-        COMPLETED,
-        OVERDUE
-    }
 }

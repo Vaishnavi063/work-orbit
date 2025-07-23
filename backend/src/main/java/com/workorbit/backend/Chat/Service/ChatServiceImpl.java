@@ -243,7 +243,14 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional
     public void sendSystemNotification(Long chatRoomId, String notification) {
-        log.info("Sending system notification to chat room: {}", chatRoomId);
+        // Default to SYSTEM_NOTIFICATION type
+        sendSystemNotification(chatRoomId, notification, ChatMessage.MessageType.SYSTEM_NOTIFICATION);
+    }
+    
+    @Override
+    @Transactional
+    public void sendSystemNotification(Long chatRoomId, String notification, ChatMessage.MessageType messageType) {
+        log.info("Sending system notification to chat room: {} with type: {}", chatRoomId, messageType);
         
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new RuntimeException("Chat room not found with ID: " + chatRoomId));
@@ -254,11 +261,15 @@ public class ChatServiceImpl implements ChatService {
         systemMessage.setSenderType(ChatMessage.SenderType.SYSTEM);
         systemMessage.setSenderId(null);
         systemMessage.setContent(notification);
-        systemMessage.setMessageType(ChatMessage.MessageType.SYSTEM_NOTIFICATION);
+        systemMessage.setMessageType(messageType);
         systemMessage.setRead(false);
         
         ChatMessage savedMessage = chatMessageRepository.save(systemMessage);
-        log.info("System notification saved with ID: {}", savedMessage.getId());
+        log.info("System notification saved with ID: {} and type: {}", savedMessage.getId(), messageType);
+        
+        // Update chat room's updated timestamp
+        chatRoom.setUpdatedAt(LocalDateTime.now());
+        chatRoomRepository.save(chatRoom);
         
         // System notifications will be delivered through polling mechanism
     }
@@ -271,7 +282,8 @@ public class ChatServiceImpl implements ChatService {
         ChatRoom chatRoom = chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId)
                 .orElseThrow(() -> new RuntimeException("Bid negotiation chat room not found for bid ID: " + bidId));
         
-        sendSystemNotification(chatRoom.getId(), notification);
+        // Use BID_ACTION message type for bid-related notifications
+        sendSystemNotification(chatRoom.getId(), notification, ChatMessage.MessageType.BID_ACTION);
         
         // If this is a rejection notification, close the chat room
         if (notification.toLowerCase().contains("rejected")) {

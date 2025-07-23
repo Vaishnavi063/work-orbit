@@ -1,6 +1,6 @@
 package com.workorbit.backend.Chat.DTO;
 
-import com.workorbit.backend.Chat.Entity.Milestone.MilestoneStatus;
+import com.workorbit.backend.Chat.Enum.MilestoneStatus;
 import lombok.*;
 
 import java.math.BigDecimal;

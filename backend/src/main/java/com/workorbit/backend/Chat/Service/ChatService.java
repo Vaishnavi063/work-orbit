@@ -1,6 +1,7 @@
 package com.workorbit.backend.Chat.Service;
 
 import com.workorbit.backend.Chat.DTO.*;
+import com.workorbit.backend.Chat.Entity.ChatMessage;
 import com.workorbit.backend.Chat.Entity.ChatRoom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -104,6 +105,15 @@ public interface ChatService {
      * @param notification the notification message
      */
     void sendSystemNotification(Long chatRoomId, String notification);
+    
+    /**
+     * Sends a system notification to a chat room with a specific message type.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @param notification the notification message
+     * @param messageType the type of message (SYSTEM_NOTIFICATION, MILESTONE_UPDATE, etc.)
+     */
+    void sendSystemNotification(Long chatRoomId, String notification, ChatMessage.MessageType messageType);
     
     /**
      * Sends a system notification to a bid negotiation chat room.

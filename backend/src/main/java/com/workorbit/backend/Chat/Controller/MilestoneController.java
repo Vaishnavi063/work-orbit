@@ -5,9 +5,15 @@ import com.workorbit.backend.Auth.Entity.Role;
 import com.workorbit.backend.Chat.DTO.MilestoneRequest;
 import com.workorbit.backend.Chat.DTO.MilestoneResponse;
 import com.workorbit.backend.Chat.DTO.MilestoneStatusRequest;
-import com.workorbit.backend.Chat.Entity.Milestone;
+import com.workorbit.backend.Chat.Entity.ChatMessage;
+import com.workorbit.backend.Chat.Entity.ChatRoom;
+import com.workorbit.backend.Chat.Enum.MilestoneStatus;
+import com.workorbit.backend.Chat.Repository.ChatRoomRepository;
+import com.workorbit.backend.Chat.Service.ChatService;
 import com.workorbit.backend.Chat.Service.MilestoneService;
 import com.workorbit.backend.DTO.ApiResponse;
+import com.workorbit.backend.Entity.Contract;
+import com.workorbit.backend.Repository.ContractRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +24,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * REST controller for managing milestone operations including creation,
@@ -30,6 +38,9 @@ import java.util.List;
 public class MilestoneController {
 
     private final MilestoneService milestoneService;
+    private final ContractRepository contractRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatService chatService;
 
     /**
      * Creates a new milestone for a contract.
@@ -128,7 +139,7 @@ public class MilestoneController {
     @GetMapping("/contract/{contractId}/status/{status}")
     public ResponseEntity<ApiResponse<List<MilestoneResponse>>> getContractMilestonesByStatus(
             @PathVariable Long contractId,
-            @PathVariable Milestone.MilestoneStatus status) {
+            @PathVariable MilestoneStatus status) {
         
         try {
             AppUserDetails userDetails = getCurrentUserDetails();
@@ -314,6 +325,66 @@ public class MilestoneController {
             log.error("Error updating milestone progress tracking: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Failed to update milestone progress tracking: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Sends a custom milestone notification to the contract chat.
+     * 
+     * @param contractId the ID of the contract
+     * @param request the notification request containing the message
+     * @return success response
+     */
+    @PostMapping("/contract/{contractId}/notify")
+    public ResponseEntity<ApiResponse<String>> sendMilestoneNotification(
+            @PathVariable Long contractId,
+            @RequestBody Map<String, String> request) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            
+            String notification = request.get("notification");
+            if (notification == null || notification.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Notification message is required"));
+            }
+            
+            // Create a detailed notification message with emoji
+            StringBuilder notificationMsg = new StringBuilder();
+            notificationMsg.append("📢 **Milestone Update**\n");
+            notificationMsg.append(notification);
+            
+            // Find the contract to validate it exists
+            Contract contract = contractRepository.findById(contractId)
+                    .orElseThrow(() -> new RuntimeException("Contract not found with ID: " + contractId));
+            
+            // Find the contract chat room
+            Optional<ChatRoom> contractChatOpt = chatRoomRepository.findByChatTypeAndReferenceId(
+                    ChatRoom.ChatType.CONTRACT, contractId);
+            
+            if (contractChatOpt.isPresent()) {
+                ChatRoom contractChat = contractChatOpt.get();
+                
+                // Send the notification
+                chatService.sendSystemNotification(
+                    contractChat.getId(), 
+                    notificationMsg.toString(), 
+                    ChatMessage.MessageType.MILESTONE_UPDATE
+                );
+                
+                log.info("Custom milestone notification sent for contract {} by user {}: {}", 
+                    contractId, userDetails.getProfileId(), notification);
+                
+                return ResponseEntity.ok(ApiResponse.success("Milestone notification sent successfully"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Contract chat not found for contract ID: " + contractId));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error sending milestone notification: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to send milestone notification: " + e.getMessage()));
         }
     }
 

@@ -1,6 +1,7 @@
 package com.workorbit.backend.Chat.Repository;
 
 import com.workorbit.backend.Chat.Entity.Milestone;
+import com.workorbit.backend.Chat.Enum.MilestoneStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,10 +17,10 @@ public interface MilestoneRepository extends JpaRepository<Milestone, Long> {
     List<Milestone> findByContract_ContractIdOrderByCreatedAtAsc(Long contractId);
     
     // Find milestones by contract ID and status
-    List<Milestone> findByContract_ContractIdAndStatusOrderByCreatedAtAsc(Long contractId, Milestone.MilestoneStatus status);
+    List<Milestone> findByContract_ContractIdAndStatusOrderByCreatedAtAsc(Long contractId, MilestoneStatus status);
     
     // Find milestones by status across all contracts
-    List<Milestone> findByStatusOrderByDueDateAsc(Milestone.MilestoneStatus status);
+    List<Milestone> findByStatusOrderByDueDateAsc(MilestoneStatus status);
     
     // Find overdue milestones (due date passed and not completed)
     @Query("SELECT m FROM Milestone m WHERE " +
@@ -37,16 +38,16 @@ public interface MilestoneRepository extends JpaRepository<Milestone, Long> {
                                            @Param("endDate") LocalDateTime endDate);
     
     // Find milestones for a specific contract with status filtering
-    List<Milestone> findByContract_ContractIdAndStatusInOrderByCreatedAtAsc(Long contractId, List<Milestone.MilestoneStatus> statuses);
+    List<Milestone> findByContract_ContractIdAndStatusInOrderByCreatedAtAsc(Long contractId, List<MilestoneStatus> statuses);
     
     // Count milestones by contract ID and status
-    Long countByContract_ContractIdAndStatus(Long contractId, Milestone.MilestoneStatus status);
+    Long countByContract_ContractIdAndStatus(Long contractId, MilestoneStatus status);
     
     // Count total milestones for a contract
     Long countByContract_ContractId(Long contractId);
     
     // Find pending milestones for a contract
-    List<Milestone> findByContract_ContractIdAndStatusOrderByDueDateAsc(Long contractId, Milestone.MilestoneStatus status);
+    List<Milestone> findByContract_ContractIdAndStatusOrderByDueDateAsc(Long contractId, MilestoneStatus status);
     
     // Find milestones by contract ID with due date filtering
     @Query("SELECT m FROM Milestone m WHERE " +

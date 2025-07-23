@@ -3,7 +3,13 @@ package com.workorbit.backend.Chat.Controller;
 import com.workorbit.backend.Auth.DTO.AppUserDetails;
 import com.workorbit.backend.Auth.Entity.Role;
 import com.workorbit.backend.Chat.DTO.*;
+import com.workorbit.backend.Chat.Entity.ChatMessage;
 import com.workorbit.backend.Chat.Entity.ChatRoom;
+import com.workorbit.backend.Chat.DTO.MilestoneRequest;
+import com.workorbit.backend.Chat.DTO.MilestoneResponse;
+import com.workorbit.backend.Chat.DTO.MilestoneStatusRequest;
+import com.workorbit.backend.Chat.Enum.MilestoneStatus;
+import com.workorbit.backend.Chat.Service.MilestoneService;
 import com.workorbit.backend.Chat.Exception.ChatAccessDeniedException;
 import com.workorbit.backend.Chat.Exception.ChatRoomNotFoundException;
 import com.workorbit.backend.Chat.Exception.ChatTransitionException;
@@ -40,6 +46,7 @@ public class ChatController {
 
     private final ChatService chatService;
     private final BidService bidService;
+    private final MilestoneService milestoneService;
 
     /**
      * Sends a message in a chat room.
@@ -452,6 +459,259 @@ public class ChatController {
             log.error("Error retrieving contract details for chat: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Failed to retrieve contract details: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Gets milestone details for a contract chat room.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @return list of milestone responses
+     */
+    @GetMapping("/rooms/{chatRoomId}/milestones")
+    public ResponseEntity<ApiResponse<List<MilestoneResponse>>> getMilestonesForChat(@PathVariable Long chatRoomId) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            // Validate chat room access
+            ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
+            
+            // Validate that this is a contract chat
+            if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Milestones are only available in contract chats"));
+            }
+            
+            // Get contract ID from chat room
+            Long contractId = chatRoom.getReferenceId();
+            
+            // Get milestones for the contract
+            List<MilestoneResponse> milestones = milestoneService.getContractMilestones(contractId);
+            
+            log.info("Retrieved {} milestones for chat room {} (contract {}) by user {}", 
+                milestones.size(), chatRoomId, contractId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(milestones));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving milestones for chat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to retrieve milestones: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Gets milestone completion percentage for a contract chat room.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @return completion percentage (0-100)
+     */
+    @GetMapping("/rooms/{chatRoomId}/milestone-completion")
+    public ResponseEntity<ApiResponse<Double>> getMilestoneCompletionForChat(@PathVariable Long chatRoomId) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            // Validate chat room access
+            ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
+            
+            // Validate that this is a contract chat
+            if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Milestones are only available in contract chats"));
+            }
+            
+            // Get contract ID from chat room
+            Long contractId = chatRoom.getReferenceId();
+            
+            // Get completion percentage for the contract
+            Double completionPercentage = milestoneService.getContractCompletionPercentage(contractId);
+            
+            log.info("Retrieved milestone completion percentage {}% for chat room {} (contract {}) by user {}", 
+                completionPercentage, chatRoomId, contractId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(completionPercentage));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving milestone completion percentage for chat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to retrieve milestone completion percentage: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Gets overdue milestones for a contract chat room.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @return list of overdue milestone responses
+     */
+    @GetMapping("/rooms/{chatRoomId}/overdue-milestones")
+    public ResponseEntity<ApiResponse<List<MilestoneResponse>>> getOverdueMilestonesForChat(@PathVariable Long chatRoomId) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            // Validate chat room access
+            ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
+            
+            // Validate that this is a contract chat
+            if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Milestones are only available in contract chats"));
+            }
+            
+            // Get contract ID from chat room
+            Long contractId = chatRoom.getReferenceId();
+            
+            // Get overdue milestones for the contract
+            List<MilestoneResponse> overdueMilestones = milestoneService.getOverdueMilestones(contractId);
+            
+            log.info("Retrieved {} overdue milestones for chat room {} (contract {}) by user {}", 
+                overdueMilestones.size(), chatRoomId, contractId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(overdueMilestones));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving overdue milestones for chat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to retrieve overdue milestones: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Sends a milestone-related notification to a contract chat.
+     * This endpoint allows direct milestone notifications from the frontend.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @param request the notification request containing the message
+     * @return success response
+     */
+    @PostMapping("/rooms/{chatRoomId}/milestone-notification")
+    public ResponseEntity<ApiResponse<String>> sendMilestoneNotification(
+            @PathVariable Long chatRoomId,
+            @RequestBody Map<String, String> request) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            // Validate chat room access
+            ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
+            
+            // Validate that this is a contract chat
+            if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Milestone notifications can only be sent in contract chats"));
+            }
+            
+            String notification = request.get("notification");
+            if (notification == null || notification.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Notification message is required"));
+            }
+            
+            // Send the milestone notification
+            chatService.sendSystemNotification(chatRoomId, notification, ChatMessage.MessageType.MILESTONE_UPDATE);
+            
+            log.info("Milestone notification sent to chat room {} by user {}: {}", 
+                chatRoomId, userDetails.getProfileId(), notification);
+            
+            return ResponseEntity.ok(ApiResponse.success("Milestone notification sent successfully"));
+            
+        } catch (Exception e) {
+            log.error("Error sending milestone notification: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to send milestone notification: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Creates a milestone directly from the chat interface.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @param request the milestone creation request
+     * @return the created milestone response
+     */
+    @PostMapping("/rooms/{chatRoomId}/create-milestone")
+    public ResponseEntity<ApiResponse<MilestoneResponse>> createMilestoneFromChat(
+            @PathVariable Long chatRoomId,
+            @Valid @RequestBody MilestoneRequest request) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            // Validate chat room access
+            ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
+            
+            // Validate that this is a contract chat
+            if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Milestones can only be created in contract chats"));
+            }
+            
+            // Get contract ID from chat room
+            Long contractId = chatRoom.getReferenceId();
+            
+            // Create the milestone
+            MilestoneResponse response = milestoneService.createMilestone(contractId, request);
+            
+            log.info("Milestone created from chat room {} for contract {} by user {}: {}", 
+                chatRoomId, contractId, userDetails.getProfileId(), response.getTitle());
+            
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response));
+                
+        } catch (Exception e) {
+            log.error("Error creating milestone from chat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to create milestone: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Updates a milestone status directly from the chat interface.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @param milestoneId the ID of the milestone
+     * @param request the milestone status update request
+     * @return the updated milestone response
+     */
+    @PutMapping("/rooms/{chatRoomId}/milestones/{milestoneId}/status")
+    public ResponseEntity<ApiResponse<MilestoneResponse>> updateMilestoneStatusFromChat(
+            @PathVariable Long chatRoomId,
+            @PathVariable Long milestoneId,
+            @Valid @RequestBody MilestoneStatusRequest request) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            // Validate chat room access
+            ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
+            
+            // Validate that this is a contract chat
+            if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Milestones can only be updated in contract chats"));
+            }
+            
+            // Update the milestone status
+            MilestoneResponse response = milestoneService.updateMilestoneStatus(milestoneId, request.getStatus());
+            
+            log.info("Milestone {} status updated to {} from chat room {} by user {}", 
+                milestoneId, request.getStatus(), chatRoomId, userDetails.getProfileId());
+            
+            return ResponseEntity.ok(ApiResponse.success(response));
+            
+        } catch (Exception e) {
+            log.error("Error updating milestone status from chat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to update milestone status: " + e.getMessage()));
         }
     }
 

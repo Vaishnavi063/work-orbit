@@ -2,17 +2,26 @@ import { useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { Clock, CheckCircle2, RefreshCcw } from 'lucide-react';
 import type { ChatMessage } from '@/types';
 import type { RootState } from '@/store';
+import { Button } from '@/components/ui/button';
+
+// Enhanced message interface with status
+interface EnhancedChatMessage extends ChatMessage {
+  status: 'pending' | 'delivered' | 'error';
+  clientId?: string;
+}
 
 interface MessageListProps {
-  messages: ChatMessage[];
+  messages: EnhancedChatMessage[];
   isLoading: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
+  onRetry?: (clientId: string) => void;
 }
 
-export const MessageList = ({ messages, isLoading, hasMore, onLoadMore }: MessageListProps) => {
+export const MessageList = ({ messages, isLoading, hasMore, onLoadMore, onRetry }: MessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const user = useSelector((state: RootState) => state.auth?.user);
@@ -59,6 +68,38 @@ export const MessageList = ({ messages, isLoading, hasMore, onLoadMore }: Messag
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
   
+  // Handle retry for a failed message
+  const handleRetry = (clientId: string) => {
+    if (onRetry) {
+      onRetry(clientId);
+    }
+  };
+  
+  // Render message status indicator
+  const renderStatusIndicator = (message: EnhancedChatMessage) => {
+    switch (message.status) {
+      case 'pending':
+        return <Clock className="inline h-3 w-3 text-muted-foreground" />;
+      case 'delivered':
+        return message.isRead ? 
+          <CheckCircle2 className="inline h-3 w-3 text-success" /> : 
+          <CheckCircle2 className="inline h-3 w-3 text-muted-foreground" />;
+      case 'error':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-5 w-5 p-0 text-destructive" 
+            onClick={() => message.clientId && handleRetry(message.clientId)}
+          >
+            <RefreshCcw className="h-3 w-3" />
+          </Button>
+        );
+      default:
+        return null;
+    }
+  };
+  
   return (
     <div 
       ref={messagesContainerRef}
@@ -102,19 +143,20 @@ export const MessageList = ({ messages, isLoading, hasMore, onLoadMore }: Messag
                 "rounded-lg p-3",
                 isCurrentUser 
                   ? "bg-primary text-primary-foreground rounded-tr-none" 
-                  : "bg-secondary text-secondary-foreground rounded-tl-none"
+                  : "bg-secondary text-secondary-foreground rounded-tl-none",
+                message.status === 'error' && isCurrentUser && "bg-destructive/10"
               )}>
                 {message.content}
               </div>
               
               <div className={cn(
-                "text-xs text-muted-foreground mt-1",
-                isCurrentUser ? "text-right" : "text-left"
+                "text-xs text-muted-foreground mt-1 flex items-center",
+                isCurrentUser ? "justify-end" : "justify-start"
               )}>
-                {formatTime(message.createdAt)}
+                <span>{formatTime(message.createdAt)}</span>
                 {isCurrentUser && (
                   <span className="ml-1">
-                    {message.isRead ? "✓✓" : "✓"}
+                    {renderStatusIndicator(message)}
                   </span>
                 )}
               </div>

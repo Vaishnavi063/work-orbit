@@ -1,18 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  sendingState?: 'idle' | 'sending' | 'error';
 }
 
 export const MessageInput = ({ 
   onSendMessage, 
   disabled = false,
-  placeholder = 'Type a message...'
+  placeholder = 'Type a message...',
+  sendingState = 'idle'
 }: MessageInputProps) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -29,7 +31,7 @@ export const MessageInput = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!message.trim() || disabled) return;
+    if (!message.trim() || disabled || sendingState === 'sending') return;
     
     onSendMessage(message);
     setMessage('');
@@ -52,6 +54,10 @@ export const MessageInput = ({
     setMessage(e.target.value);
   };
   
+  // Determine button state
+  const isSending = sendingState === 'sending';
+  const isButtonDisabled = !message.trim() || disabled || isSending;
+  
   return (
     <form 
       onSubmit={handleSubmit} 
@@ -63,7 +69,7 @@ export const MessageInput = ({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        disabled={disabled}
+        disabled={disabled || isSending}
         className="min-h-[40px] max-h-[120px] resize-none"
         rows={1}
       />
@@ -71,9 +77,14 @@ export const MessageInput = ({
       <Button 
         type="submit" 
         size="icon" 
-        disabled={!message.trim() || disabled}
+        disabled={isButtonDisabled}
+        variant={sendingState === 'error' ? "destructive" : "default"}
       >
-        <Send className="h-4 w-4" />
+        {isSending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
         <span className="sr-only">Send message</span>
       </Button>
     </form>

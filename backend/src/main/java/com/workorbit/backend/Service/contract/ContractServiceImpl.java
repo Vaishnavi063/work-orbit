@@ -34,7 +34,7 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     @Transactional
-    public void createContract(Bids bid) {
+    public Long createContract(Bids bid) {
         log.info("Creating contract for bid ID: {}", bid.getId());
 
         // Fetch the associated project from the bid
@@ -53,24 +53,16 @@ public class ContractServiceImpl implements ContractService {
         Contract savedContract = contractRepository.save(contract);
         log.info("Contract saved: {}", savedContract.getContractId());
 
-        // Create contract chat room
-        try {
-            chatService.createContractChat(savedContract.getContractId());
-            log.info("Contract chat created for contract ID: {}", savedContract.getContractId());
-        } catch (Exception e) {
-            log.error("Failed to create contract chat for contract ID: {}", savedContract.getContractId(), e);
-            // Don't fail the contract creation if chat creation fails
-        }
-
-        // Convert bid negotiation chat to contract chat
-        // We use the modern method and only fall back to legacy if it fails
+        // Handle chat room creation/conversion
+        // First try to convert existing bid chat to contract chat
         try {
             chatService.convertToContractChat(bid.getId(), savedContract.getContractId());
             log.info("Bid chat converted to contract chat for bid: {} and contract: {}", bid.getId(),
                     savedContract.getContractId());
         } catch (Exception e) {
-            log.error("Failed to convert bid chat to contract chat for bid: {} and contract: {}", bid.getId(),
-                    savedContract.getContractId(), e);
+            log.warn(
+                    "Failed to convert bid chat to contract chat for bid: {} and contract: {}, trying legacy method and fallback",
+                    bid.getId(), savedContract.getContractId(), e);
 
             // Try legacy method as fallback
             try {
@@ -78,13 +70,24 @@ public class ContractServiceImpl implements ContractService {
                 log.info("Legacy bid chat transition succeeded for bid: {} and contract: {}", bid.getId(),
                         savedContract.getContractId());
             } catch (Exception ex) {
-                log.error("Both modern and legacy chat transition methods failed for bid: {} and contract: {}",
+                log.warn(
+                        "Legacy bid chat transition also failed for bid: {} and contract: {}, creating new contract chat",
                         bid.getId(), savedContract.getContractId(), ex);
-                // Don't fail the contract creation if chat transition fails
+
+                // If both conversion methods fail, create a new contract chat
+                try {
+                    chatService.createContractChat(savedContract.getContractId());
+                    log.info("New contract chat created for contract ID: {}", savedContract.getContractId());
+                } catch (Exception finalEx) {
+                    log.error("Failed to create contract chat for contract ID: {}", savedContract.getContractId(),
+                            finalEx);
+                    // Don't fail the contract creation if chat creation fails
+                }
             }
         }
 
         toDTO(savedContract);
+        return savedContract.getContractId();
     }
 
     @Override

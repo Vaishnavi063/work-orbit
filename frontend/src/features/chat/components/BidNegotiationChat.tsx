@@ -198,7 +198,7 @@ export const BidNegotiationChat = ({ chatRoomId, className }: BidNegotiationChat
   }
   
   // Render transition state messages
-  const renderTransitionMessage = useCallback(() => {
+  const renderTransitionMessage = () => {
     switch (transitionState) {
       case 'accepting':
         return (
@@ -239,10 +239,10 @@ export const BidNegotiationChat = ({ chatRoomId, className }: BidNegotiationChat
       default:
         return null;
     }
-  }, [transitionState]);
+  };
 
   // Render transition error if any
-  const renderTransitionError = useCallback(() => {
+  const renderTransitionError = () => {
     if (!transitionError) return null;
     
     return (
@@ -253,7 +253,7 @@ export const BidNegotiationChat = ({ chatRoomId, className }: BidNegotiationChat
         </AlertDescription>
       </Alert>
     );
-  }, [transitionError]);
+  };
 
   return (
     <div className={cn("flex flex-col h-full", className)}>

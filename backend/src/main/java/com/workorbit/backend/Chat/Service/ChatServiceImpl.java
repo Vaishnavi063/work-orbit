@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -295,6 +296,13 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public ChatRoom convertToContractChat(Long bidId, Long contractId) {
         log.info("Converting bid chat to contract chat for bid: {} and contract: {}", bidId, contractId);
+        
+        // Check if a contract chat already exists for this contract
+        Optional<ChatRoom> existingContractChat = chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.CONTRACT, contractId);
+        if (existingContractChat.isPresent()) {
+            log.info("Contract chat already exists for contract ID: {}, returning existing chat room", contractId);
+            return existingContractChat.get();
+        }
         
         // Find the bid negotiation chat room
         ChatRoom bidChatRoom = chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId)

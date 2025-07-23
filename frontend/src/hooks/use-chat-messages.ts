@@ -162,7 +162,7 @@ export const useChatMessages = ({
     if (!chatRoomId || !content.trim() || !user) return;
     
     const senderType = user.role === 'ROLE_CLIENT' ? 'CLIENT' : 'FREELANCER';
-    const clientId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const clientId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     
     // Create optimistic message
     const optimisticMessage: EnhancedChatMessage = {

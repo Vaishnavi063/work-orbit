@@ -176,7 +176,7 @@ public class BidServiceImpl implements BidService {
         bidRepo.saveAll(allBids);
         
         // Create contract for accepted bid
-        contractService.createContract(bid);
+        Long contractId = contractService.createContract(bid);
         
         // Send system notification to bid negotiation chat
         try {
@@ -186,8 +186,8 @@ public class BidServiceImpl implements BidService {
             log.error("Failed to send system notification for accepted bid: {}", bidId, e);
         }
         
-        log.info("Bid {} accepted successfully", bidId);
-        return bidId;
+        log.info("Bid {} accepted successfully, contract {} created", bidId, contractId);
+        return contractId;
     }
     
     @Override

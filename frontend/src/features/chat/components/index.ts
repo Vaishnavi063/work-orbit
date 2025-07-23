@@ -3,6 +3,8 @@ export { ChatIndicator } from './ChatIndicator';
 export { BidNegotiationChat } from './BidNegotiationChat';
 export { ChatInterface } from './ChatInterface';
 export { default as ChatPage } from './ChatPage';
+export { ChatList } from './ChatList';
+export { ChatDetail } from './ChatDetail';
 export { ContractChat } from './ContractChat';
 export { ContractChatButton } from './ContractChatButton';
 export { MessageInput } from './MessageInput';

@@ -19,6 +19,7 @@ import AppLayout from "../layout/app-layout";
 import ProjectDetails from "@/features/freelancer/components/project-details";
 import FreelancerBids from "@/features/freelancer/components/freelancer-bids";
 import ClientProjectsDashboard from "@/features/projects";
+import ContractsFeature from "@/features/contracts";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -35,6 +36,7 @@ const router = createBrowserRouter(
       <Route path="dashboard" element={<DashboardLayout />}>
         <Route path="profile" element={<Profile />} />
         <Route path="projects/*" element={<ClientProjectsDashboard />} />
+        <Route path="contracts/*" element={<ContractsFeature />} />
         <Route path="browse-projects" element={<BrowseProjects />} />
         <Route path="bids" element={<FreelancerBids />} />
         <Route path="browse-projects/:id" element={<ProjectDetails />} />

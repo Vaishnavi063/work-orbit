@@ -8,14 +8,28 @@ const request = ({
   params = null,
   url,
   isFormData = false,
-}: RequestType) => {
+  isPlainText = false,
+}: RequestType & { isPlainText?: boolean }) => {
+  const headers: Record<string, string> = {};
+  
+  // Set content type based on the request type
+  if (isFormData) {
+    headers["Content-Type"] = "multipart/form-data";
+  } else if (isPlainText) {
+    headers["Content-Type"] = "text/plain";
+  } else {
+    headers["Content-Type"] = "application/json";
+  }
+  
+  // Add auth token if provided
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+  
   return axios({
     baseURL: import.meta.env.VITE_BASE_URL,
     method,
-    headers: {
-      "Content-Type": isFormData ? "multipart/form-data" : "application/json",
-      ...(authToken && { Authorization: `Bearer ${authToken}` }),
-    },
+    headers,
     data,
     params,
     url,

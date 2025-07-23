@@ -7,6 +7,12 @@ import java.time.LocalDateTime;
 public class ContractResponse {
 	private Long contractId;
 	private Long projectId;
+	private String projectName;
+	private String freelancerName;
+	private Long clientId;
+	private Long freelancerId;
+	private String clientName;
+	private Double bidAmount;
 	private Long bidId;
 	private String contractStatus;
 	private LocalDateTime createdAt;

@@ -10,4 +10,6 @@ public interface ContractService {
 	void createContract(Bids bid);
 	ApiResponse<List<ContractResponse>> getAllContracts();
 	ApiResponse<ContractResponse> getContractById(Long id);
+	ApiResponse<ContractResponse> updateContract(Long id, String contractStatus);
+	ApiResponse<String> deleteContract(Long id);
 }

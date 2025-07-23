@@ -3,6 +3,8 @@ package com.workorbit.backend.Service.contract;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.workorbit.backend.Entity.Client;
+import com.workorbit.backend.Entity.Freelancer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -62,11 +64,47 @@ public class ContractServiceImpl implements ContractService {
 		return ApiResponse.success(toDTO(contract));
 	}
 	
+	@Override
+	public ApiResponse<ContractResponse> updateContract(Long id, String contractStatus) {
+	    Contract contract = contractRepository.findById(id)
+	        .orElseThrow(() -> new RuntimeException("Contract not found"));
+	    try {
+	        contract.setContractStatus(Contract.ContractStatus.valueOf(contractStatus));
+	    } catch (IllegalArgumentException e) {
+	        throw new RuntimeException("Invalid contract status");
+	    }
+	    Contract updated = contractRepository.save(contract);
+	    return ApiResponse.success(toDTO(updated));
+	}
+	
+	@Override
+	public ApiResponse<String> deleteContract(Long id) {
+	    Contract contract = contractRepository.findById(id)
+	        .orElseThrow(() -> new RuntimeException("Contract not found"));
+	    contractRepository.delete(contract);
+	    return ApiResponse.success("Contract deleted successfully");
+	}
+	
 	private ContractResponse toDTO(Contract contract) {
+        Project project = contract.getProject();
+        Client client = project.getClient();
+        String clientName = client != null ? client.getName() : "Unknown Client";
+        Long clientId = client != null ? client.getId() : null;
+        
+        Freelancer freelancer = contract.getBid() != null ? contract.getBid().getFreelancer() : null;
+        String freelancerName = freelancer != null ? freelancer.getName() : "Unknown Freelancer";
+        Long freelancerId = freelancer != null ? freelancer.getId() : null;
+        
         return ContractResponse.builder()
                 .contractId(contract.getContractId())
-                .projectId(contract.getProject().getId())
+                .projectId(project.getId())
+                .projectName(project.getTitle())
+                .clientId(clientId)
+                .freelancerId(freelancerId)
+                .clientName(clientName)
+                .freelancerName(freelancerName)
                 .bidId(contract.getBid().getId())
+                .bidAmount(contract.getBid().getBidAmount())
                 .contractStatus(contract.getContractStatus().name())
                 .createdAt(contract.getCreatedAt())
                 .updatedAt(contract.getUpdatedAt())

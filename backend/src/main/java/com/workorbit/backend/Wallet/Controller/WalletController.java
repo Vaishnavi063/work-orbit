@@ -1,5 +1,6 @@
 package com.workorbit.backend.Wallet.Controller;
 
+import com.workorbit.backend.Wallet.DTO.FrozenAmountDTO;
 import com.workorbit.backend.Wallet.DTO.WalletRequestDTO;
 import com.workorbit.backend.Wallet.DTO.WalletResponseDTO;
 import com.workorbit.backend.Wallet.DTO.WithdrawRequestDTO;
@@ -7,6 +8,8 @@ import com.workorbit.backend.Wallet.Service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/wallet")
@@ -39,9 +42,10 @@ public class WalletController {
     @PostMapping("/freeze")
     public ResponseEntity<String> freezeAmount(
             @RequestParam Long userId,
+            @RequestParam Long projectId,  // ✅ Added missing parameter
             @RequestParam Double amount
     ) {
-        walletService.freezeAmount(userId, amount);
+        walletService.freezeAmount(userId, projectId, amount);
         return ResponseEntity.ok("Amount frozen successfully.");
     }
 
@@ -49,9 +53,18 @@ public class WalletController {
     public ResponseEntity<String> releasePayment(
             @RequestParam Long clientId,
             @RequestParam Long freelancerId,
+            @RequestParam Long projectId,  // ✅ Moved projectId to correct position
             @RequestParam Double amount
     ) {
-        walletService.releasePayment(clientId, freelancerId, amount);
+        walletService.releasePayment(clientId, freelancerId, projectId, amount);
         return ResponseEntity.ok("Payment released successfully.");
+    }
+
+    @GetMapping("/frozen-amounts/{clientId}")
+    public ResponseEntity<List<FrozenAmountDTO>> getClientFrozenAmounts(
+            @PathVariable Long clientId
+    ) {
+        List<FrozenAmountDTO> frozenAmounts = walletService.getClientFrozenAmounts(clientId);
+        return ResponseEntity.ok(frozenAmounts);
     }
 }

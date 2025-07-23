@@ -152,6 +152,27 @@ public class ChatServiceImpl implements ChatService {
         
         return messages.map(this::mapToMessageResponse);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatMessageResponse> getNewMessages(Long chatRoomId, LocalDateTime since, Long userId, String userType) {
+        log.info("Retrieving new messages since {} for room: {} by user: {} ({})", 
+                since, chatRoomId, userId, userType);
+        
+        // Validate chat room access
+        findChatRoomById(chatRoomId, userId, userType);
+        
+        // Get messages created after the specified timestamp
+        List<ChatMessage> newMessages = chatMessageRepository
+                .findByChatRoom_IdAndCreatedAtAfterOrderByCreatedAtAsc(chatRoomId, since);
+        
+        log.info("Retrieved {} new messages for chat room: {} since {}", 
+                newMessages.size(), chatRoomId, since);
+        
+        return newMessages.stream()
+                .map(this::mapToMessageResponse)
+                .collect(Collectors.toList());
+    }
 
     @Override
     @Transactional
@@ -252,31 +273,67 @@ public class ChatServiceImpl implements ChatService {
         
         sendSystemNotification(chatRoom.getId(), notification);
         
-        // If this is a rejection notification, mark the chat room as completed
+        // If this is a rejection notification, close the chat room
         if (notification.toLowerCase().contains("rejected")) {
-            chatRoom.setStatus(ChatRoom.ChatStatus.COMPLETED);
-            chatRoomRepository.save(chatRoom);
-            log.info("Bid negotiation chat {} marked as completed due to rejection", chatRoom.getId());
+            closeBidChat(bidId);
         }
     }
     
     @Override
     @Transactional
-    public void transitionBidChatToContract(Long bidId, Long contractId) {
-        log.info("Transitioning bid chat to contract for bid: {} and contract: {}", bidId, contractId);
+    public ChatRoom convertToContractChat(Long bidId, Long contractId) {
+        log.info("Converting bid chat to contract chat for bid: {} and contract: {}", bidId, contractId);
         
         // Find the bid negotiation chat room
         ChatRoom bidChatRoom = chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId)
                 .orElseThrow(() -> new RuntimeException("Bid negotiation chat room not found for bid ID: " + bidId));
         
-        // Mark bid negotiation chat as completed
-        bidChatRoom.setStatus(ChatRoom.ChatStatus.COMPLETED);
+        // Update chat room to contract type
+        bidChatRoom.setChatType(ChatRoom.ChatType.CONTRACT);
+        bidChatRoom.setOriginalBidId(bidId); // Store original bid ID for reference
+        bidChatRoom.setReferenceId(contractId); // Update reference ID to contract ID
+        bidChatRoom.setStatus(ChatRoom.ChatStatus.ACTIVE); // Ensure status is active
+        
+        ChatRoom updatedChatRoom = chatRoomRepository.save(bidChatRoom);
+        
+        // Send transition notification to chat
+        sendSystemNotification(updatedChatRoom.getId(), 
+                "This chat has been converted to a contract chat. You can now manage milestones and track project progress.");
+        
+        log.info("Bid chat {} successfully converted to contract chat", updatedChatRoom.getId());
+        
+        return updatedChatRoom;
+    }
+    
+    @Override
+    @Transactional
+    public void closeBidChat(Long bidId) {
+        log.info("Closing bid chat for rejected bid: {}", bidId);
+        
+        // Find the bid negotiation chat room
+        ChatRoom bidChatRoom = chatRoomRepository.findByChatTypeAndReferenceId(ChatRoom.ChatType.BID_NEGOTIATION, bidId)
+                .orElseThrow(() -> new RuntimeException("Bid negotiation chat room not found for bid ID: " + bidId));
+        
+        // Mark bid chat as closed
+        bidChatRoom.setStatus(ChatRoom.ChatStatus.CLOSED);
         chatRoomRepository.save(bidChatRoom);
         
-        // Send transition notification to bid chat
-        sendSystemNotification(bidChatRoom.getId(), "This bid negotiation has been completed. A new contract chat has been created for project management.");
+        // Send closure notification to chat
+        sendSystemNotification(bidChatRoom.getId(), 
+                "This bid has been rejected. The chat is now closed.");
         
-        log.info("Bid negotiation chat {} marked as completed and transition notification sent", bidChatRoom.getId());
+        log.info("Bid chat {} marked as closed due to bid rejection", bidChatRoom.getId());
+    }
+    
+    /**
+     * Legacy method maintained for backward compatibility.
+     * Now delegates to convertToContractChat.
+     */
+    @Override
+    @Transactional
+    public void transitionBidChatToContract(Long bidId, Long contractId) {
+        log.info("Legacy transitionBidChatToContract called, delegating to convertToContractChat");
+        convertToContractChat(bidId, contractId);
     }
     
     @Override

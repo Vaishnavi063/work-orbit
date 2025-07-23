@@ -35,6 +35,9 @@ public class ChatRoom {
 
     @Column(name = "reference_id", nullable = false)
     private Long referenceId; // bidId or contractId
+    
+    @Column(name = "original_bid_id")
+    private Long originalBidId; // Stores original bid ID for reference after conversion
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
@@ -67,6 +70,7 @@ public class ChatRoom {
     public enum ChatStatus {
         ACTIVE,
         COMPLETED,
-        ARCHIVED
+        ARCHIVED,
+        CLOSED
     }
 }

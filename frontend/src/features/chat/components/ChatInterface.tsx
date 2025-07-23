@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 interface ChatInterfaceProps {
   chatRoomId: number;
   className?: string;
+  disabled?: boolean;
 }
 
-export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => {
+export const ChatInterface = ({ chatRoomId, chatType, referenceId, className, disabled = false }: ChatInterfaceProps) => {
   const { 
     messages, 
     isLoading, 
@@ -105,7 +106,7 @@ export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => 
         
         <MessageInput 
           onSendMessage={handleSendMessage} 
-          disabled={isLoading} 
+          disabled={isLoading || disabled} 
           sendingState={sendingState}
         />
       </CardContent>

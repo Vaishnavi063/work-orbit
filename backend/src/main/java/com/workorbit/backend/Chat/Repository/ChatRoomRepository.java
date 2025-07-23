@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -98,4 +99,18 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
            "cr.status = 'ACTIVE' AND m.isRead = false " +
            "ORDER BY cr.updatedAt DESC")
     List<ChatRoom> findActiveChatRoomsWithUnreadMessages(@Param("userId") Long userId, @Param("userType") String userType);
+    
+    /**
+     * Find contract chat rooms that should be archived
+     * These are chat rooms for contracts that have been marked for archiving
+     * and have not been updated for a specified period
+     * 
+     * @param cutoffDate The date before which chat rooms should be archived
+     * @return List of chat rooms to archive
+     */
+    @Query("SELECT cr FROM ChatRoom cr WHERE " +
+           "cr.chatType = 'CONTRACT' AND " +
+           "cr.status = 'ACTIVE' AND " +
+           "cr.updatedAt < :cutoffDate")
+    List<ChatRoom> findContractChatsToArchive(@Param("cutoffDate") LocalDateTime cutoffDate);
 }

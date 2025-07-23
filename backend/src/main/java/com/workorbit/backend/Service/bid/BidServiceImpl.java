@@ -16,6 +16,7 @@ import com.workorbit.backend.Service.contract.ContractService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +33,7 @@ public class BidServiceImpl implements BidService {
     private final ContractService contractService;
 
     @Override
+    @Transactional
     public Bids placeBid(BidDTO dto) {
         log.info("Placing bid for freelancer ID: {}", dto.getFreelancerId());
         // Fetch freelancer
@@ -64,9 +66,9 @@ public class BidServiceImpl implements BidService {
         bid.setTeamSize(dto.getTeamSize());
         bid.setStatus(Bids.bidStatus.Pending);
         bid.setCreatedAt(LocalDateTime.now());
-        log.info("Bid created: {}", bid.getId());
 
         Bids savedBid = bidRepo.save(bid);
+        log.info("Bid created with ID: {}", savedBid.getId());
         
         // Create bid negotiation chat room
         try {
@@ -91,6 +93,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
+    @Transactional
     public void deleteBid(Long bidId, Long freelancerId) {
         log.info("Deleting bid by ID: {}", bidId);
         // Find the bid and check if the freelancer is authorized to delete it
@@ -109,6 +112,15 @@ public class BidServiceImpl implements BidService {
         }
         log.info("Bid is pending, deleting bid");
 
+        // Close the bid chat room if it exists
+        try {
+            chatService.closeBidChat(bidId);
+            log.info("Chat room closed for bid: {}", bidId);
+        } catch (Exception e) {
+            log.error("Failed to close chat room for bid: {}", bidId, e);
+            // Continue with bid deletion even if chat closure fails
+        }
+
         bidRepo.deleteById(bidId);
         log.info("Bid deleted: {}", bidId);
     }
@@ -118,6 +130,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
+    @Transactional
     public Long acceptBid(Long bidId, Long clientId) {
         log.info("Accepting bid ID: {} by client ID: {}", bidId, clientId);
         
@@ -149,6 +162,15 @@ public class BidServiceImpl implements BidService {
                 b.setStatus(Bids.bidStatus.Accepted);
             } else {
                 b.setStatus(Bids.bidStatus.Rejected);
+                
+                // Close chat rooms for rejected bids
+                try {
+                    chatService.closeBidChat(b.getId());
+                    log.info("Chat room closed for rejected bid: {}", b.getId());
+                } catch (Exception e) {
+                    log.error("Failed to close chat room for rejected bid: {}", b.getId(), e);
+                    // Continue with bid rejection even if chat closure fails
+                }
             }
         }
         bidRepo.saveAll(allBids);
@@ -164,14 +186,12 @@ public class BidServiceImpl implements BidService {
             log.error("Failed to send system notification for accepted bid: {}", bidId, e);
         }
         
-        // Transition bid chat to contract - we need to get the contract ID
-        // This will be handled after contract creation in ContractService
-        
         log.info("Bid {} accepted successfully", bidId);
         return bidId;
     }
     
     @Override
+    @Transactional
     public void rejectBid(Long bidId, Long clientId) {
         log.info("Rejecting bid ID: {} by client ID: {}", bidId, clientId);
         
@@ -202,6 +222,15 @@ public class BidServiceImpl implements BidService {
             log.info("System notification sent for rejected bid: {}", bidId);
         } catch (Exception e) {
             log.error("Failed to send system notification for rejected bid: {}", bidId, e);
+        }
+        
+        // Close the bid chat room
+        try {
+            chatService.closeBidChat(bidId);
+            log.info("Chat room closed for rejected bid: {}", bidId);
+        } catch (Exception e) {
+            log.error("Failed to close chat room for rejected bid: {}", bidId, e);
+            // Continue with bid rejection even if chat closure fails
         }
         
         log.info("Bid {} rejected successfully", bidId);

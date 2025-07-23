@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { MessageCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { chatApis } from '../apis';
-import type { RootState } from '@/store';
+import { fetchUserChatRooms } from '@/store/slices/chat-slice';
+import type { RootState, AppDispatch } from '@/store';
 
 interface ChatButtonProps {
   bidId: number;
@@ -24,6 +25,7 @@ export const ChatButton = ({
 }: ChatButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const { authToken } = useSelector((state: RootState) => state.auth);
   const { handleError } = useErrorHandler();
   
@@ -42,6 +44,9 @@ export const ChatButton = ({
       // Create or get chat room for this bid
       const response = await chatApis.createBidChatRoom(bidId, authToken);
       const chatRoomId = response.data.data.id;
+      
+      // Refresh chat rooms to update the list with the new chat
+      dispatch(fetchUserChatRooms({ authToken }));
       
       // Navigate to the chat room
       navigate(`/dashboard/chats/${chatRoomId}`);

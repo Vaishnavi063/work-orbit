@@ -1,11 +1,11 @@
-import { Badge } from '@/components/ui/badge';
 import { useUnreadMessages } from '@/hooks/use-unread-messages';
+import { Badge } from '@/components/ui/badge';
 
-interface ChatIndicatorProps {
+interface UnreadMessageIndicatorProps {
   className?: string;
 }
 
-export const ChatIndicator = ({ className = '' }: ChatIndicatorProps) => {
+export const UnreadMessageIndicator = ({ className = '' }: UnreadMessageIndicatorProps) => {
   const { totalUnreadCount } = useUnreadMessages();
   
   if (totalUnreadCount === 0) {
@@ -15,9 +15,11 @@ export const ChatIndicator = ({ className = '' }: ChatIndicatorProps) => {
   return (
     <Badge 
       variant="destructive" 
-      className={`h-5 w-5 flex items-center justify-center p-0 text-xs ${className}`}
+      className={`flex items-center justify-center p-0 text-xs ${className}`}
     >
       {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
     </Badge>
   );
 };
+
+export default UnreadMessageIndicator;

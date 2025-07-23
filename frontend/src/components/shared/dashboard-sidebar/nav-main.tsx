@@ -3,9 +3,8 @@ import {
   FilePlus2,
   Briefcase,
   Handshake,
-  WalletMinimal,
-  HandCoins,
   SwatchBook,
+  MessageSquare,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -56,17 +55,10 @@ export const navMain = [
   },
   {
     id: 6,
-    title: "Wallet",
-    path: "/dashboard/wallet",
-    icon: WalletMinimal,
-    role: "ROLE_CLIENT",
-  },
-  {
-    id: 6,
-    title: "Revenue",
-    path: "/dashboard/revenue",
-    icon: HandCoins,
-    role: "ROLE_FREELANCER",
+    title: "Chats",
+    path: "/dashboard/chats",
+    icon: MessageSquare,
+    role: "COMMON",
   },
 ];
 

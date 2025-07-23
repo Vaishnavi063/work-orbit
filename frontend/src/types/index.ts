@@ -160,6 +160,8 @@ export interface ChatMessage {
         | "MILESTONE_UPDATE";
     isRead: boolean;
     createdAt: string;
+    status?: "pending" | "delivered" | "error"; // Frontend-only for state management
+    isPending?: boolean; // For backward compatibility
 }
 
 export interface ChatRoom {

@@ -1,6 +1,2 @@
-import ChatService, { getChatService } from './chat-service';
-
-export {
-  ChatService,
-  getChatService
-};
+export * from './chat-polling-service';
+export * from './chat-service';

@@ -2,7 +2,6 @@ package com.workorbit.backend.Chat.Service;
 
 import com.workorbit.backend.Chat.DTO.MilestoneRequest;
 import com.workorbit.backend.Chat.DTO.MilestoneResponse;
-import com.workorbit.backend.Chat.Entity.Milestone;
 import com.workorbit.backend.Chat.Enum.MilestoneStatus;
 import org.springframework.transaction.annotation.Transactional;
 

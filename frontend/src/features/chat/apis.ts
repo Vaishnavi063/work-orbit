@@ -13,6 +13,12 @@ interface GetChatHistoryParams {
   authToken: string;
 }
 
+interface GetNewMessagesParams {
+  chatRoomId: number;
+  since: string;
+  authToken: string;
+}
+
 interface MarkAsReadParams {
   chatRoomId: number;
   authToken: string;
@@ -72,6 +78,18 @@ export const chatApis = {
     return request({
       method: 'POST',
       url: `/api/chat/rooms/${chatRoomId}/read`,
+      authToken,
+    });
+  },
+  
+  /**
+   * Get new messages since a specific timestamp
+   */
+  getNewMessages: ({ chatRoomId, since, authToken }: GetNewMessagesParams) => {
+    return request({
+      method: 'GET',
+      url: `/api/chat/rooms/${chatRoomId}/messages/since`,
+      params: { since },
       authToken,
     });
   },

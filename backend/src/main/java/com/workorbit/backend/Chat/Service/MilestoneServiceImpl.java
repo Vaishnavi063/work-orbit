@@ -1,6 +1,5 @@
 package com.workorbit.backend.Chat.Service;
 
-import com.workorbit.backend.Chat.DTO.ChatMessageRequest;
 import com.workorbit.backend.Chat.DTO.MilestoneRequest;
 import com.workorbit.backend.Chat.DTO.MilestoneResponse;
 import com.workorbit.backend.Chat.Entity.ChatMessage;

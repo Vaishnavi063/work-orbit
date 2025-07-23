@@ -148,4 +148,22 @@ public interface ChatService {
      * @return contract details response
      */
     ContractDetailsResponse getContractDetailsForChat(Long chatRoomId, Long userId, String userType);
+    
+    /**
+     * Legacy method for transitioning a bid chat to contract chat.
+     * 
+     * @param bidId the ID of the accepted bid
+     * @param contractId the ID of the created contract
+     */
+    void transitionBidChatToContract(Long bidId, Long contractId);
+    
+    /**
+     * Converts a ChatRoom entity to ChatRoomResponse DTO.
+     * 
+     * @param chatRoom the ChatRoom entity
+     * @param userId the ID of the requesting user
+     * @param userType the type of user (CLIENT or FREELANCER)
+     * @return chat room response DTO
+     */
+    ChatRoomResponse getChatRoomResponse(ChatRoom chatRoom, Long userId, String userType);
 }

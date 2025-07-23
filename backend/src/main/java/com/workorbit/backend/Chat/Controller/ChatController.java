@@ -4,6 +4,10 @@ import com.workorbit.backend.Auth.DTO.AppUserDetails;
 import com.workorbit.backend.Auth.Entity.Role;
 import com.workorbit.backend.Chat.DTO.*;
 import com.workorbit.backend.Chat.Entity.ChatRoom;
+import com.workorbit.backend.Chat.Exception.ChatAccessDeniedException;
+import com.workorbit.backend.Chat.Exception.ChatRoomNotFoundException;
+import com.workorbit.backend.Chat.Exception.ChatTransitionException;
+import com.workorbit.backend.Chat.Exception.InvalidChatOperationException;
 import com.workorbit.backend.Chat.Service.ChatService;
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.Service.bid.BidService;
@@ -13,12 +17,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +45,7 @@ public class ChatController {
      * Sends a message in a chat room.
      * 
      * @param request the message request containing chat room ID and content
-     * @return the created message response
+     * @return the created message response with actual message ID
      */
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
@@ -52,12 +58,21 @@ public class ChatController {
             ChatMessageResponse response = chatService.sendMessage(
                 request, userDetails.getProfileId(), userType);
             
-            log.info("Message sent successfully by user {} in chat room {}", 
-                userDetails.getProfileId(), request.getChatRoomId());
+            log.info("Message sent successfully by user {} in chat room {} with ID {}", 
+                userDetails.getProfileId(), request.getChatRoomId(), response.getId());
             
+            // Return the actual message ID immediately for client-side tracking
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
                 
+        } catch (ChatRoomNotFoundException e) {
+            log.error("Chat room not found: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (ChatAccessDeniedException e) {
+            log.error("Access denied to chat room: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
             log.error("Error sending message: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -89,10 +104,49 @@ public class ChatController {
             
             return ResponseEntity.ok(ApiResponse.success(messages));
             
+        } catch (ChatRoomNotFoundException | ChatAccessDeniedException e) {
+            log.error("Access error retrieving chat history: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
             log.error("Error retrieving chat history: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Failed to retrieve chat history: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Retrieves new messages since a specific timestamp for polling.
+     * 
+     * @param chatRoomId the ID of the chat room
+     * @param since the timestamp to retrieve messages from
+     * @return list of new messages since the specified timestamp
+     */
+    @GetMapping("/rooms/{chatRoomId}/messages/since")
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getNewMessages(
+            @PathVariable Long chatRoomId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since) {
+        
+        try {
+            AppUserDetails userDetails = getCurrentUserDetails();
+            String userType = getUserType(userDetails);
+            
+            List<ChatMessageResponse> newMessages = chatService.getNewMessages(
+                chatRoomId, since, userDetails.getProfileId(), userType);
+            
+            log.info("Retrieved {} new messages for chat room {} by user {} since {}", 
+                newMessages.size(), chatRoomId, userDetails.getProfileId(), since);
+            
+            return ResponseEntity.ok(ApiResponse.success(newMessages));
+            
+        } catch (ChatRoomNotFoundException | ChatAccessDeniedException e) {
+            log.error("Access error retrieving new messages: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error retrieving new messages: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Failed to retrieve new messages: " + e.getMessage()));
         }
     }
 
@@ -250,13 +304,13 @@ public class ChatController {
 
 
     /**
-     * Accepts a bid through the chat interface.
+     * Accepts a bid through the chat interface and transitions the chat to contract mode.
      * 
      * @param bidId the ID of the bid to accept
-     * @return success response
+     * @return success response with chat transition details
      */
     @PostMapping("/bid/{bidId}/accept")
-    public ResponseEntity<ApiResponse<String>> acceptBidInChat(@PathVariable Long bidId) {
+    public ResponseEntity<ApiResponse<ChatRoomResponse>> acceptBidInChat(@PathVariable Long bidId) {
         
         try {
             AppUserDetails userDetails = getCurrentUserDetails();
@@ -264,17 +318,32 @@ public class ChatController {
             
             // Validate that only clients can accept bids
             if (!"CLIENT".equals(userType)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponse.error("Only clients can accept bids"));
+                throw new ChatAccessDeniedException("Only clients can accept bids");
             }
             
             // Delegate to BidService for bid acceptance
-            bidService.acceptBid(bidId, userDetails.getProfileId());
+            Long contractId = bidService.acceptBid(bidId, userDetails.getProfileId());
             
-            log.info("Bid {} accepted by client {} through chat", bidId, userDetails.getProfileId());
+            // Convert the bid chat to contract chat
+            ChatRoom contractChatRoom = chatService.convertToContractChat(bidId, contractId);
             
-            return ResponseEntity.ok(ApiResponse.success("Bid accepted successfully"));
+            // Get the updated chat room response
+            ChatRoomResponse chatRoomResponse = chatService.getChatRoomResponse(
+                contractChatRoom, userDetails.getProfileId(), userType);
             
+            log.info("Bid {} accepted by client {} and chat transitioned to contract chat {}", 
+                bidId, userDetails.getProfileId(), contractChatRoom.getId());
+            
+            return ResponseEntity.ok(ApiResponse.success(chatRoomResponse));
+            
+        } catch (ChatAccessDeniedException e) {
+            log.error("Access denied: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (ChatTransitionException e) {
+            log.error("Chat transition error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
             log.error("Error accepting bid: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -283,10 +352,10 @@ public class ChatController {
     }
 
     /**
-     * Rejects a bid through the chat interface.
+     * Rejects a bid through the chat interface and closes the chat.
      * 
      * @param bidId the ID of the bid to reject
-     * @return success response
+     * @return success response with chat closure confirmation
      */
     @PostMapping("/bid/{bidId}/reject")
     public ResponseEntity<ApiResponse<String>> rejectBidInChat(@PathVariable Long bidId) {
@@ -297,17 +366,32 @@ public class ChatController {
             
             // Validate that only clients can reject bids
             if (!"CLIENT".equals(userType)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponse.error("Only clients can reject bids"));
+                throw new ChatAccessDeniedException("Only clients can reject bids");
             }
             
             // Delegate to BidService for bid rejection
             bidService.rejectBid(bidId, userDetails.getProfileId());
             
-            log.info("Bid {} rejected by client {} through chat", bidId, userDetails.getProfileId());
+            // Close the bid chat
+            chatService.closeBidChat(bidId);
             
-            return ResponseEntity.ok(ApiResponse.success("Bid rejected successfully"));
+            log.info("Bid {} rejected by client {} and chat closed", 
+                bidId, userDetails.getProfileId());
             
+            return ResponseEntity.ok(ApiResponse.success("Bid rejected and chat closed successfully"));
+            
+        } catch (ChatAccessDeniedException e) {
+            log.error("Access denied: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (ChatRoomNotFoundException e) {
+            log.error("Chat room not found: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (InvalidChatOperationException e) {
+            log.error("Invalid chat operation: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
             log.error("Error rejecting bid: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

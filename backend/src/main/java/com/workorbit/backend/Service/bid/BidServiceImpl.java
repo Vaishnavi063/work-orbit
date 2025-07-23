@@ -118,7 +118,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public void acceptBid(Long bidId, Long clientId) {
+    public Long acceptBid(Long bidId, Long clientId) {
         log.info("Accepting bid ID: {} by client ID: {}", bidId, clientId);
         
         Bids bid = bidRepo.findById(bidId)
@@ -168,6 +168,7 @@ public class BidServiceImpl implements BidService {
         // This will be handled after contract creation in ContractService
         
         log.info("Bid {} accepted successfully", bidId);
+        return bidId;
     }
     
     @Override

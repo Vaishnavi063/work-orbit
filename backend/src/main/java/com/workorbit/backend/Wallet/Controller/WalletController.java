@@ -1,5 +1,6 @@
 package com.workorbit.backend.Wallet.Controller;
 
+import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.Wallet.DTO.FrozenAmountDTO;
 import com.workorbit.backend.Wallet.DTO.WalletRequestDTO;
 import com.workorbit.backend.Wallet.DTO.WalletResponseDTO;
@@ -19,52 +20,52 @@ public class WalletController {
     private final WalletService walletService;
 
     @PostMapping("/add-money")
-    public ResponseEntity<WalletResponseDTO> addMoney(@RequestBody WalletRequestDTO request) {
+    public ResponseEntity<ApiResponse<WalletResponseDTO>> addMoney(@RequestBody WalletRequestDTO request) {
         WalletResponseDTO response = walletService.addMoney(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<WalletResponseDTO> getWallet(
+    public ResponseEntity<ApiResponse<WalletResponseDTO>> getWallet(
             @PathVariable Long userId,
             @RequestParam String role
     ) {
         WalletResponseDTO response = walletService.getWallet(userId, role);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<WalletResponseDTO> withdraw(@RequestBody WithdrawRequestDTO request) {
+    public ResponseEntity<ApiResponse<WalletResponseDTO>> withdraw(@RequestBody WithdrawRequestDTO request) {
         WalletResponseDTO response = walletService.withdraw(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PostMapping("/freeze")
-    public ResponseEntity<String> freezeAmount(
+    public ResponseEntity<ApiResponse<String>> freezeAmount(
             @RequestParam Long userId,
-            @RequestParam Long projectId,  // ✅ Added missing parameter
+            @RequestParam Long projectId,
             @RequestParam Double amount
     ) {
         walletService.freezeAmount(userId, projectId, amount);
-        return ResponseEntity.ok("Amount frozen successfully.");
+        return ResponseEntity.ok(ApiResponse.success("Amount frozen successfully."));
     }
 
     @PostMapping("/release")
-    public ResponseEntity<String> releasePayment(
+    public ResponseEntity<ApiResponse<String>> releasePayment(
             @RequestParam Long clientId,
             @RequestParam Long freelancerId,
-            @RequestParam Long projectId,  // ✅ Moved projectId to correct position
+            @RequestParam Long projectId,
             @RequestParam Double amount
     ) {
         walletService.releasePayment(clientId, freelancerId, projectId, amount);
-        return ResponseEntity.ok("Payment released successfully.");
+        return ResponseEntity.ok(ApiResponse.success("Payment released successfully."));
     }
 
     @GetMapping("/frozen-amounts/{clientId}")
-    public ResponseEntity<List<FrozenAmountDTO>> getClientFrozenAmounts(
+    public ResponseEntity<ApiResponse<List<FrozenAmountDTO>>> getClientFrozenAmounts(
             @PathVariable Long clientId
     ) {
         List<FrozenAmountDTO> frozenAmounts = walletService.getClientFrozenAmounts(clientId);
-        return ResponseEntity.ok(frozenAmounts);
+        return ResponseEntity.ok(ApiResponse.success(frozenAmounts));
     }
 }

@@ -76,15 +76,8 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
     const userRole = currentUser.role as UserRoles;
     const userId = currentUser.id;
     
-    // Check if user is the client or freelancer associated with this contract
-    const isContractParticipant = 
-      (userRole === 'ROLE_CLIENT' && contract.clientId === userId) || 
-      (userRole === 'ROLE_FREELANCER' && contract.freelancerId === userId);
-    
-    // Additional business rules could be added here
-    // For example, maybe only clients can mark contracts as completed
-    
-    return isContractParticipant;
+    // Only allow the client who owns this contract to update the status
+    return userRole === 'ROLE_CLIENT' && contract.clientId === userId;
   }, [contract, currentUser]);
   
   // Error message for permission validation

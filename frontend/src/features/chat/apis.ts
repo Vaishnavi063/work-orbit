@@ -231,4 +231,51 @@ export const chatApis = {
       authToken,
     });
   },
+  
+  /**
+   * Delete a milestone from a contract chat
+   */
+  deleteMilestoneFromChat: (_chatRoomId: number, milestoneId: number, authToken: string) => {
+    return request({
+      method: 'DELETE',
+      url: CHAT_URLS.DELETE_MILESTONE(milestoneId),
+      authToken,
+    });
+  },
+  
+  /**
+   * Update a milestone directly (not through chat)
+   */
+  updateMilestoneDirect: (milestoneId: number, milestoneData: any, authToken: string) => {
+    return request({
+      method: 'PUT',
+      url: CHAT_URLS.UPDATE_MILESTONE(milestoneId),
+      data: milestoneData,
+      authToken,
+    });
+  },
+  
+  /**
+   * Create a milestone directly (not through chat)
+   */
+  createMilestoneDirect: (contractId: number, milestoneData: any, authToken: string) => {
+    return request({
+      method: 'POST',
+      url: CHAT_URLS.CREATE_MILESTONE_DIRECT(contractId),
+      data: milestoneData,
+      authToken,
+    });
+  },
+  
+  /**
+   * Update milestone status directly (not through chat)
+   */
+  updateMilestoneStatusDirect: (milestoneId: number, status: string, authToken: string) => {
+    return request({
+      method: 'PUT',
+      url: CHAT_URLS.UPDATE_MILESTONE_STATUS_DIRECT(milestoneId),
+      data: { status },
+      authToken,
+    });
+  },
 };

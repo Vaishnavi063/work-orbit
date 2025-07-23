@@ -17,7 +17,6 @@ interface ChatInterfaceProps {
 export const ChatInterface = ({ 
   chatRoomId, 
   chatType, 
-  referenceId, 
   className, 
   disabled = false,
   onMilestoneAction
@@ -31,7 +30,7 @@ export const ChatInterface = ({
     hasMore, 
     loadMore,
     retryMessage
-  } = useChatMessages({ chatRoomId, chatType, referenceId });
+  } = useChatMessages({ chatRoomId });
   
   const [sendingState, setSendingState] = useState<'idle' | 'sending' | 'error'>('idle');
   const [retryCount, setRetryCount] = useState(0);
@@ -102,10 +101,10 @@ export const ChatInterface = ({
   }, [retryCount, messages, retryMessage]);
   
   return (
-    <Card className={className}>
-      <CardContent className="p-0 h-[600px] flex flex-col">
+    <Card className={`h-full flex flex-col ${className || ''}`}>
+      <CardContent className="p-0 flex flex-col h-full min-h-0">
         {error && (
-          <Alert variant="destructive" className="mb-2 mx-2 mt-2">
+          <Alert variant="destructive" className="mb-2 mx-2 mt-2 flex-shrink-0">
             <AlertDescription className="flex items-center justify-between">
               <span>{error}</span>
               <Button 

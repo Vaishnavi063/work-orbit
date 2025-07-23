@@ -19,7 +19,7 @@ const ProjectsListView: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { authToken } = useAuth();
   
-  const [activeTab, setActiveTab] = useState<string>("list");
+  const [activeTab, setActiveTab] = useState<string>("open");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -53,14 +53,8 @@ const ProjectsListView: React.FC = () => {
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm border">
-        <Tabs defaultValue="list" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="open" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 bg-slate-100 p-1">
-            <TabsTrigger 
-              value="list" 
-              className="cursor-pointer data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary hover:bg-slate-200 transition-all"
-            >
-              All Projects
-            </TabsTrigger>
             <TabsTrigger 
               value="open" 
               className="cursor-pointer data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary hover:bg-slate-200 transition-all"
@@ -73,11 +67,13 @@ const ProjectsListView: React.FC = () => {
             >
               Closed Projects
             </TabsTrigger>
+            <TabsTrigger 
+              value="list" 
+              className="cursor-pointer data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary hover:bg-slate-200 transition-all"
+            >
+              All Projects
+            </TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="list" className="mt-2">
-            <ProjectList onCreateProject={handleCreateProject} />
-          </TabsContent>
           
           <TabsContent value="open" className="mt-2">
             <ProjectList filterStatus="OPEN" onCreateProject={handleCreateProject} />
@@ -85,6 +81,10 @@ const ProjectsListView: React.FC = () => {
           
           <TabsContent value="closed" className="mt-2">
             <ProjectList filterStatus="CLOSED" onCreateProject={handleCreateProject} />
+          </TabsContent>
+          
+          <TabsContent value="list" className="mt-2">
+            <ProjectList onCreateProject={handleCreateProject} />
           </TabsContent>
         </Tabs>
       </div>

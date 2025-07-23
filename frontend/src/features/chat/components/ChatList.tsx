@@ -53,7 +53,7 @@ export const ChatList = () => {
   const { authToken } = useSelector((state: RootState) => state.auth);
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('active');
   
   // Fetch chat rooms based on active tab
   const fetchChatRooms = useCallback(() => {
@@ -162,17 +162,17 @@ export const ChatList = () => {
         </div>
       </div>
       
-      <Tabs defaultValue="all" className="flex-1 flex flex-col" onValueChange={setActiveTab}>
+      <Tabs defaultValue="active" className="flex-1 flex flex-col" onValueChange={setActiveTab}>
         <div className="px-4 pt-2">
           <TabsList className="w-full">
-            <TabsTrigger value="all" className="flex-1">All Chats</TabsTrigger>
             <TabsTrigger value="active" className="flex-1">Active</TabsTrigger>
+            <TabsTrigger value="all" className="flex-1">All Chats</TabsTrigger>
           </TabsList>
         </div>
         
-        <TabsContent value="all" className="flex-1 mt-0">
+        <TabsContent value="active" className="flex-1 mt-0">
           <ChatRoomsList 
-            chatRooms={filteredChatRooms} 
+            chatRooms={filteredChatRooms.filter(room => room.status === 'ACTIVE')} 
             isLoading={loading.chatRooms} 
             error={error.chatRooms}
             onChatRoomClick={handleChatRoomClick}
@@ -181,9 +181,9 @@ export const ChatList = () => {
           />
         </TabsContent>
         
-        <TabsContent value="active" className="flex-1 mt-0">
+        <TabsContent value="all" className="flex-1 mt-0">
           <ChatRoomsList 
-            chatRooms={filteredChatRooms.filter(room => room.status === 'ACTIVE')} 
+            chatRooms={filteredChatRooms} 
             isLoading={loading.chatRooms} 
             error={error.chatRooms}
             onChatRoomClick={handleChatRoomClick}
@@ -341,7 +341,7 @@ const ChatRoomsList = ({
                       
                       {room.bidDetails?.bidAmount && (
                         <Badge variant="outline" className="font-normal">
-                          ${room.bidDetails.bidAmount.toLocaleString()}
+                          {room.bidDetails.bidAmount.toLocaleString()}
                         </Badge>
                       )}
                       

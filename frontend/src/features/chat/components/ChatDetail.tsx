@@ -32,7 +32,8 @@ export const ChatDetail: React.FC = () => {
     navigate('/dashboard/chats');
   };
   
-  if (loading) {
+  // Only show loading on initial load when there are no chat rooms at all
+  if (loading && chatRooms.length === 0 && !chatRoom) {
     return (
       <div className="h-full flex flex-col">
         <div className="mb-4 flex items-center">

@@ -71,10 +71,10 @@ export const BidNegotiationChat = ({
     const authToken = useSelector((state: RootState) => state.auth?.authToken);
     const navigate = useNavigate();
 
-    // Fetch bid details
+    // Fetch bid details only once
     useEffect(() => {
         const fetchBidDetails = async () => {
-            if (!authToken) return;
+            if (!authToken || bidDetails) return; // Don't refetch if already loaded
 
             try {
                 setIsLoading(true);
@@ -94,7 +94,7 @@ export const BidNegotiationChat = ({
         };
 
         fetchBidDetails();
-    }, [chatRoomId, authToken]);
+    }, [chatRoomId, authToken, bidDetails]);
 
     // Handle bid acceptance with proper transition state management
     const handleAcceptBid = useCallback(async () => {
@@ -197,7 +197,7 @@ export const BidNegotiationChat = ({
         }
     };
 
-    if (isLoading) {
+    if (isLoading && !bidDetails) {
         return (
             <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -281,13 +281,15 @@ export const BidNegotiationChat = ({
     };
 
     return (
-        <div className={cn("flex flex-col h-full", className)}>
-            {/* Transition messages */}
-            {renderTransitionMessage()}
-            {renderTransitionError()}
+        <div className={cn("flex flex-col h-full max-h-full", className)}>
+            {/* Fixed header section */}
+            <div className="flex-shrink-0">
+                {/* Transition messages */}
+                {renderTransitionMessage()}
+                {renderTransitionError()}
 
-            {/* Bid details card - compact version */}
-            <Card className="mb-2 flex-shrink-0">
+                {/* Bid details card - compact version */}
+                <Card className="mb-2">
                 <CardHeader className="py-2 px-4">
                     <div className="flex justify-between items-center">
                         <CardTitle className="text-base font-medium">
@@ -424,7 +426,7 @@ export const BidNegotiationChat = ({
                     <div className="grid grid-cols-3 gap-2 text-sm">
                         <div className="flex items-center gap-1">
                             <DollarSignIcon className="h-3 w-3 text-muted-foreground" />
-                            <span>${bidDetails.bidAmount.toFixed(2)}</span>
+                            <span>{bidDetails.bidAmount.toFixed(2)}</span>
                         </div>
 
                         <div className="flex items-center gap-1">
@@ -448,10 +450,11 @@ export const BidNegotiationChat = ({
                         {bidDetails.proposal.split("\n")[0]}
                     </div>
                 </CardContent>
-            </Card>
+                </Card>
+            </div>
 
             {/* Chat interface - takes remaining height */}
-            <div className="flex-grow overflow-hidden">
+            <div className="flex-1 min-h-0">
                 <ChatInterface
                     chatRoomId={chatRoomId}
                     chatType="BID_NEGOTIATION"

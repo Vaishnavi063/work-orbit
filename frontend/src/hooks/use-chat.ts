@@ -3,7 +3,11 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { chatApis } from '@/features/chat/apis';
 import type { ChatMessage } from '@/types';
-import { ablyClientManager } from '@/lib/ably-client';
+
+// Add a custom property to ChatMessage for pending status
+interface OptimisticChatMessage extends ChatMessage {
+  isPending?: boolean;
+}
 
 interface UseChatParams {
   chatRoomId?: number;
@@ -59,22 +63,7 @@ export const useChat = ({ chatRoomId }: UseChatParams = {}): UseChatReturn => {
     };
     
     loadInitialMessages();
-    
-    // Subscribe to real-time updates
-    const channel = ablyClientManager.getChannel(`chat:${chatRoomId}`);
-    if (channel) {
-      const onMessage = (message: any) => {
-        const newMessage = message.data as ChatMessage;
-        setMessages(prev => [newMessage, ...prev]);
-      };
-      
-      channel.subscribe('message', onMessage);
-      
-      return () => {
-        channel.unsubscribe('message', onMessage);
-      };
-    }
-  }, [chatRoomId, authToken]);
+  }, [chatRoomId, authToken, chatType, referenceId]);
   
   // Send a message
   const sendMessage = useCallback(async (content: string) => {

@@ -2,12 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { chatApis } from '@/features/chat/apis';
-import type { ChatMessage, ChatRoom } from '@/types';
-import { useAblyChat } from './use-ably-chat';
+import type { ChatRoom } from '@/types';
 
 interface UseChatNotificationsParams {
-  onNewMessage?: (message: ChatMessage, chatRoomId: number) => void;
-  // requestNotificationPermission removed as notifications are disabled
 }
 
 interface UseChatNotificationsReturn {
@@ -24,9 +21,9 @@ interface UseChatNotificationsReturn {
 /**
  * Hook for managing chat notifications and unread message counts
  */
-export const useChatNotifications = ({
-  onNewMessage
-}: UseChatNotificationsParams = {}): UseChatNotificationsReturn => {
+export const useChatNotifications = (
+  _params: UseChatNotificationsParams = {}
+): UseChatNotificationsReturn => {
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -35,26 +32,9 @@ export const useChatNotifications = ({
   const notificationsEnabled = false;
   
   const authToken = useSelector((state: RootState) => state.auth?.authToken);
-  const user = useSelector((state: RootState) => state.auth?.user);
   
-  // Connect to the user's notification channel
-  useAblyChat({
-    channelName: user?.id ? `user:${user.id}:notifications` : undefined,
-    messageType: 'chat:new-message',
-    onMessageReceived: (message: any) => {
-      // Handle new message notification
-      if (message && message.chatRoomId && onNewMessage) {
-        onNewMessage(message, message.chatRoomId);
-        
-        // Update unread count
-        refreshChatRooms();
-      }
-    }
-  });
   
-  // Notification permissions are not needed as notifications are disabled
   
-  // Empty implementation of requestPermission that always returns false
   const requestPermission = useCallback(async (): Promise<boolean> => {
     return false;
   }, []);

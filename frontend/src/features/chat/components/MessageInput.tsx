@@ -5,14 +5,12 @@ import { Send } from 'lucide-react';
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
-  onTyping: () => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
 export const MessageInput = ({ 
   onSendMessage, 
-  onTyping, 
   disabled = false,
   placeholder = 'Type a message...'
 }: MessageInputProps) => {
@@ -52,7 +50,6 @@ export const MessageInput = ({
   
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
-    onTyping();
   };
   
   return (

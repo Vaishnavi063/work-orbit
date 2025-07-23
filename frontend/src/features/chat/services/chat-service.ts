@@ -1,9 +1,7 @@
 import { request } from '@/apis';
-import { ablyClientManager } from '@/lib/ably-client';
 import type { 
   ChatMessage, 
-  ChatRoom, 
-  AblyTokenResponse 
+  ChatRoom 
 } from '@/types';
 
 // Maximum number of retry attempts for API calls
@@ -16,7 +14,6 @@ const BASE_RETRY_DELAY = 1000;
  */
 export class ChatService {
   private authToken: string;
-  private tokenRefreshPromise: Promise<AblyTokenResponse> | null = null;
 
   constructor(authToken: string) {
     this.authToken = authToken;
@@ -209,54 +206,24 @@ export class ChatService {
   }
 
   /**
-   * Get Ably token for real-time messaging
-   * @param channels Optional array of channel names to request access to
+   * Get new messages since a specific timestamp
+   * @param chatRoomId The chat room ID
+   * @param since Timestamp to get messages since
    */
-  async getAblyToken(channels: string[] = ['*']): Promise<AblyTokenResponse> {
-    // Prevent multiple simultaneous token refresh requests
-    if (this.tokenRefreshPromise) {
-      return this.tokenRefreshPromise;
-    }
-
-    this.tokenRefreshPromise = this.performTokenRefresh(channels);
-    
-    try {
-      const token = await this.tokenRefreshPromise;
-      return token;
-    } finally {
-      this.tokenRefreshPromise = null;
-    }
-  }
-
-  /**
-   * Perform the actual token refresh request
-   */
-  private async performTokenRefresh(channels: string[]): Promise<AblyTokenResponse> {
+  async getNewMessages(chatRoomId: number, since: Date): Promise<ChatMessage[]> {
     try {
       const response = await this.executeWithRetry(() => 
         request({
-          method: 'POST',
-          url: '/api/chat/ably-token',
+          method: 'GET',
+          url: `/api/chat/rooms/${chatRoomId}/messages/since`,
+          params: { since: since.toISOString() },
           authToken: this.authToken,
-          data: { channels },
         })
       );
       return response.data.data;
     } catch (error) {
-      console.error('Failed to refresh Ably token:', error);
-      throw this.formatError(error, 'Failed to authenticate with real-time service');
-    }
-  }
-
-  /**
-   * Initialize Ably client with current auth token
-   */
-  async initializeAblyClient(): Promise<void> {
-    try {
-      await ablyClientManager.initialize(this.authToken);
-    } catch (error) {
-      console.error('Failed to initialize Ably client:', error);
-      throw this.formatError(error, 'Failed to initialize real-time messaging');
+      console.error('Failed to get new messages:', error);
+      throw this.formatError(error, 'Failed to retrieve new messages');
     }
   }
 

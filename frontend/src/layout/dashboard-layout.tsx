@@ -8,7 +8,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { DashboardSidebar, AblyConnectionIndicator } from "@/components";
+import { DashboardSidebar } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useAuth from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,6 @@ const Header = () => {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <AblyConnectionIndicator />
         <ChatNotification />
         <Badge
           className={`inline-block rounded-md px-2.5 py-0.4 text-xs font-semibold tracking-wide

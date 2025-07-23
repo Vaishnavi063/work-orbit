@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useChat } from '@/hooks/use-chat';
-import { useTypingIndicator } from '@/hooks/use-typing-indicator';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
-import { TypingIndicator } from './TypingIndicator';
 
 interface ChatInterfaceProps {
   chatRoomId: number;
@@ -22,11 +20,6 @@ export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => 
     loadMore 
   } = useChat({ chatRoomId });
   
-  const { 
-    isTyping, 
-    typingUser, 
-    startTyping 
-  } = useTypingIndicator({ chatRoomId });
   
   // Mark messages as read when chat is opened
   useEffect(() => {
@@ -57,14 +50,8 @@ export const ChatInterface = ({ chatRoomId, className }: ChatInterfaceProps) => 
           onLoadMore={loadMore} 
         />
         
-        <TypingIndicator 
-          isTyping={isTyping} 
-          typingUser={typingUser} 
-        />
-        
         <MessageInput 
           onSendMessage={handleSendMessage} 
-          onTyping={startTyping} 
           disabled={isLoading} 
         />
       </CardContent>

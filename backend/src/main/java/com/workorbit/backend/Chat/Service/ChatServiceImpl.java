@@ -7,8 +7,7 @@ import com.workorbit.backend.Chat.Repository.ChatMessageRepository;
 import com.workorbit.backend.Chat.Repository.ChatRoomRepository;
 import com.workorbit.backend.Entity.*;
 import com.workorbit.backend.Repository.*;
-import io.ably.lib.types.AblyException;
-import io.ably.lib.rest.Auth.TokenDetails;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,7 +35,6 @@ public class ChatServiceImpl implements ChatService {
     private final ContractRepository contractRepository;
     private final ClientRepository clientRepository;
     private final FreelancerRepository freelancerRepository;
-    private final AblyService ablyService;
 
     @Transactional
     @Override
@@ -136,16 +134,7 @@ public class ChatServiceImpl implements ChatService {
         chatRoom.setUpdatedAt(LocalDateTime.now());
         chatRoomRepository.save(chatRoom);
         
-        // Publish message to Ably for real-time delivery
-        try {
-            String channelName = ablyService.createChannelName(chatRoom.getChatType(), chatRoom.getReferenceId());
-            String senderName = getSenderName(savedMessage);
-            ablyService.publishMessage(channelName, savedMessage, chatRoom.getId(), senderName);
-            log.info("Message published to Ably channel: {}", channelName);
-        } catch (Exception e) {
-            log.error("Failed to publish message to Ably", e);
-            // Don't fail the entire operation if Ably publishing fails
-        }
+        // Real-time message delivery will be handled by polling mechanism
         
         return mapToMessageResponse(savedMessage);
     }
@@ -204,26 +193,7 @@ public class ChatServiceImpl implements ChatService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public AblyTokenResponse getAblyToken(AblyTokenRequest request, Long userId) {
-        log.info("Generating Ably token for user: {} with channels: {}", userId, String.join(", ", request.getChannels()));
-        
-        try {
-            TokenDetails tokenDetails = ablyService.generateAblyToken(userId.toString(), request.getChannels());
-            
-            AblyTokenResponse response = new AblyTokenResponse();
-            response.setToken(tokenDetails.token);
-            response.setExpiresAt(tokenDetails.expires);
-            response.setClientId(tokenDetails.clientId);
-            
-            log.info("Successfully generated Ably token for user: {}", userId);
-            return response;
-            
-        } catch (AblyException e) {
-            log.error("Failed to generate Ably token for user: {}", userId, e);
-            throw new RuntimeException("Failed to generate authentication token", e);
-        }
-    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -269,14 +239,7 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage savedMessage = chatMessageRepository.save(systemMessage);
         log.info("System notification saved with ID: {}", savedMessage.getId());
         
-        // Publish to Ably
-        try {
-            String channelName = ablyService.createChannelName(chatRoom.getChatType(), chatRoom.getReferenceId());
-            ablyService.publishSystemNotification(channelName, notification);
-            log.info("System notification published to Ably channel: {}", channelName);
-        } catch (Exception e) {
-            log.error("Failed to publish system notification to Ably", e);
-        }
+        // System notifications will be delivered through polling mechanism
     }
     
     @Override

@@ -26,7 +26,7 @@ public interface ChatService {
     ChatRoom createContractChat(Long contractId);
     
     /**
-     * Sends a message in a chat room and publishes it to Ably for real-time delivery.
+     * Sends a message in a chat room.
      * 
      * @param request the message request containing chat room ID and content
      * @param userId the ID of the user sending the message
@@ -74,14 +74,7 @@ public interface ChatService {
      */
     List<ChatRoomResponse> getActiveChatRooms(Long userId, String userType);
     
-    /**
-     * Generates an Ably authentication token for real-time messaging.
-     * 
-     * @param request the token request containing channel information
-     * @param userId the ID of the requesting user
-     * @return Ably token response
-     */
-    AblyTokenResponse getAblyToken(AblyTokenRequest request, Long userId);
+
     
     /**
      * Finds a chat room by its ID and validates user access.

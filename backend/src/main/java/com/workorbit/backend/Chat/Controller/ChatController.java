@@ -247,33 +247,7 @@ public class ChatController {
         }
     }
 
-    /**
-     * Generates an Ably authentication token for real-time messaging.
-     * 
-     * @param request the token request containing channel information
-     * @return Ably token response
-     */
-    @PostMapping("/ably-token")
-    public ResponseEntity<ApiResponse<AblyTokenResponse>> getAblyToken(
-            @Valid @RequestBody AblyTokenRequest request) {
-        
-        try {
-            AppUserDetails userDetails = getCurrentUserDetails();
-            
-            AblyTokenResponse tokenResponse = chatService.getAblyToken(
-                request, userDetails.getProfileId());
-            
-            log.info("Generated Ably token for user {} with {} channels", 
-                userDetails.getProfileId(), request.getChannels().length);
-            
-            return ResponseEntity.ok(ApiResponse.success(tokenResponse));
-            
-        } catch (Exception e) {
-            log.error("Error generating Ably token: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("Failed to generate Ably token: " + e.getMessage()));
-        }
-    }
+
 
     /**
      * Accepts a bid through the chat interface.

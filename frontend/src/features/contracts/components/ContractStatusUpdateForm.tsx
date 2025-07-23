@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   updateContractStatus, 
+  fetchContractById, 
   selectContractsLoading, 
   selectContractsError,
   clearContractErrors
@@ -68,7 +69,7 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
     };
   }, [showSuccessMessage]);
   
-  // Permission validation
+  // Permission validation - Only allow clients to update contract status
   const hasPermissionToUpdate = React.useMemo(() => {
     if (!contract || !currentUser) return false;
     
@@ -92,12 +93,12 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
     
     const userRole = currentUser.role as UserRoles;
     
-    if (userRole === 'ROLE_CLIENT' && contract.clientId !== currentUser.id) {
-      return "You don't have permission to update this contract as you are not the client associated with it";
+    if (userRole !== 'ROLE_CLIENT') {
+      return "Only clients can update contract status.";
     }
     
-    if (userRole === 'ROLE_FREELANCER' && contract.freelancerId !== currentUser.id) {
-      return "You don't have permission to update this contract as you are not the freelancer associated with it";
+    if (contract.clientId !== currentUser.id) {
+      return "You can only update contracts that belong to you.";
     }
     
     return "You don't have permission to update this contract";
@@ -149,20 +150,27 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
       return;
     }
     
-    const result = await dispatch(updateContractStatus({
-      contractId: contract.contractId,
-      data: { contractStatus: selectedStatus as ContractStatus },
-      authToken
-    }));
-    
-    // Check if the update was successful
-    if (!error.updateStatus && result.meta.requestStatus === 'fulfilled') {
-      setShowSuccessMessage(true);
+    try {
+      // Send the status as a plain string with the correct content type
+      const result = await dispatch(updateContractStatus({
+        contractId: contract.contractId,
+        data: selectedStatus, // Send as plain string
+        authToken,
+        options: { isPlainText: true } // Flag to indicate plain text content type
+      }) as any);
       
-      // Close the modal after a short delay to show success message
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+      // Check if the update was successful
+      if (result.meta.requestStatus === 'fulfilled') {
+        setShowSuccessMessage(true);
+        // Close the dialog after a short delay
+        setTimeout(() => {
+          onClose();
+          // Refresh the contract details
+          dispatch(fetchContractById({ contractId: contract.contractId, authToken }));
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Error updating contract status:', error);
     }
   };
 

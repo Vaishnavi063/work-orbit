@@ -144,7 +144,7 @@ const ContractList: React.FC = () => {
                   <TableRow key={contract.contractId}>
                     <TableCell>
                       <Link
-                        to={`/contracts/${contract.contractId}`}
+                        to={`/dashboard/contracts/${contract.contractId}`}
                         className="text-blue-600 hover:underline"
                       >
                         {contract.projectName}

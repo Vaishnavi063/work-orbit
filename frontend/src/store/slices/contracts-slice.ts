@@ -1,8 +1,7 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../index";
-import type { ApiResponse, Contract, ContractStatusUpdateRequest } from "@/features/contracts/types";
+import type { ApiResponse, Contract } from "@/features/contracts/types";
 import apis from "@/features/contracts/apis";
-import type { UserRoles } from "@/types";
 
 // Note: Removed incorrect import for "@/utils/error-handler"
 
@@ -66,12 +65,23 @@ export const fetchContractById = createAsyncThunk(
 
 export const updateContractStatus = createAsyncThunk(
   "contracts/updateContractStatus",
-  async ({ contractId, data, authToken }: { contractId: number; data: ContractStatusUpdateRequest; authToken: string }, { rejectWithValue }) => {
+  async ({ contractId, data, authToken, options }: { 
+    contractId: number; 
+    data: string; // Changed from ContractStatusUpdateRequest to string
+    authToken: string;
+    options?: { isPlainText?: boolean };
+  }, { rejectWithValue }) => {
     try {
-      const response = await apis.updateContractStatus({ params: { id: contractId }, data, authToken });
+      const response = await apis.updateContractStatus({ 
+        params: { id: contractId }, 
+        data: options?.isPlainText ? data : { contractStatus: data },
+        authToken,
+        isPlainText: options?.isPlainText
+      });
       return response.data as ApiResponse<Contract>;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || "Failed to update contract status");
+      const errorMessage = error.response?.data?.error || "Failed to update contract status";
+      return rejectWithValue(typeof errorMessage === 'string' ? errorMessage : 'An unknown error occurred');
     }
   }
 );
@@ -166,7 +176,10 @@ const contractsSlice = createSlice({
       })
       .addCase(updateContractStatus.rejected, (state, action) => {
         state.loading.updateStatus = false;
-        state.error.updateStatus = action.payload as string;
+        const payload = action.payload as { message?: string } | string | undefined;
+        state.error.updateStatus = typeof payload === 'object' && payload !== null && 'message' in payload
+          ? payload.message || 'Failed to update contract status'
+          : (payload as string) || 'An unknown error occurred';
       })
 
       // Delete Contract

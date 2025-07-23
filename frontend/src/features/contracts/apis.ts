@@ -31,12 +31,13 @@ const apis = {
     /**
      * Update a contract's status
      */
-    updateContractStatus: ({ params, data, authToken }: RequestType): Promise<AxiosResponse<ApiResponse<Contract>>> =>
+    updateContractStatus: ({ params, data, authToken, isPlainText = false }: RequestType & { isPlainText?: boolean }): Promise<AxiosResponse<ApiResponse<Contract>>> =>
         request({
             method: "PUT",
             url: `${urls.updateContract}/${params.id}`,
             data,
-            authToken
+            authToken,
+            isPlainText
         }),
 
     /**

@@ -112,7 +112,7 @@ const ContractDetails: React.FC = () => {
     <div className="contract-details space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Contract Details</h1>
-        <Link to="/contracts">
+        <Link to="/dashboard/contracts">
           <Button variant="outline" size="sm" className="flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" />
             Back to Contracts
@@ -139,7 +139,7 @@ const ContractDetails: React.FC = () => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">Bid Amount</h3>
-              <p>${contract.bidAmount.toFixed(2)}</p>
+              <p>Rs.{contract.bidAmount ? contract.bidAmount.toFixed(2) : '0.00'}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">Status</h3>

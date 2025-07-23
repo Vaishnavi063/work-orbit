@@ -104,6 +104,7 @@ public class ContractServiceImpl implements ContractService {
                 .clientName(clientName)
                 .freelancerName(freelancerName)
                 .bidId(contract.getBid().getId())
+                .bidAmount(contract.getBid().getBidAmount())
                 .contractStatus(contract.getContractStatus().name())
                 .createdAt(contract.getCreatedAt())
                 .updatedAt(contract.getUpdatedAt())

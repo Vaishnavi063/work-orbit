@@ -12,6 +12,7 @@ public class ContractResponse {
 	private Long clientId;
 	private Long freelancerId;
 	private String clientName;
+	private Double bidAmount;
 	private Long bidId;
 	private String contractStatus;
 	private LocalDateTime createdAt;

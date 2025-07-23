@@ -111,3 +111,20 @@ export const CHART_COLORS = {
   withdrawn: "#f59e0b",
   bar: "#8884d8",
 } as const;
+
+
+export type Wallet = {
+  walletId: number;
+  userId: number;
+  role: string;
+  availableBalance: number;
+  frozenBalance: number;
+};
+
+export type FrozenAmount = {
+  projectId: number;
+  projectTitle: string;
+  freelancerName: string;
+  frozenAmount: number;
+  status: 'FROZEN' | 'RELEASED';
+};

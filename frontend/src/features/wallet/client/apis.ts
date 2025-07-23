@@ -28,6 +28,7 @@ const apis = {
 
   addMoney: ({ data, authToken }: RequestType) =>
     request({
+      method:"POST",
       data,
       authToken,
       url: urls.addMoney

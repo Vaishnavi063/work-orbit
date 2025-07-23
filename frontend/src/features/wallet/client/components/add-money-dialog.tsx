@@ -14,6 +14,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, CreditCard, Wallet } from "lucide-react";
+import { useMutation } from "react-query";
+import apis from "../apis";
+import useAuth from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 interface Props {
   userId: number;
@@ -21,21 +25,42 @@ interface Props {
 
 const quickAmounts = [500, 1000, 2000, 5000];
 
+interface WalletTransaction {
+  userId: number;
+  role: "ROLE_CLIENT";
+  amount: number;
+}
+
 export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
+  const { authToken } = useAuth();
   const [amount, setAmount] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleAddMoney = () => {
-    if (!amount || parseFloat(amount) <= 0) return;
+  const { isLoading, mutate } = useMutation({
+    mutationFn: (data: WalletTransaction) => apis.addMoney({ data, authToken }),
+    onSuccess: () => {
+      toast.success("🎉 Money added successfully!");
+      setAmount("");
+      setIsOpen(false);
+    },
+    onError: () => {
+      toast.error("Something went wrong. Please try again.");
+    },
+  });
 
-    console.log("Add Money:", {
+  const handleAddMoney = () => {
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    const transactionData: WalletTransaction = {
       userId,
       role: "ROLE_CLIENT",
       amount: parseFloat(amount),
-    });
+    };
 
-    setAmount("");
-    setIsOpen(false);
+    mutate(transactionData);
   };
 
   const handleQuickAmount = (quickAmount: number) => {
@@ -52,7 +77,7 @@ export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className=" hover:bg-primary/85 cursor-pointer text-white">
+        <Button className="hover:bg-primary/85 cursor-pointer text-white">
           <Plus className="h-4 w-4 mr-2" />
           Add Money
         </Button>
@@ -71,7 +96,6 @@ export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Quick Amount Selection */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Quick Select</Label>
             <div className="grid grid-cols-2 gap-2">
@@ -82,6 +106,7 @@ export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
                   size="sm"
                   onClick={() => handleQuickAmount(quickAmount)}
                   className="h-10"
+                  disabled={isLoading}
                 >
                   {formatCurrency(quickAmount)}
                 </Button>
@@ -89,7 +114,6 @@ export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
             </div>
           </div>
 
-          {/* Custom Amount Input */}
           <div className="space-y-2">
             <Label htmlFor="amount" className="text-sm font-medium">
               Custom Amount
@@ -107,11 +131,11 @@ export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
                 className="pl-8"
                 min="1"
                 step="0.01"
+                disabled={isLoading}
               />
             </div>
           </div>
 
-          {/* Payment Method Preview */}
           {amount && parseFloat(amount) > 0 && (
             <Card className="bg-muted/50">
               <CardContent className="p-4">
@@ -130,16 +154,29 @@ export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleAddMoney}
-            disabled={!amount || parseFloat(amount) <= 0}
-            className="hover:bg-primar/85 cursor-pointer"
+            disabled={isLoading || !amount || parseFloat(amount) <= 0}
+            className="hover:bg-primary/85 cursor-pointer"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Money
+            {isLoading ? (
+              <>
+                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Money
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

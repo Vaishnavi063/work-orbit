@@ -53,5 +53,8 @@ public class Bids {
     @JoinColumn(name = "project_id", nullable = false)
     @JsonBackReference
     private Project project;
+
+    @OneToOne(mappedBy = "bid", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Contract contract;
 }
 

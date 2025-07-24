@@ -23,6 +23,7 @@ import ProfileUpdate from "@/features/profile/update";
 import ContractsFeature from "@/features/contracts";
 import RevenueDetail from "@/features/wallet/freelancer";
 import { ClientWallet } from "@/features/wallet/client";
+import MyProjects from "@/features/client";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -46,6 +47,7 @@ const router = createBrowserRouter(
         <Route path="browse-projects/:id" element={<ProjectDetails />} />
         <Route path="revenue" element={<RevenueDetail />} />
         <Route path="wallet" element={<ClientWallet />} />
+        <Route path="my-projects" element={<MyProjects />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Route>

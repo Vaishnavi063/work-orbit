@@ -1,5 +1,6 @@
 package com.workorbit.backend.Controller;
 
+import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.DTO.ClientDTO;
 import com.workorbit.backend.Service.client.ClientService;
 import lombok.RequiredArgsConstructor;
@@ -11,22 +12,29 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/client")
 public class ClientController {
+
     private final ClientService clientService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClientDTO> getClient(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ClientDTO>> getClient(@PathVariable Long id) {
         ClientDTO dto = clientService.getClientDTOById(id);
         if (dto == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Client not found"));
         }
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteClient(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteClient(@PathVariable Long id) {
         boolean deleted = clientService.deleteClient(id);
-        return deleted ?
-                ResponseEntity.ok("Client deleted successfully") :
-                ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found");
+        if (deleted) {
+            return ResponseEntity.ok(ApiResponse.success("Client deleted successfully"));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Client not found"));
+        }
     }
 }

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Freelancer;
+import com.workorbit.backend.Wallet.Service.WalletService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ import lombok.*;
 public class ContractServiceImpl implements ContractService {
 
 	private final ContractRepository contractRepository;
+	private final WalletService walletService;
 
 	@Override
 	public void createContract(Bids bid) {
@@ -63,19 +65,35 @@ public class ContractServiceImpl implements ContractService {
 		log.info("Contract found: {}", contract.getContractId());
 		return ApiResponse.success(toDTO(contract));
 	}
-	
+
 	@Override
 	public ApiResponse<ContractResponse> updateContract(Long id, String contractStatus) {
-	    Contract contract = contractRepository.findById(id)
-	        .orElseThrow(() -> new RuntimeException("Contract not found"));
-	    try {
-	        contract.setContractStatus(Contract.ContractStatus.valueOf(contractStatus));
-	    } catch (IllegalArgumentException e) {
-	        throw new RuntimeException("Invalid contract status");
-	    }
-	    Contract updated = contractRepository.save(contract);
-	    return ApiResponse.success(toDTO(updated));
+		Contract contract = contractRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Contract not found"));
+
+		try {
+			contract.setContractStatus(Contract.ContractStatus.valueOf(contractStatus));
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException("Invalid contract status");
+		}
+
+		Contract updated = contractRepository.save(contract);
+
+		if (updated.getContractStatus() == Contract.ContractStatus.COMPLETED) {
+			Long clientId = updated.getProject().getClient().getId();
+			Long freelancerId = updated.getBid().getFreelancer().getId();
+			Long projectId = updated.getProject().getId();  // ✅ Added projectId
+			Double amount = updated.getBid().getBidAmount();
+
+			log.info("Releasing payment of {} from client {} to freelancer {} for project {} contract {}",
+					amount, clientId, freelancerId, projectId, updated.getContractId());
+
+			walletService.releasePayment(clientId, freelancerId, projectId, amount);
+		}
+
+		return ApiResponse.success(toDTO(updated));
 	}
+
 	
 	@Override
 	public ApiResponse<String> deleteContract(Long id) {

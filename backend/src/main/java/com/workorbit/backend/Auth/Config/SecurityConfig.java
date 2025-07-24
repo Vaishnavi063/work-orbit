@@ -39,6 +39,11 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/wallet/add-money").hasRole("CLIENT")
+                        .requestMatchers("/api/wallet/withdraw").hasRole("FREELANCER")
+                        .requestMatchers("/api/wallet/freeze").hasRole("CLIENT")
+                        .requestMatchers("/api/wallet/release").hasAnyRole("CLIENT", "ADMIN")
+                        .requestMatchers("/api/wallet/**").hasAnyRole("CLIENT", "FREELANCER")
                         // private endpoints
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/freelancer/**").hasRole("FREELANCER")

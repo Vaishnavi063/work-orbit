@@ -4,7 +4,8 @@ const urls = {
   getProjectBids: "/api/projects/bid",
   raiseBid: "/api/bids",
   getFreelancerBids: "/api/bids/freelancer",
-  deleteBid: "/api/bids"
+  deleteBid: "/api/bids",
+  getFreelancerProfile: "/api/freelancers"
 };
 
 export default urls;

@@ -36,6 +36,19 @@ const apis = {
       url: `${urls.getFreelancerBids}/${id}`,
       authToken,
     }),
+  getFreelancerProfile: ({ authToken, id }: { authToken: string; id: string }) =>
+    request({
+      method: "GET",
+      url: `${urls.getFreelancerProfile}/${id}`,
+      authToken,
+    }),
+  updateFreelancerProfile: ({ authToken, id, data }: { authToken: string; id: number; data: any }) =>
+    request({
+      method: "PUT",
+      url: `${urls.getFreelancerProfile}/${id}`,
+      authToken,
+      data,
+    }),
 
   deleteBid: ({
     authToken,

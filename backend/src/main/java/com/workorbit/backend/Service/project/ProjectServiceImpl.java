@@ -15,10 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
-import java.util.List;
 import java.util.Optional;
 
-import static com.workorbit.backend.Service.bid.BidServiceImpl.getBidResponseDTO;
 
 @Slf4j
 @Service
@@ -247,7 +245,7 @@ public class ProjectServiceImpl implements ProjectService {
             clientDTO = new ClientDTO(
                     project.getClient().getName(),
                     project.getClient().getAppUser().getEmail(),
-                    null // skip project list to avoid circular reference
+                    null
             );
         }
 
@@ -261,9 +259,9 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getStatus(),
                 clientDTO,
                 project.getClient() != null ? project.getClient().getId() : null,
-                project.getCreatedAt(),        // ✅ ADD THIS LINE
-                project.getUpdatedAt(),        // ✅ ADD THIS LINE
-                project.getBids() != null ? project.getBids().size() : 0  // ✅ ADD THIS LINE
+                project.getCreatedAt(),
+                project.getUpdatedAt(),
+                project.getBids() != null ? project.getBids().size() : 0
         );
     }
 }

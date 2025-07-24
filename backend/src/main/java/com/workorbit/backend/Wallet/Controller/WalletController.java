@@ -19,6 +19,15 @@ public class WalletController {
 
     private final WalletService walletService;
 
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<WalletResponseDTO>> createWallet(
+            @RequestParam Long userId,
+            @RequestParam String role
+    ) {
+        WalletResponseDTO response = walletService.createWallet(userId, role);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PostMapping("/add-money")
     public ResponseEntity<ApiResponse<WalletResponseDTO>> addMoney(@RequestBody WalletRequestDTO request) {
         WalletResponseDTO response = walletService.addMoney(request);

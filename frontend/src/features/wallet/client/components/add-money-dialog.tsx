@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 interface Props {
   userId: number;
+  refetchDetails: () => void;
 }
 
 const quickAmounts = [500, 1000, 2000, 5000];
@@ -31,7 +32,7 @@ interface WalletTransaction {
   amount: number;
 }
 
-export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
+export const AddMoneyDialog = ({ userId, refetchDetails }: Props) => {
   const { authToken } = useAuth();
   const [amount, setAmount] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -40,6 +41,7 @@ export const AddMoneyDialog: React.FC<Props> = ({ userId }) => {
     mutationFn: (data: WalletTransaction) => apis.addMoney({ data, authToken }),
     onSuccess: () => {
       toast.success("🎉 Money added successfully!");
+      refetchDetails();
       setAmount("");
       setIsOpen(false);
     },

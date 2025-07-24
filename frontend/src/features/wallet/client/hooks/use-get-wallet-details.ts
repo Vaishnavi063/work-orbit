@@ -12,7 +12,7 @@ const useGetWalletDetails = () => {
     data: response,
     error,
   } = useQuery({
-    queryKey: ["GET_FROZAN_AMOUNT"],
+    queryKey: ["GET_WALLET_DETAILS"],
     queryFn: () =>
       apis.getWalletDetails({
         id: user?.id as number,

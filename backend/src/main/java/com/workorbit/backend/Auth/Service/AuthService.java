@@ -7,6 +7,7 @@ import com.workorbit.backend.Auth.Repository.AppUserRepository;
 import com.workorbit.backend.DTO.ApiResponse;
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Freelancer;
+import com.workorbit.backend.Wallet.Service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,10 +32,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final WalletService walletService;
 
     public ApiResponse<AuthResponse> login(LoginRequest request) {
-
-        // authenticating using the manager, currently Auth obj is unauthenticated
         log.info("Authenticating user: {}", request.getEmail());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -44,7 +44,6 @@ public class AuthService {
         );
         log.info("Authentication successful");
 
-        // if we reach here, authentication was successful and Auth obj is authenticated
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtService.generateToken(userDetails);
         log.info("Token generated");
@@ -93,12 +92,32 @@ public class AuthService {
 
         log.info("Saving user");
         AppUser savedUser = appUserRepository.save(appUser);
-        log.info("User saved");
+        log.info("User saved with ID: {}", savedUser.getId());
+
+        Long profileId = null;
+        if (role == Role.ROLE_CLIENT && savedUser.getClientProfile() != null) {
+            profileId = savedUser.getClientProfile().getId();
+            log.info("Client profile ID: {}", profileId);
+        } else if (role == Role.ROLE_FREELANCER && savedUser.getFreelancerProfile() != null) {
+            profileId = savedUser.getFreelancerProfile().getId();
+            log.info("Freelancer profile ID: {}", profileId);
+        }
+
+        if (profileId != null) {
+            try {
+                String walletRole = role == Role.ROLE_CLIENT ? "CLIENT" : "FREELANCER";
+                walletService.createWallet(profileId, walletRole);
+                log.info("✅ Wallet created successfully for {} with ID: {}", walletRole, profileId);
+            } catch (Exception e) {
+                log.error("❌ Failed to create wallet for user {}: {}", profileId, e.getMessage());
+            }
+        } else {
+            log.warn("⚠️ Profile ID is null, wallet not created");
+        }
 
         AppUserDetails appUserDetails = new AppUserDetails(savedUser);
         log.info("AppUserDetails created");
 
-        // generate a token for immediate login
         String token = jwtService.generateToken(new AppUserDetails(savedUser));
         log.info("Token generated");
         return ApiResponse.success(createAuthResponse(appUserDetails, token));
@@ -118,12 +137,10 @@ public class AuthService {
 
                 LocalDateTime tokenExpiry = LocalDateTime.now().plusHours(1);
 
-                // invalidate any existing token by setting new one
                 user.setResetPasswordToken(resetToken);
                 user.setResetPasswordTokenExpiry(tokenExpiry);
                 log.info("User updated with new token");
 
-                // save user with new token
                 appUserRepository.save(user);
                 log.info("User saved");
 
@@ -136,9 +153,8 @@ public class AuthService {
                 log.error("Password reset requested for non-existent email: {}", request.getEmail());
             }
             log.info("Password reset request processed");
-            // always return success message to prevent user enumeration
             return ApiResponse.success(
-                createPasswordResponse("If your email is registered with us, you will receive a password reset link shortly.")
+                    createPasswordResponse("If your email is registered with us, you will receive a password reset link shortly.")
             );
         } catch (Exception e) {
             log.error("Error processing forgot password request for email: {} - {}", request.getEmail(), e.getMessage());
@@ -158,11 +174,9 @@ public class AuthService {
             AppUser user = userOptional.get();
             log.info("User found: {}", user.getEmail());
 
-            // check if token has expired
             if (user.getResetPasswordTokenExpiry() == null ||
-                LocalDateTime.now().isAfter(user.getResetPasswordTokenExpiry())) {
+                    LocalDateTime.now().isAfter(user.getResetPasswordTokenExpiry())) {
 
-                // clear expired token
                 user.setResetPasswordToken(null);
                 user.setResetPasswordTokenExpiry(null);
                 appUserRepository.save(user);
@@ -171,11 +185,9 @@ public class AuthService {
                 return ApiResponse.error("Reset token has expired. Please request a new password reset.");
             }
 
-            // update password with new encrypted password
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             log.info("Password updated");
 
-            // invalidate the reset token immediately after use
             user.setResetPasswordToken(null);
             user.setResetPasswordTokenExpiry(null);
             log.info("Reset token invalidated");
@@ -201,7 +213,6 @@ public class AuthService {
             log.info("Freelancer profile found");
             return user.getFreelancerProfile().getName();
         } else {
-            // fallback to email if no name is available
             log.info("No profile found, using email");
             return user.getEmail();
         }
@@ -220,7 +231,6 @@ public class AuthService {
                 .token(token)
                 .build();
     }
-
 
     private PasswordResponse createPasswordResponse(String message) {
         return PasswordResponse.builder()

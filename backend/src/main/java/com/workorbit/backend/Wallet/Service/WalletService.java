@@ -14,6 +14,7 @@ import com.workorbit.backend.Wallet.Repository.WalletFreezeRepository;
 import com.workorbit.backend.Wallet.Repository.WalletRepository;
 import com.workorbit.backend.Wallet.Repository.WalletTransactionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WalletService {
@@ -29,6 +31,7 @@ public class WalletService {
     private WalletTransactionRepository transactionRepository;
     @Autowired
     private ProjectRepository projectRepository;
+
     private final WalletRepository walletRepository;
     private final WalletFreezeRepository walletFreezeRepository;
 
@@ -36,6 +39,30 @@ public class WalletService {
         if (role.equalsIgnoreCase("ROLE_CLIENT")) return "CLIENT";
         if (role.equalsIgnoreCase("ROLE_FREELANCER")) return "FREELANCER";
         return role.toUpperCase();
+    }
+
+    public WalletResponseDTO createWallet(Long userId, String role) {
+        String normalizedRole = normalizeRole(role);
+
+        log.info("Creating wallet for userId: {} with role: {}", userId, normalizedRole);
+
+        Optional<Wallet> existingWallet = walletRepository.findByUserIdAndRole(userId, normalizedRole);
+        if (existingWallet.isPresent()) {
+            log.warn("Wallet already exists for userId: {} with role: {}", userId, normalizedRole);
+            throw new RuntimeException("Wallet already exists for this user and role");
+        }
+
+        Wallet wallet = Wallet.builder()
+                .userId(userId)
+                .role(normalizedRole)
+                .availableBalance(0.0)
+                .frozenBalance(0.0)
+                .build();
+
+        Wallet savedWallet = walletRepository.save(wallet);
+        log.info("✅ Wallet created successfully with ID: {}", savedWallet.getWalletId());
+
+        return toResponse(savedWallet);
     }
 
     public WalletResponseDTO addMoney(WalletRequestDTO request) {
@@ -46,20 +73,13 @@ public class WalletService {
         String normalizedRole = normalizeRole(request.getRole());
 
         Wallet wallet = walletRepository.findByUserIdAndRole(request.getUserId(), normalizedRole)
-                .orElse(Wallet.builder()
-                        .userId(request.getUserId())
-                        .role(normalizedRole)
-                        .availableBalance(0.0)
-                        .frozenBalance(0.0)
-                        .build()
-                );
+                .orElseThrow(() -> new RuntimeException("Wallet not found. Please contact support."));
 
         Double balanceBefore = wallet.getAvailableBalance() != null ? wallet.getAvailableBalance() : 0.0;
         Double newBalance = balanceBefore + request.getAmount();
         wallet.setAvailableBalance(newBalance);
         walletRepository.save(wallet);
 
-        // ✅ ADD THIS - LOG TRANSACTION
         WalletTransaction transaction = WalletTransaction.builder()
                 .userId(request.getUserId())
                 .userRole(normalizedRole)
@@ -78,7 +98,7 @@ public class WalletService {
         String normalizedRole = normalizeRole(role);
 
         Wallet wallet = walletRepository.findByUserIdAndRole(userId, normalizedRole)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+                .orElseThrow(() -> new RuntimeException("Wallet not found for user ID: " + userId + " with role: " + normalizedRole));
 
         return toResponse(wallet);
     }
@@ -109,6 +129,7 @@ public class WalletService {
 
         return toResponse(wallet);
     }
+
     public void freezeAmount(Long clientId, Long projectId, Double amount) {
         Wallet wallet = walletRepository.findByUserIdAndRole(clientId, "CLIENT")
                 .orElseThrow(() -> new RuntimeException("Client wallet not found"));
@@ -148,7 +169,6 @@ public class WalletService {
     }
 
     public void releasePayment(Long clientId, Long freelancerId, Long projectId, Double amount) {
-        // Fetch and update freeze entry
         WalletFreeze freeze = walletFreezeRepository.findByProjectIdAndClientIdAndStatus(projectId, clientId, "FROZEN");
         if (freeze == null) {
             throw new RuntimeException("No frozen funds found for this project and client.");
@@ -156,7 +176,6 @@ public class WalletService {
         freeze.setStatus("RELEASED");
         walletFreezeRepository.save(freeze);
 
-        // Deduct frozen funds from client
         Wallet clientWallet = walletRepository.findByUserIdAndRole(clientId, "CLIENT")
                 .orElseThrow(() -> new RuntimeException("Client wallet not found"));
 
@@ -168,14 +187,8 @@ public class WalletService {
         clientWallet.setFrozenBalance(frozen - amount);
         walletRepository.save(clientWallet);
 
-        // Credit amount to freelancer wallet
         Wallet freelancerWallet = walletRepository.findByUserIdAndRole(freelancerId, "FREELANCER")
-                .orElse(Wallet.builder()
-                        .userId(freelancerId)
-                        .role("FREELANCER")
-                        .availableBalance(0.0)
-                        .frozenBalance(0.0)
-                        .build());
+                .orElse(createWalletEntity(freelancerId, "FREELANCER"));
 
         Double availableFreelancer = freelancerWallet.getAvailableBalance() != null ? freelancerWallet.getAvailableBalance() : 0.0;
         freelancerWallet.setAvailableBalance(availableFreelancer + amount);
@@ -193,7 +206,7 @@ public class WalletService {
                 .build();
         transactionRepository.save(freelancerTransaction);
 
-        // 🎯 LOG TRANSACTION FOR CLIENT
+        // Log transaction for client
         WalletTransaction clientTransaction = WalletTransaction.builder()
                 .userId(clientId)
                 .userRole("CLIENT")
@@ -207,7 +220,6 @@ public class WalletService {
         transactionRepository.save(clientTransaction);
     }
 
-    // Add this method to WalletService.java
     public List<FrozenAmountDTO> getClientFrozenAmounts(Long clientId) {
         List<WalletFreeze> frozenRecords = walletFreezeRepository.findByClientIdAndStatus(clientId, "FROZEN");
 
@@ -237,7 +249,14 @@ public class WalletService {
                 .collect(Collectors.toList());
     }
 
-
+    private Wallet createWalletEntity(Long userId, String role) {
+        return Wallet.builder()
+                .userId(userId)
+                .role(role)
+                .availableBalance(0.0)
+                .frozenBalance(0.0)
+                .build();
+    }
 
     private WalletResponseDTO toResponse(Wallet wallet) {
         return WalletResponseDTO.builder()

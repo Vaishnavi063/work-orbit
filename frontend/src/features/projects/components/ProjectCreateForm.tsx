@@ -50,6 +50,8 @@ import {
 } from "@/store/slices/projects-slice";
 import type { RootState, AppDispatch } from "@/store";
 import { CATEGORIES } from "@/constants/categories";
+import useGetWalletDetails from "@/features/wallet/client/hooks/use-get-wallet-details";
+import { toast } from "sonner";
 
 interface ProjectCreateFormProps {
   isOpen: boolean;
@@ -67,6 +69,7 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
   const loading = useSelector(selectProjectsLoading);
   const error = useSelector(selectProjectsError);
   const { handleError, handleSuccess } = useErrorHandler();
+  const { walletDetails } = useGetWalletDetails();
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -86,8 +89,14 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
     if (!user?.id || !authToken) {
       handleError("Authentication required", {
         toastTitle: "Authentication Error",
-        showToast: true
+        showToast: true,
       });
+      return;
+    }
+
+    if (walletDetails.availableBalance < data.budget) {
+      toast.error("Insufficient wallet balance to create this project.");
+      onClose();
       return;
     }
 
@@ -113,13 +122,13 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
       } else {
         handleError(error.createProject || "Failed to create project", {
           toastTitle: "Creation Failed",
-          showToast: true
+          showToast: true,
         });
       }
     } catch (err) {
       handleError(err as Error, {
         toastTitle: "Failed to create project",
-        showToast: true
+        showToast: true,
       });
     }
   };
@@ -131,18 +140,19 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
     } catch (err) {
       handleError(err as Error, {
         toastTitle: "Error closing form",
-        showToast: true
+        showToast: true,
       });
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Post New Project</DialogTitle>
           <DialogDescription>
-            Create a new project to receive bids from freelancers. Fill in all the details to attract the right talent.
+            Create a new project to receive bids from freelancers. Fill in all
+            the details to attract the right talent.
           </DialogDescription>
         </DialogHeader>
 
@@ -156,10 +166,7 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
                 <FormItem>
                   <FormLabel>Project Title *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter project title..."
-                      {...field}
-                    />
+                    <Input placeholder="Enter project title..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -241,7 +248,10 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Project Deadline *</FormLabel>
-                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <Popover
+                    open={isCalendarOpen}
+                    onOpenChange={setIsCalendarOpen}
+                  >
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -280,12 +290,17 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
               <Button
                 type="button"
                 variant="outline"
+                className="cursor-pointer"
                 onClick={handleClose}
                 disabled={loading.createProject}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading.createProject}>
+              <Button
+                className="cursor-pointer"
+                type="submit"
+                disabled={loading.createProject}
+              >
                 {loading.createProject ? (
                   <>
                     <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />

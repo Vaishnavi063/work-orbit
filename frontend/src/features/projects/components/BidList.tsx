@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import {
@@ -9,10 +9,12 @@ import {
   UsersIcon,
   FileTextIcon,
   LoaderCircle,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-
 import {
   Card,
   CardContent,
@@ -44,6 +46,14 @@ import {
   selectProjectsError,
 } from "@/store/slices/projects-slice";
 import type { RootState, AppDispatch } from "@/store";
+
+type SortField = 'bidAmount' | 'durationDays' | 'teamSize';
+type SortOrder = 'asc' | 'desc';
+
+interface SortConfig {
+    field: SortField;
+    order: SortOrder;
+}
 import useGetWalletDetails from "@/features/wallet/client/hooks/use-get-wallet-details";
 import { toast } from "sonner";
 
@@ -60,6 +70,10 @@ const BidList: React.FC<BidListProps> = ({
   projectId,
   isLoading = false,
 }) => {
+    const [sortConfig, setSortConfig] = useState<SortConfig>({
+        field: 'bidAmount',
+        order: 'asc',
+    });
   const dispatch = useDispatch<AppDispatch>();
   const loading = useSelector(selectProjectsLoading);
   const error = useSelector(selectProjectsError);
@@ -144,37 +158,96 @@ const BidList: React.FC<BidListProps> = ({
     }
   };
 
+    const sortedBids = useMemo(() => {
+        if (!bids) return [];
+
+        return [...bids].sort((a, b) => {
+            const aValue = a[sortConfig.field];
+            const bValue = b[sortConfig.field];
+
+            if (aValue < bValue) {
+                return sortConfig.order === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortConfig.order === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+    }, [bids, sortConfig]);
+
+    const handleSortChange = (field: SortField) => {
+        setSortConfig(prev => ({
+            field,
+            order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc',
+        }));
+    };
+
+    const SortButton: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
+        <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => handleSortChange(field)}
+        >
+            {children}
+            {sortConfig.field === field && (
+                sortConfig.order === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+            )}
+        </Button>
+    );
+
   if (isLoading) {
     return <BidListSkeleton />;
   }
 
-  if (bids.length === 0) {
+  if (!bids || bids.length === 0) {
     return <NoBidsMessage />;
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Received Bids ({bids.length})</h3>
-        {projectStatus === "CLOSED" && (
-          <Badge variant="secondary">Project Closed</Badge>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        {bids.map((bid) => (
-          <BidCard
-            key={bid.bidId}
-            bid={bid}
-            projectStatus={projectStatus}
-            onBidAction={handleBidAction}
-            isActioning={actioningBidId === bid.bidId}
-            isLoading={loading.bidAction}
-          />
-        ))}
-      </div>
-    </div>
-  );
+    return (
+        <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h3 className="text-lg font-medium">Bids</h3>
+                <div className="flex items-center gap-4">
+                    <span className="text-sm text-muted-foreground">
+                        {bids.length} {bids.length === 1 ? 'bid' : 'bids'} placed
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Sort by:</span>
+                        <div className="flex items-center gap-1">
+                            <SortButton field="bidAmount">
+                                <DollarSignIcon className="h-4 w-4" />
+                                <span>Amount</span>
+                            </SortButton>
+                            <SortButton field="durationDays">
+                                <CalendarIcon className="h-4 w-4" />
+                                <span>Duration</span>
+                            </SortButton>
+                            <SortButton field="teamSize">
+                                <UsersIcon className="h-4 w-4" />
+                                <span>Team</span>
+                            </SortButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {projectStatus === "CLOSED" && (
+                <Badge variant="secondary">Project Closed</Badge>
+            )}
+            <div className="space-y-4">
+                {sortedBids.map((bid) => (
+                    <BidCard
+                        key={bid.bidId}
+                        bid={bid}
+                        projectStatus={projectStatus}
+                        onBidAction={handleBidAction}
+                        isActioning={actioningBidId === bid.bidId}
+                        isLoading={loading.bidAction}
+                    />
+                ))}
+            </div>
+        </div>
+    );
 };
 
 interface BidCardProps {

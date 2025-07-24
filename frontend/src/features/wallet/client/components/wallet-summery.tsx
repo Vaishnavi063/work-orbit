@@ -6,6 +6,7 @@ import { AddMoneyDialog } from "./add-money-dialog";
 
 interface WalletSummarysProps {
   wallet: Wallet;
+  refetchDetails: () => void;
 }
 
 const formatCurrency = (amount: number) =>
@@ -15,7 +16,7 @@ const formatCurrency = (amount: number) =>
     maximumFractionDigits: 2,
   }).format(amount);
 
-const WalletSummary = ({ wallet }: WalletSummarysProps) => {
+const WalletSummary = ({ wallet, refetchDetails }: WalletSummarysProps) => {
   const totalBalance = wallet.availableBalance + wallet.frozenBalance;
 
   return (
@@ -31,7 +32,10 @@ const WalletSummary = ({ wallet }: WalletSummarysProps) => {
               Client Wallet Overview
             </p>
           </div>
-          <AddMoneyDialog userId={wallet.userId} />
+          <AddMoneyDialog
+            userId={wallet.userId}
+            refetchDetails={refetchDetails}
+          />
         </div>
       </CardHeader>
 

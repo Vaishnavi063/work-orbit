@@ -96,11 +96,13 @@ const SubmitProposal = ({ projectId, refetchBids }: SubmitProposalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full sm:w-auto rounded-lg px-3 py-2 text-sm">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-300 to-purple-300 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-          <Sparkles className="w-4 h-4 mr-2" />
-          Submit Proposal
-        </Button>
+        <div className="flex justify-center w-full">
+          <Button className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300 w-auto rounded-lg px-6 py-2 text-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-300 to-purple-300 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+            <Sparkles className="w-4 h-4 mr-2" />
+            Submit Proposal
+          </Button>
+        </div>
       </DialogTrigger>
 
       <DialogContent className="max-w-md sm:max-w-lg max-h-[85vh] overflow-y-auto">

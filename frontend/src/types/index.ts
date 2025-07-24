@@ -128,3 +128,19 @@ export type FrozenAmount = {
   frozenAmount: number;
   status: 'FROZEN' | 'RELEASED';
 };
+
+// components/profile/types.ts
+export interface PastWork {
+  id: number;
+  title: string;
+  link: string;
+  description: string;
+}
+
+export interface ProfileData {
+  name: string;
+  email: string;
+  rating: number;
+  skills: string[];
+  pastWorks: PastWork[];
+}

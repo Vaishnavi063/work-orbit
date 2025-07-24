@@ -42,7 +42,7 @@ const apis = {
       url: `${urls.getFreelancerProfile}/${id}`,
       authToken,
     }),
-  updateFreelancerProfile: ({ authToken, id, data }: { authToken: string; id: string; data: any }) =>
+  updateFreelancerProfile: ({ authToken, id, data }: { authToken: string; id: number; data: any }) =>
     request({
       method: "PUT",
       url: `${urls.getFreelancerProfile}/${id}`,

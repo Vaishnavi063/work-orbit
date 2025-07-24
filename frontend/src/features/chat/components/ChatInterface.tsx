@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 
 interface ChatInterfaceProps {
   chatRoomId: number;
+  chatType: "BID_NEGOTIATION" | "CONTRACT";
+  referenceId: number;
   className?: string;
   disabled?: boolean;
   onMilestoneAction?: (action: string) => void;
@@ -17,6 +19,7 @@ interface ChatInterfaceProps {
 export const ChatInterface = ({ 
   chatRoomId, 
   chatType, 
+  referenceId,
   className, 
   disabled = false,
   onMilestoneAction
@@ -30,7 +33,7 @@ export const ChatInterface = ({
     hasMore, 
     loadMore,
     retryMessage
-  } = useChatMessages({ chatRoomId });
+  } = useChatMessages({ chatRoomId, chatType, referenceId });
   
   const [sendingState, setSendingState] = useState<'idle' | 'sending' | 'error'>('idle');
   const [retryCount, setRetryCount] = useState(0);

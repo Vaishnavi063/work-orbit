@@ -4,13 +4,10 @@ import type { RootState } from '@/store';
 import { chatApis } from '@/features/chat/apis';
 import type { ChatMessage } from '@/types';
 
-// Add a custom property to ChatMessage for pending status
-interface OptimisticChatMessage extends ChatMessage {
-  isPending?: boolean;
-}
-
 interface UseChatParams {
   chatRoomId?: number;
+  chatType?: "BID_NEGOTIATION" | "CONTRACT";
+  referenceId?: number;
 }
 
 interface UseChatReturn {
@@ -23,7 +20,7 @@ interface UseChatReturn {
   loadMore: () => Promise<void>;
 }
 
-export const useChat = ({ chatRoomId }: UseChatParams = {}): UseChatReturn => {
+export const useChat = ({ chatRoomId, chatType, referenceId }: UseChatParams = {}): UseChatReturn => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

@@ -8,7 +8,6 @@ import ListComponent from "./shared/list-component";
 import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
 import type LogoLink from "./shared/logo-link";
 import type Logo from "./shared/logo";
-import { AblyConnectionStatus } from "./shared/ably-connection-status";
 
 export {
   SignInIcon,

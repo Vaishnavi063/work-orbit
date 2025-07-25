@@ -45,6 +45,7 @@ import {
   selectProjectsError,
 } from "@/store/slices/projects-slice";
 import type { RootState, AppDispatch } from "@/store";
+import { useNavigate } from "react-router-dom";
 
 type SortField = 'bidAmount' | 'durationDays' | 'teamSize';
 type SortOrder = 'asc' | 'desc';
@@ -79,6 +80,7 @@ const BidList: React.FC<BidListProps> = ({
   const { authToken } = useSelector((state: RootState) => state.auth);
   const { handleError, handleSuccess } = useErrorHandler();
   const { walletDetails } = useGetWalletDetails();
+  const navigate = useNavigate();
 
   console.log("BIDS: ", bids);
 
@@ -268,6 +270,7 @@ const BidCard: React.FC<BidCardProps> = ({
   isActioning,
   isLoading,
 }) => {
+  const navigate = useNavigate();
   const getStatusColor = (status: BidResponse["status"]) => {
     switch (status) {
       case "Accepted":
@@ -304,6 +307,14 @@ const BidCard: React.FC<BidCardProps> = ({
               </span>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-2"
+            onClick={() => navigate(`/dashboard/profile/${bid.freelancerId}`)}
+          >
+            View Freelancer
+          </Button>
         </div>
       </CardHeader>
 

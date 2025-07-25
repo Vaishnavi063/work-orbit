@@ -60,6 +60,34 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
 
     const authToken = useSelector((state: RootState) => state.auth?.authToken);
 
+    // Function to refresh milestone data (for the other person via polling)
+    const refreshMilestoneData = useCallback(async () => {
+        if (!authToken || !contractDetails?.contractId) return;
+
+        try {
+            // Get milestone completion percentage
+            const completionResponse =
+                await chatApis.getMilestoneCompletionForChat(
+                    chatRoomId,
+                    authToken
+                );
+            if (completionResponse.data.status === "success") {
+                setCompletionPercentage(completionResponse.data.data);
+            }
+
+            // Get overdue milestones count
+            const overdueResponse = await chatApis.getOverdueMilestonesForChat(
+                chatRoomId,
+                authToken
+            );
+            if (overdueResponse.data.status === "success") {
+                setOverdueMilestones(overdueResponse.data.data.length);
+            }
+        } catch (err) {
+            console.error("Failed to refresh milestone information:", err);
+        }
+    }, [chatRoomId, authToken, contractDetails?.contractId]);
+
     // Fetch contract details and milestone information
     useEffect(() => {
         const fetchContractDetails = async () => {
@@ -152,6 +180,9 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
                     notificationMessage,
                     authToken
                 );
+
+                // Refresh milestone data for the person who triggered the action
+                await refreshMilestoneData();
 
                 // Clear notification after sending
                 setTimeout(() => {
@@ -354,6 +385,7 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
                             chatType="CONTRACT"
                             referenceId={contractDetails?.contractId || 0}
                             className="h-full"
+                            onMilestoneAction={refreshMilestoneData}
                         />
                     </TabsContent>
 

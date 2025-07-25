@@ -35,6 +35,20 @@ export const ChatInterface = ({
     retryMessage
   } = useChatMessages({ chatRoomId, chatType, referenceId });
   
+  // Watch for milestone update messages and trigger callback for the other person
+  useEffect(() => {
+    if (chatType === 'CONTRACT' && onMilestoneAction) {
+      const milestoneMessages = messages.filter(
+        msg => msg.messageType === 'MILESTONE_UPDATE'
+      );
+      
+      if (milestoneMessages.length > 0) {
+        // Trigger milestone data refresh when milestone messages are received
+        onMilestoneAction('refresh');
+      }
+    }
+  }, [messages, chatType, onMilestoneAction]);
+  
   const [sendingState, setSendingState] = useState<'idle' | 'sending' | 'error'>('idle');
   const [retryCount, setRetryCount] = useState(0);
   

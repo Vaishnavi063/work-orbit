@@ -225,7 +225,7 @@ export const MessageList = ({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <span className="inline-flex items-center">
-                                    <Clock className="inline h-3 w-3 text-muted-foreground" />
+                                    <Clock className="inline h-4 w-4 text-muted-foreground" />
                                 </span>
                             </TooltipTrigger>
                             <TooltipContent side="left" className="text-xs">
@@ -240,7 +240,7 @@ export const MessageList = ({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <span className="inline-flex items-center">
-                                    <Check className="inline h-3 w-3 text-success" />
+                                    <Check className="inline h-4 w-4 text-blue-500" />
                                 </span>
                             </TooltipTrigger>
                             <TooltipContent side="left" className="text-xs">
@@ -253,7 +253,7 @@ export const MessageList = ({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <span className="inline-flex items-center">
-                                    <CheckCircle2 className="inline h-3 w-3 text-muted-foreground" />
+                                    <Check className="inline h-4 w-4 text-muted-foreground" />
                                 </span>
                             </TooltipTrigger>
                             <TooltipContent side="left" className="text-xs">
@@ -368,7 +368,10 @@ export const MessageList = ({
                         {groupMessages.map((message) => {
                             try {
                                 const isCurrentUser =
-                                    user?.id === message.senderId;
+                                    (user?.role === "ROLE_CLIENT" &&
+                                        message.senderType === "CLIENT") ||
+                                    (user?.role === "ROLE_FREELANCER" &&
+                                        message.senderType === "FREELANCER");
                                 const isSystemMessage =
                                     message.messageType !== "TEXT";
 
@@ -455,7 +458,10 @@ export const MessageList = ({
                             } catch (error) {
                                 // Return a fallback message display instead of null
                                 return (
-                                    <div key={message.id} className="flex justify-center my-2">
+                                    <div
+                                        key={message.id}
+                                        className="flex justify-center my-2"
+                                    >
                                         <div className="bg-muted text-muted-foreground text-xs rounded-md py-1 px-3">
                                             Error displaying message
                                         </div>

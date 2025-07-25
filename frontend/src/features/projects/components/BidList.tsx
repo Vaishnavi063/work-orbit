@@ -81,7 +81,6 @@ const BidList: React.FC<BidListProps> = ({
   const { authToken } = useSelector((state: RootState) => state.auth);
   const { handleError, handleSuccess } = useErrorHandler();
   const { walletDetails } = useGetWalletDetails();
-  const navigate = useNavigate();
 
   console.log("BIDS: ", bids);
 

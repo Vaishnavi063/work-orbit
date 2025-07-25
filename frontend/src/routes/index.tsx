@@ -25,6 +25,7 @@ import RevenueDetail from "@/features/wallet/freelancer";
 import { ClientWallet } from "@/features/wallet/client";
 import MyProjects from "@/features/client";
 import FreelancerProfileRoutePage from "@/features/freelancer/components/freelancer-profile-route-page";
+import ChatPage from "@/features/chat";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -50,6 +51,7 @@ const router = createBrowserRouter(
         <Route path="revenue" element={<RevenueDetail />} />
         <Route path="wallet" element={<ClientWallet />} />
         <Route path="my-projects" element={<MyProjects />} />
+        <Route path="chats/*" element={<ChatPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Route>

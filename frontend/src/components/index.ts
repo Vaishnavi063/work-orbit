@@ -6,6 +6,8 @@ import ModeToggle from "./shared/mode-toggle";
 import AuthButtons from "./shared/auth-buttons";
 import ListComponent from "./shared/list-component";
 import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
+import type LogoLink from "./shared/logo-link";
+import type Logo from "./shared/logo";
 
 export {
   SignInIcon,
@@ -17,3 +19,5 @@ export {
   SiteHeader,
   ListComponent
 };
+
+export type { Logo, LogoLink };

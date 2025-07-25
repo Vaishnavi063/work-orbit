@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { ContractChatButton } from "@/features/chat/components/ContractChatButton";
 import type { AppDispatch, RootState } from "@/store";
 
 /**
@@ -137,6 +138,7 @@ const ContractList: React.FC = () => {
                   <TableHead>Other Party</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last Updated</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -155,6 +157,14 @@ const ContractList: React.FC = () => {
                       {renderStatusBadge(contract.contractStatus)}
                     </TableCell>
                     <TableCell>{formatDate(contract.updatedAt)}</TableCell>
+                    <TableCell>
+                      <ContractChatButton 
+                        contractId={contract.contractId}
+                        variant="ghost"
+                        size="sm"
+                        showLabel={false}
+                      />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

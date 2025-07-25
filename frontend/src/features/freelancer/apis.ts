@@ -4,7 +4,7 @@ import type { RequestType } from "@/types";
 import urls from "./urls";
 
 const apis = {
-  getProjects: ({ authToken,params }: RequestType) =>
+  getProjects: ({ authToken, params }: RequestType) =>
     request({
       method: "GET",
       url: urls.getProjects,
@@ -63,6 +63,28 @@ const apis = {
       method: "DELETE",
       url: `${urls.deleteBid}/${bidId}/freelancer/${freelancerId}`,
       authToken,
+    }),
+
+  updateBid: ({
+    authToken,
+    freelancerId,
+    bidId,
+    data,
+  }: {
+    authToken: string;
+    freelancerId: string;
+    bidId: string;
+    data: {
+      proposal: string;
+      bidAmount: number;
+      durationDays: number;
+    };
+  }) =>
+    request({
+      method: "PUT",
+      url: `${urls.updateBid}/${bidId}/freelancer/${freelancerId}`,
+      authToken,
+      data,
     }),
 };
 

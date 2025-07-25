@@ -74,6 +74,7 @@ export interface BidType {
   teamSize: number;
   proposal: string;
   project: {
+    id:number;
     title: string;
     category: string;
     budget: number;

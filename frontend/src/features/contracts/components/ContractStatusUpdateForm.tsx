@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Star } from 'lucide-react';
 import type { AppDispatch, RootState } from '@/store';
 import type { UserRoles } from '@/types';
 
@@ -39,6 +39,7 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<ContractStatus | ''>('');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({ status: null });
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+  const [clientRating, setClientRating] = useState<number | null>(null);
   const loading = useSelector(selectContractsLoading);
   const error = useSelector(selectContractsError);
   const authToken = useSelector((state: RootState) => state.auth.authToken);
@@ -50,6 +51,7 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
       setSelectedStatus('');
       setValidationErrors({ status: null });
       setShowSuccessMessage(false);
+      setClientRating(null);
       
       // Clear any previous errors
       dispatch(clearContractErrors());
@@ -144,12 +146,14 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
     }
     
     try {
-      // Send the status as a plain string with the correct content type
+      // Send both contractStatus and freelancerRating as a JSON object
       const result = await dispatch(updateContractStatus({
         contractId: contract.contractId,
-        data: selectedStatus, // Send as plain string
-        authToken,
-        options: { isPlainText: true } // Flag to indicate plain text content type
+        data: {
+          contractStatus: selectedStatus,
+          freelancerRating: clientRating ?? null
+        },
+        authToken
       }) as any);
       
       // Check if the update was successful
@@ -238,6 +242,24 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
                 {validationErrors.status && (
                   <p className="text-sm text-red-500 mt-1">{validationErrors.status}</p>
                 )}
+              </div>
+              {/* Client Rating Input */}
+              <div className="col-span-4">
+                <label className="text-sm font-medium mb-2 block">Rate the freelancer (1-5)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    step={0.1}
+                    value={clientRating ?? ''}
+                    onChange={e => setClientRating(Number(e.target.value))}
+                    disabled={!hasPermissionToUpdate || loading.updateStatus}
+                    className="w-20 text-center bg-gray-50 border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    placeholder="0.0"
+                  />
+                  <Star className="w-4 h-4 text-yellow-500" />
+                </div>
               </div>
             </div>
           </div>

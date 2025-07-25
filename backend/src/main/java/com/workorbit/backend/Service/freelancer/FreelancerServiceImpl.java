@@ -94,10 +94,7 @@ public class FreelancerServiceImpl implements FreelancerService {
             log.info("Updating name to: {}", dto.getName());
             freelancer.setName(dto.getName());
         }
-        if (dto.getRating() != null) {
-            log.info("Updating rating to: {}", dto.getRating());
-            freelancer.setRating(dto.getRating());
-        }
+        // Removed rating update logic
         // Do NOT update email here, as email is required for login and should not be changed.
 
         // Update skills (many-to-many)

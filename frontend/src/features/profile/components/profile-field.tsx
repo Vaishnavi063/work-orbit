@@ -78,7 +78,7 @@ export const ProfileField = ({
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 flex-shrink-0" />
               )}
               <p className={`font-medium text-sm ${config.text} break-words line-clamp-2`}>
-                {value || "Not specified"}
+                {value || 0.0}
               </p>
             </div>
           )}

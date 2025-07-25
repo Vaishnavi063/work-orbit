@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -50,7 +49,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         milestone.setContract(contract);
         milestone.setTitle(request.getTitle());
         milestone.setDescription(request.getDescription());
-        milestone.setAmount(request.getAmount());
         milestone.setDueDate(request.getDueDate());
         milestone.setStatus(MilestoneStatus.PENDING);
         
@@ -68,10 +66,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         
         if (savedMilestone.getDescription() != null && !savedMilestone.getDescription().isEmpty()) {
             notificationMsg.append("Description: ").append(savedMilestone.getDescription()).append("\n");
-        }
-        
-        if (savedMilestone.getAmount() != null) {
-            notificationMsg.append("Amount: $").append(savedMilestone.getAmount()).append("\n");
         }
         
         notificationMsg.append("Due Date: ").append(formattedDueDate).append("\n");
@@ -198,13 +192,11 @@ public class MilestoneServiceImpl implements MilestoneService {
         // Store original values for comparison
         String originalTitle = milestone.getTitle();
         String originalDescription = milestone.getDescription();
-        BigDecimal originalAmount = milestone.getAmount();
         LocalDateTime originalDueDate = milestone.getDueDate();
         
         // Update milestone fields
         milestone.setTitle(request.getTitle());
         milestone.setDescription(request.getDescription());
-        milestone.setAmount(request.getAmount());
         milestone.setDueDate(request.getDueDate());
         
         Milestone updatedMilestone = milestoneRepository.save(milestone);
@@ -232,12 +224,6 @@ public class MilestoneServiceImpl implements MilestoneService {
             notificationMsg.append("Description updated\n");
         }
         
-        if ((originalAmount == null && updatedMilestone.getAmount() != null) ||
-            (originalAmount != null && !originalAmount.equals(updatedMilestone.getAmount()))) {
-            notificationMsg.append("Amount changed from $").append(originalAmount != null ? originalAmount : "none")
-                          .append(" to $").append(updatedMilestone.getAmount() != null ? updatedMilestone.getAmount() : "none").append("\n");
-        }
-        
         if ((originalDueDate == null && updatedMilestone.getDueDate() != null) ||
             (originalDueDate != null && !originalDueDate.equals(updatedMilestone.getDueDate()))) {
             notificationMsg.append("Due date changed from ").append(formattedOldDueDate)
@@ -263,7 +249,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         Long contractId = milestone.getContract().getContractId();
         String milestoneTitle = milestone.getTitle();
         String milestoneDescription = milestone.getDescription();
-        BigDecimal milestoneAmount = milestone.getAmount();
         LocalDateTime milestoneDueDate = milestone.getDueDate();
         MilestoneStatus milestoneStatus = milestone.getStatus();
         
@@ -281,10 +266,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         
         if (milestoneDescription != null && !milestoneDescription.isEmpty()) {
             notificationMsg.append("Description: ").append(milestoneDescription).append("\n");
-        }
-        
-        if (milestoneAmount != null) {
-            notificationMsg.append("Amount: $").append(milestoneAmount).append("\n");
         }
         
         notificationMsg.append("Due Date: ").append(formattedDueDate).append("\n");
@@ -473,7 +454,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         response.setContractId(milestone.getContract().getContractId());
         response.setTitle(milestone.getTitle());
         response.setDescription(milestone.getDescription());
-        response.setAmount(milestone.getAmount());
         response.setDueDate(milestone.getDueDate());
         response.setStatus(milestone.getStatus());
         response.setCreatedAt(milestone.getCreatedAt());

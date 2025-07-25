@@ -6,7 +6,6 @@ import {
     Loader2,
     PlusCircleIcon,
     CalendarIcon,
-    DollarSignIcon,
     CheckIcon,
     PlayIcon,
     AlertTriangleIcon,
@@ -58,7 +57,6 @@ interface MilestoneResponse {
     contractId: number;
     title: string;
     description: string;
-    amount: number;
     dueDate: string;
     status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "OVERDUE";
     createdAt: string;
@@ -86,7 +84,6 @@ interface MilestonePanelProps {
 const milestoneFormSchema = z.object({
     title: z.string().min(1, "Title is required"),
     description: z.string().optional(),
-    amount: z.number().min(0, "Amount must be positive"),
     dueDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
         message: "Invalid date format",
     }),
@@ -116,7 +113,6 @@ export const MilestonePanel = ({
         defaultValues: {
             title: "",
             description: "",
-            amount: 0,
             dueDate: new Date().toISOString().split("T")[0],
         },
     });
@@ -160,14 +156,12 @@ export const MilestonePanel = ({
             form.reset({
                 title: editingMilestone.title,
                 description: editingMilestone.description || "",
-                amount: editingMilestone.amount,
                 dueDate: editingMilestone.dueDate.split("T")[0],
             });
         } else {
             form.reset({
                 title: "",
                 description: "",
-                amount: 0,
                 dueDate: new Date().toISOString().split("T")[0],
             });
         }
@@ -183,7 +177,6 @@ export const MilestonePanel = ({
             const milestoneData = {
                 title: values.title,
                 description: values.description,
-                amount: values.amount,
                 dueDate: new Date(values.dueDate).toISOString(),
             };
 
@@ -487,53 +480,22 @@ export const MilestonePanel = ({
                                     )}
                                 />
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="amount"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Amount ($)
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="number"
-                                                        min="0"
-                                                        step="0.01"
-                                                        {...field}
-                                                        onChange={(e) =>
-                                                            field.onChange(
-                                                                parseFloat(
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            )
-                                                        }
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="dueDate"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Due Date</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="date"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="dueDate"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Due Date</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="date"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
                                 <DialogFooter>
                                     <Button
@@ -599,13 +561,7 @@ export const MilestonePanel = ({
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                                        <div className="flex items-center gap-1">
-                                            <DollarSignIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                            <span>
-                                                ${milestone.amount.toFixed(2)}
-                                            </span>
-                                        </div>
+                                    <div className="text-sm mb-3">
                                         <div className="flex items-center gap-1">
                                             <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
                                             <span>

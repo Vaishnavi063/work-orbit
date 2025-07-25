@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 type StatusType = "All" | "Accepted" | "Pending" | "Rejected";
 
 interface BidStatusFilterProps {
@@ -9,25 +11,18 @@ const statusOptions: StatusType[] = ["All", "Accepted", "Pending", "Rejected"];
 
 const BidStatusFilter = ({ selected, onChange }: BidStatusFilterProps) => {
   return (
-    <div className="mb-6 flex flex-wrap gap-2">
-      {statusOptions.map((status) => {
-        const isSelected = selected === status;
-
-        return (
-          <button
-            key={status}
-            onClick={() => onChange(status)}
-            className={`px-4 py-1.5 rounded-full cursor-pointer text-sm font-medium transition-all border shadow-sm
-              ${
-                isSelected
-                  ? "bg-slate-900 text-white border-slate-900"
-                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-100 hover:border-slate-400"
-              }`}
-          >
-            {status}
-          </button>
-        );
-      })}
+    <div className="flex flex-wrap gap-2 mb-6">
+      {statusOptions.map((status) => (
+        <Button
+          key={status}
+          variant={selected === status ? "default" : "outline"}
+          size="sm"
+          onClick={() => onChange(status)}
+          className="h-7 px-3 text-sm cursor-pointer"
+        >
+          {status}
+        </Button>
+      ))}
     </div>
   );
 };

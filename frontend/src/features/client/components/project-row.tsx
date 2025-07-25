@@ -1,9 +1,13 @@
 import { TableRow, TableCell } from "@/components/ui/table";
-import { PencilIcon, Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Project } from "./project-table";
+import {
+  ProjectUpdateDialog,
+  type ProjectUpdateData,
+} from "./project-update-dialog";
 import { useMutation } from "react-query";
 import apis from "../apis";
 import useAuth from "@/hooks/use-auth";
@@ -12,10 +16,17 @@ import { toast } from "sonner";
 interface Props {
   project: Project;
   refetchProjects: () => void;
+  onUpdate: (projectId: string, data: ProjectUpdateData) => void;
+  isUpdating: boolean;
 }
 
-const ProjectRow = ({ project, refetchProjects }: Props) => {
-  const { authToken } = useAuth();
+const ProjectRowWithUpdate = ({
+  project,
+  refetchProjects,
+  onUpdate,
+  isUpdating,
+}: Props) => {
+  const { authToken, user } = useAuth();
   const isClosed = project.status === "CLOSED";
 
   const { isLoading: isDeleting, mutate: deleteProject } = useMutation({
@@ -38,10 +49,6 @@ const ProjectRow = ({ project, refetchProjects }: Props) => {
       return;
     }
     deleteProject(project.id.toString());
-  };
-
-  const handleEditProject = () => {
-    toast.info("Edit functionality coming soon!");
   };
 
   return (
@@ -78,23 +85,21 @@ const ProjectRow = ({ project, refetchProjects }: Props) => {
       </TableCell>
 
       <TableCell className="flex items-center justify-center gap-2">
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={handleEditProject}
-          aria-label="Edit project"
-          className="hover:bg-accent/50 transition-colors"
-          disabled={isDeleting}
-        >
-          <PencilIcon className="size-4 text-muted-foreground hover:text-primary transition-colors" />
-        </Button>
+        <ProjectUpdateDialog
+          project={{
+            ...project,
+            clientId: user?.id,
+          }}
+          onUpdate={onUpdate}
+          isLoading={isUpdating}
+        />
 
         <Button
           size="icon"
           variant="ghost"
           onClick={handleDeleteProject}
           aria-label="Delete project"
-          className="hover:bg-destructive/20 transition-colors"
+          className="hover:bg-destructive/20 transition-colors cursor-pointer"
           disabled={isDeleting || !authToken}
         >
           {isDeleting ? (
@@ -108,4 +113,4 @@ const ProjectRow = ({ project, refetchProjects }: Props) => {
   );
 };
 
-export default ProjectRow;
+export default ProjectRowWithUpdate;

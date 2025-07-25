@@ -1,3 +1,4 @@
+// components/project/project-table.tsx
 import {
   Table,
   TableBody,
@@ -6,8 +7,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import ProjectRow from "./project-row";
 import { FileWarning } from "lucide-react";
+import useProjectActions from "../hooks/use-project-actione";
+import ProjectRowWithUpdate from "./project-row";
 
 export type Project = {
   id: number;
@@ -22,6 +24,7 @@ export type Project = {
     email: string;
   };
   bidCount: number;
+  clientId?: number;
 };
 
 interface Props {
@@ -31,6 +34,10 @@ interface Props {
 }
 
 const ProjectTable = ({ projects, isLoading, refetchProjects }: Props) => {
+  const { handleUpdateProject, isUpdating } = useProjectActions({
+    refetchProjects,
+  });
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -66,10 +73,12 @@ const ProjectTable = ({ projects, isLoading, refetchProjects }: Props) => {
         <TableBody>
           {projects.length > 0 ? (
             projects.map((project) => (
-              <ProjectRow
+              <ProjectRowWithUpdate
                 key={project.id}
                 project={project}
                 refetchProjects={refetchProjects}
+                onUpdate={handleUpdateProject}
+                isUpdating={isUpdating}
               />
             ))
           ) : (

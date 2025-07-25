@@ -11,6 +11,7 @@ import {
   LoaderCircle,
     ArrowUp,
     ArrowDown,
+    Eye,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useErrorHandler } from "@/hooks/use-error-handler";
@@ -310,9 +311,10 @@ const BidCard: React.FC<BidCardProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="ml-2"
+            className="ml-2 border-green-700 bg-green-100 text-green-700 hover:bg-green-200 flex items-center gap-2"
             onClick={() => navigate(`/dashboard/profile/${bid.freelancerId}`)}
           >
+            <Eye className="w-4 h-4 text-green-700" />
             View Freelancer
           </Button>
         </div>

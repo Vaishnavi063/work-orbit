@@ -51,37 +51,17 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ profile, setProfile
         />
       </div>
 
-      {/* Rating */}
+      {/* Rating (Read-only) */}
       <div className="space-y-2">
         <Label className="text-sm font-medium text-gray-700">
           Rating
         </Label>
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleRatingChange(-0.1)}
-            className="h-8 w-8 p-0 border-gray-300"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <Input
-            value={profile.rating}
-            readOnly
-            className="w-20 text-center bg-gray-50 border-gray-200"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleRatingChange(0.1)}
-            className="h-8 w-8 p-0 border-gray-300"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-gray-500">/ 5.0</span>
-        </div>
+        <Input
+          value={profile.rating}
+          readOnly
+          className="w-20 text-center bg-gray-50 border-gray-200 text-gray-600"
+        />
+        <span className="text-sm text-gray-500">/ 5.0</span>
       </div>
     </div>
   );

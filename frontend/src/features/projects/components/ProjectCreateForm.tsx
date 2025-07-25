@@ -199,7 +199,7 @@ const ProjectCreateForm: React.FC<ProjectCreateFormProps> = ({
                 name="budget"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Budget (USD) *</FormLabel>
+                    <FormLabel>Budget (INR) *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import {
     Loader2,
     CalendarIcon,
-    DollarSignIcon,
+    IndianRupee,
     CheckCircleIcon,
 } from "lucide-react";
 
@@ -306,9 +306,9 @@ export const ContractChat = ({ chatRoomId, className }: ContractChatProps) => {
                     <CardContent className="py-2 px-4">
                         <div className="grid grid-cols-3 gap-2 text-sm">
                             <div className="flex items-center gap-1">
-                                <DollarSignIcon className="h-3 w-3 text-muted-foreground" />
+                                <IndianRupee className="h-3 w-3 text-muted-foreground" />
                                 <span>
-                                    ${contractDetails.contractAmount.toFixed(2)}
+                                    {contractDetails.contractAmount.toFixed(2)}
                                 </span>
                             </div>
 

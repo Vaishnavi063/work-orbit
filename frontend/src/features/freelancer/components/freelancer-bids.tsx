@@ -4,7 +4,6 @@ import { FullscreenLoader } from "@/components/shared/full-screen-loader";
 import BidStatusFilter from "./bid-filter";
 import EmptyBidsState from "./shared/empty-bid";
 import BidCard from "./shared/bid-card";
-import { ChatButton } from "@/features/chat/components/ChatButton";
 
 const FreelancerBids = () => {
     const [statusFilter, setStatusFilter] = useState<

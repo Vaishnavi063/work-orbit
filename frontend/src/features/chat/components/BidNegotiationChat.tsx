@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-    DollarSignIcon,
+    IndianRupee,
     CalendarIcon,
     UsersIcon,
     CheckIcon,
@@ -124,10 +124,6 @@ export const BidNegotiationChat = ({
             setTransitionState("accepted");
 
             // The backend should have converted the bid chat to a contract chat
-            // Navigate to the chat list to see the updated contract chat
-            setTimeout(() => {
-                navigate("/dashboard/chats");
-            }, 2000);
         } catch (err: any) {
             const errorMessage =
                 err?.response?.data?.error?.message || "Failed to accept bid";
@@ -425,7 +421,7 @@ export const BidNegotiationChat = ({
 
                     <div className="grid grid-cols-3 gap-2 text-sm">
                         <div className="flex items-center gap-1">
-                            <DollarSignIcon className="h-3 w-3 text-muted-foreground" />
+                            <IndianRupee className="h-3 w-3 text-muted-foreground" />
                             <span>{bidDetails.bidAmount.toFixed(2)}</span>
                         </div>
 

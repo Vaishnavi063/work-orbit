@@ -12,10 +12,6 @@ public class FreelancerUpdateDTO {
     @NotBlank(message = "Name cannot be blank")
     private String name;
 
-    @Min(value = 0, message = "Rating must be non-negative")
-    @Max(value = 5, message = "Rating cannot be greater than 5")
-    private Double rating;
-
     @Valid // Cascade validation to past work objects
     private List<PastWorkUpdateDTO> pastWorks;
 

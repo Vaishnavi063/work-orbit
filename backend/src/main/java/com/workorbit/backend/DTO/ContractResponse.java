@@ -17,4 +17,5 @@ public class ContractResponse {
 	private String contractStatus;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
+	private Double freelancerRating;
 }

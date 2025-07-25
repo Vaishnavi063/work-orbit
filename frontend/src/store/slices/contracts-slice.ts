@@ -65,18 +65,17 @@ export const fetchContractById = createAsyncThunk(
 
 export const updateContractStatus = createAsyncThunk(
   "contracts/updateContractStatus",
-  async ({ contractId, data, authToken, options }: { 
+  async ({ contractId, data, authToken }: { 
     contractId: number; 
-    data: string; // Changed from ContractStatusUpdateRequest to string
+    data: { contractStatus: string; freelancerRating: number | null };
     authToken: string;
-    options?: { isPlainText?: boolean };
   }, { rejectWithValue }) => {
     try {
       const response = await apis.updateContractStatus({ 
         params: { id: contractId }, 
-        data: options?.isPlainText ? data : { contractStatus: data },
+        data,
         authToken,
-        isPlainText: options?.isPlainText
+        isPlainText: false
       });
       return response.data as ApiResponse<Contract>;
     } catch (error: any) {

@@ -3,10 +3,6 @@ import { ProfileHeader } from "@/features/profile/components/profile-header";
 import { ProfileField } from "@/features/profile/components/profile-field";
 import { SkillsList } from "@/features/profile/components/skill-list";
 import { PastWorksList } from "@/features/profile/components/pastwork";
-import {
-    LoadingState,
-    ErrorState,
-} from "@/features/profile/components/loading-error-state";
 import useGetFreelancerProfile from "@/features/freelancer/hooks/use-get-freelancer-profile";
 
 interface FreelancerProfileProps {

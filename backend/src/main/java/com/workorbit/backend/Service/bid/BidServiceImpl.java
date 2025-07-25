@@ -102,6 +102,54 @@ public class BidServiceImpl implements BidService {
         return getBidResponseDTO(bid);
     }
 
+    @Override
+    public Bids updateBid(Long bidId, Long freelancerId, BidDTO dto) {
+        log.info("Updating bid ID: {} for freelancer ID: {}", bidId, freelancerId);
+
+        Bids existingBid = bidRepo.findById(bidId)
+                .orElseThrow(() -> new RuntimeException("Bid not found"));
+        log.info("Bid found: {}", existingBid.getId());
+
+        if (!existingBid.getFreelancer().getId().equals(freelancerId)) {
+            log.error("Freelancer is not authorized to update this bid");
+            throw new RuntimeException("You can only update your own bids.");
+        }
+        log.info("Freelancer is authorized to update the bid");
+
+        if (!existingBid.getStatus().equals(Bids.bidStatus.Pending)) {
+            log.error("Bid is not pending, cannot update. Current status: {}", existingBid.getStatus());
+            throw new RuntimeException("Only pending bids can be updated.");
+        }
+        log.info("Bid is pending, proceeding with update");
+
+        Project project = projectRepo.findById(dto.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (project.getStatus() != Project.ProjectStatus.OPEN) {
+            log.error("Project is no longer open for bidding");
+            throw new IllegalStateException("Project is no longer accepting bids");
+        }
+
+        if (!existingBid.getProject().getId().equals(dto.getProjectId())) {
+            log.error("Cannot change project ID in bid update");
+            throw new RuntimeException("Cannot change the project for an existing bid");
+        }
+
+        if (!existingBid.getFreelancer().getId().equals(dto.getFreelancerId())) {
+            log.error("Cannot change freelancer ID in bid update");
+            throw new RuntimeException("Cannot change the freelancer for an existing bid");
+        }
+
+        existingBid.setProposal(dto.getProposal());
+        existingBid.setBidAmount(dto.getBidAmount());
+        existingBid.setDurationDays(dto.getDurationDays());
+        existingBid.setTeamSize(dto.getTeamSize());
+        existingBid.setUpdatedAt(LocalDateTime.now());
+
+        log.info("Bid updated successfully: {}", existingBid.getId());
+        return bidRepo.save(existingBid);
+    }
+
     public static BidResponseDTO getBidResponseDTO(Bids bid) {
         BidResponseDTO dto = new BidResponseDTO();
         dto.setBidId(bid.getId());

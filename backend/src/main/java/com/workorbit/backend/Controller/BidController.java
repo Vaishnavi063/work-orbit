@@ -43,4 +43,17 @@ public class BidController {
             return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
         }
     }
+
+    @PutMapping("/{bidId}/freelancer/{freelancerId}")
+    public ResponseEntity<ApiResponse<Bids>> updateBid(
+            @PathVariable Long bidId,
+            @PathVariable Long freelancerId,
+            @Valid @RequestBody BidDTO dto) {
+        try {
+            Bids updatedBid = bidService.updateBid(bidId, freelancerId, dto);
+            return ResponseEntity.ok(ApiResponse.success(updatedBid));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

@@ -153,8 +153,7 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
           contractStatus: selectedStatus,
           freelancerRating: clientRating ?? null
         },
-        authToken,
-        options: { isPlainText: false }
+        authToken
       }) as any);
       
       // Check if the update was successful
@@ -260,7 +259,6 @@ const ContractStatusUpdateForm: React.FC<ContractStatusUpdateFormProps> = ({
                     placeholder="0.0"
                   />
                   <Star className="w-4 h-4 text-yellow-500" />
-                  <span className="text-xs text-gray-500">(Only visible to client, not saved yet)</span>
                 </div>
               </div>
             </div>

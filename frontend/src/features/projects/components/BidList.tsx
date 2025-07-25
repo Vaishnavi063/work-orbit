@@ -11,6 +11,7 @@ import {
   LoaderCircle,
     ArrowUp,
     ArrowDown,
+    Eye,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useErrorHandler } from "@/hooks/use-error-handler";
@@ -45,6 +46,7 @@ import {
   selectProjectsError,
 } from "@/store/slices/projects-slice";
 import type { RootState, AppDispatch } from "@/store";
+import { useNavigate } from "react-router-dom";
 
 type SortField = 'bidAmount' | 'durationDays' | 'teamSize';
 type SortOrder = 'asc' | 'desc';
@@ -268,6 +270,7 @@ const BidCard: React.FC<BidCardProps> = ({
   isActioning,
   isLoading,
 }) => {
+  const navigate = useNavigate();
   const getStatusColor = (status: BidResponse["status"]) => {
     switch (status) {
       case "Accepted":
@@ -304,6 +307,15 @@ const BidCard: React.FC<BidCardProps> = ({
               </span>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-2 border-green-700 bg-green-100 text-green-700 hover:bg-green-200 flex items-center gap-2"
+            onClick={() => navigate(`/dashboard/profile/${bid.freelancerId}`)}
+          >
+            <Eye className="w-4 h-4 text-green-700" />
+            View Freelancer
+          </Button>
         </div>
       </CardHeader>
 

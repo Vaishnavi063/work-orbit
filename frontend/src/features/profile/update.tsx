@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -127,8 +126,7 @@ const ProfileUpdate = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+      <Card className="border-none">
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
             ✏️ Edit Profile
@@ -176,7 +174,6 @@ const ProfileUpdate = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
   );
 };
 

@@ -24,6 +24,7 @@ import ContractsFeature from "@/features/contracts";
 import RevenueDetail from "@/features/wallet/freelancer";
 import { ClientWallet } from "@/features/wallet/client";
 import MyProjects from "@/features/client";
+import FreelancerProfileRoutePage from "@/features/freelancer/components/freelancer-profile-route-page";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -40,6 +41,7 @@ const router = createBrowserRouter(
       <Route path="dashboard" element={<DashboardLayout />}>
         <Route path="profile" element={<Profile />} />
         <Route path="profile/update" element={<ProfileUpdate />} />
+        <Route path="profile/:freelancerId" element={<FreelancerProfileRoutePage />} />
         <Route path="projects/*" element={<ClientProjectsDashboard />} />
         <Route path="contracts/*" element={<ContractsFeature />} />
         <Route path="browse-projects" element={<BrowseProjects />} />

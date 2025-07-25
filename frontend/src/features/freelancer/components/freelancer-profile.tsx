@@ -24,6 +24,11 @@ const FreelancerProfile: React.FC<FreelancerProfileProps> = ({
         error: freelancerError,
     } = useGetFreelancerProfile(freelancerId, authToken);
 
+    // Early returns for loading and error states (from FreelancerProfileDetails)
+    if (freelancerLoading) return <div>Loading freelancer details...</div>;
+    if (freelancerError) return <div>Failed to load freelancer details.</div>;
+    if (!freelancerData) return null;
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 py-8">
             <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,17 +74,13 @@ const FreelancerProfile: React.FC<FreelancerProfileProps> = ({
                                 <ProfileField
                                     label="Email Address"
                                     value={freelancerData?.email}
-                                    isLoading={freelancerLoading}
-                                    error={freelancerError}
                                 />
                                 <ProfileField
                                     label="Rating"
-                                    isLoading={freelancerLoading}
-                                    error={freelancerError}
                                     value={
-                                        freelancerData?.rating
-                                            ? `${freelancerData.rating} / 5`
-                                            : undefined
+                                        typeof freelancerData?.rating === 'number'
+                                            ? `${freelancerData.rating.toFixed(1)} / 5`
+                                            : '0.0 / 5'
                                     }
                                     variant="rating"
                                 />
@@ -94,13 +95,7 @@ const FreelancerProfile: React.FC<FreelancerProfileProps> = ({
                                 <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full mr-3"></div>
                                 Skills & Expertise
                             </h2>
-                            {freelancerLoading ? (
-                                <LoadingState />
-                            ) : freelancerError ? (
-                                <ErrorState message="Failed to load skills" />
-                            ) : (
-                                <SkillsList skills={freelancerData?.skills} />
-                            )}
+                            <SkillsList skills={freelancerData?.skills} />
                         </CardContent>
                     </Card>
 
@@ -111,15 +106,7 @@ const FreelancerProfile: React.FC<FreelancerProfileProps> = ({
                                 <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full mr-3"></div>
                                 Portfolio & Past Work
                             </h2>
-                            {freelancerLoading ? (
-                                <LoadingState />
-                            ) : freelancerError ? (
-                                <ErrorState message="Failed to load past work" />
-                            ) : (
-                                <PastWorksList
-                                    pastWorks={freelancerData?.pastWorks}
-                                />
-                            )}
+                            <PastWorksList pastWorks={freelancerData?.pastWorks} />
                         </CardContent>
                     </Card>
                 </div>

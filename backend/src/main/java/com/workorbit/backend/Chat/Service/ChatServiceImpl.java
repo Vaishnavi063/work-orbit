@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -253,14 +254,14 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendSystemNotification(Long chatRoomId, String notification) {
         // Default to SYSTEM_NOTIFICATION type
         sendSystemNotification(chatRoomId, notification, ChatMessage.MessageType.SYSTEM_NOTIFICATION);
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendSystemNotification(Long chatRoomId, String notification, ChatMessage.MessageType messageType) {
         log.info("Sending system notification to chat room: {} with type: {}", chatRoomId, messageType);
 

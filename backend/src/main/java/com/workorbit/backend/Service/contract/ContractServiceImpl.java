@@ -170,23 +170,32 @@ public class ContractServiceImpl implements ContractService {
                 walletService.releasePayment(clientId, freelancerId, projectId, amount);
             }
 
-            // Send system notification to contract chat about status change
+            // Send system notification to contract chat about status change in a separate
+            // transaction
+            // This ensures that chat failures don't rollback the contract update
             if (newStatus != null) {
                 try {
                     String notification = String.format("Contract status changed from %s to %s",
                             oldStatus.toString(), newStatus.toString());
                     chatService.sendSystemNotification(updated.getContractId(), notification);
                     log.info("System notification sent for contract status change: {}", updated.getContractId());
-
-                    // If contract is completed or cancelled, mark the chat room for archiving
-                    if (newStatus == Contract.ContractStatus.COMPLETED) {
-                        // Use the scheduler service to mark the chat for archiving
-                        chatScheduler.markContractChatForArchiving(updated.getContractId());
-                        log.info("Chat room marked for archiving for contract: {}", updated.getContractId());
-                    }
                 } catch (Exception e) {
                     log.error("Failed to send system notification for contract status change: {}",
                             updated.getContractId(), e);
+                    // Don't fail the contract update if chat notification fails
+                }
+
+                // If contract is completed or cancelled, mark the chat room for archiving in a
+                // separate transaction
+                if (newStatus == Contract.ContractStatus.COMPLETED) {
+                    try {
+                        chatScheduler.markContractChatForArchiving(updated.getContractId());
+                        log.info("Chat room marked for archiving for contract: {}", updated.getContractId());
+                    } catch (Exception e) {
+                        log.error("Failed to mark chat room for archiving for contract: {}", updated.getContractId(),
+                                e);
+                        // Don't fail the contract update if chat archiving fails
+                    }
                 }
             }
 

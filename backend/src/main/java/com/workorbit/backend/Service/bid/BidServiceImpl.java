@@ -12,6 +12,7 @@ import com.workorbit.backend.Repository.FreelancerRepository;
 import com.workorbit.backend.Repository.ProjectRepository;
 import com.workorbit.backend.Chat.Service.ChatService;
 import com.workorbit.backend.Service.contract.ContractService;
+import com.workorbit.backend.Wallet.Service.WalletService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class BidServiceImpl implements BidService {
     private final ProjectRepository projectRepo;
     private final ChatService chatService;
     private final ContractService contractService;
+    private final WalletService walletService;
 
     @Override
     @Transactional
@@ -69,7 +71,7 @@ public class BidServiceImpl implements BidService {
 
         Bids savedBid = bidRepo.save(bid);
         log.info("Bid created with ID: {}", savedBid.getId());
-        
+
         // Create bid negotiation chat room
         try {
             chatService.createBidNegotiationChat(savedBid.getId());
@@ -133,28 +135,28 @@ public class BidServiceImpl implements BidService {
     @Transactional
     public Long acceptBid(Long bidId, Long clientId) {
         log.info("Accepting bid ID: {} by client ID: {}", bidId, clientId);
-        
+
         Bids bid = bidRepo.findById(bidId)
                 .orElseThrow(() -> new RuntimeException("Bid not found"));
-        
+
         Project project = bid.getProject();
-        
+
         // Validate that the client owns the project
         if (!project.getClient().getId().equals(clientId)) {
             log.error("Client {} is not authorized to accept bid for project {}", clientId, project.getId());
             throw new RuntimeException("You are not authorized to accept this bid");
         }
-        
+
         // Validate bid status
         if (bid.getStatus() != Bids.bidStatus.Pending) {
             log.error("Bid {} is not in PENDING state", bidId);
             throw new IllegalStateException("Only pending bids can be accepted");
         }
-        
+
         // Update project status to CLOSED
         project.setStatus(Project.ProjectStatus.CLOSED);
         projectRepo.save(project);
-        
+
         // Update all bids for this project
         List<Bids> allBids = bidRepo.findByProject_Id(project.getId());
         for (Bids b : allBids) {
@@ -162,7 +164,7 @@ public class BidServiceImpl implements BidService {
                 b.setStatus(Bids.bidStatus.Accepted);
             } else {
                 b.setStatus(Bids.bidStatus.Rejected);
-                
+
                 // Close chat rooms for rejected bids
                 try {
                     chatService.closeBidChat(b.getId());
@@ -174,10 +176,20 @@ public class BidServiceImpl implements BidService {
             }
         }
         bidRepo.saveAll(allBids);
-        
+
+        // Freeze the bid amount from client's wallet
+        try {
+            walletService.freezeAmount(clientId, project.getId(), bid.getBidAmount());
+            log.info("Amount {} frozen from client {} wallet for project {}", bid.getBidAmount(), clientId,
+                    project.getId());
+        } catch (Exception e) {
+            log.error("Failed to freeze amount for bid acceptance: {}", e.getMessage());
+            throw new RuntimeException("Failed to freeze payment amount: " + e.getMessage());
+        }
+
         // Create contract for accepted bid
         Long contractId = contractService.createContract(bid);
-        
+
         // Convert bid negotiation chat to contract chat
         try {
             chatService.convertToContractChat(bidId, contractId);
@@ -186,37 +198,37 @@ public class BidServiceImpl implements BidService {
             log.error("Failed to convert bid chat to contract chat for bid: {} and contract: {}", bidId, contractId, e);
             // Don't fail the bid acceptance if chat conversion fails
         }
-        
+
         log.info("Bid {} accepted successfully, contract {} created", bidId, contractId);
         return contractId;
     }
-    
+
     @Override
     @Transactional
     public void rejectBid(Long bidId, Long clientId) {
         log.info("Rejecting bid ID: {} by client ID: {}", bidId, clientId);
-        
+
         Bids bid = bidRepo.findById(bidId)
                 .orElseThrow(() -> new RuntimeException("Bid not found"));
-        
+
         Project project = bid.getProject();
-        
+
         // Validate that the client owns the project
         if (!project.getClient().getId().equals(clientId)) {
             log.error("Client {} is not authorized to reject bid for project {}", clientId, project.getId());
             throw new RuntimeException("You are not authorized to reject this bid");
         }
-        
+
         // Validate bid status
         if (bid.getStatus() != Bids.bidStatus.Pending) {
             log.error("Bid {} is not in PENDING state", bidId);
             throw new IllegalStateException("Only pending bids can be rejected");
         }
-        
+
         // Update bid status
         bid.setStatus(Bids.bidStatus.Rejected);
         bidRepo.save(bid);
-        
+
         // Send system notification to bid negotiation chat
         try {
             chatService.sendBidSystemNotification(bidId, "Bid has been rejected.");
@@ -224,7 +236,7 @@ public class BidServiceImpl implements BidService {
         } catch (Exception e) {
             log.error("Failed to send system notification for rejected bid: {}", bidId, e);
         }
-        
+
         // Close the bid chat room
         try {
             chatService.closeBidChat(bidId);
@@ -233,7 +245,7 @@ public class BidServiceImpl implements BidService {
             log.error("Failed to close chat room for rejected bid: {}", bidId, e);
             // Continue with bid rejection even if chat closure fails
         }
-        
+
         log.info("Bid {} rejected successfully", bidId);
     }
 
@@ -302,7 +314,8 @@ public class BidServiceImpl implements BidService {
     }
 
     private static ProjectDTO toProjectDTO(Project project) {
-        if (project == null) return null;
+        if (project == null)
+            return null;
 
         ClientDTO clientDTO = null;
 
@@ -325,7 +338,6 @@ public class BidServiceImpl implements BidService {
                 clientDTO,
                 project.getClient() != null ? project.getClient().getId() : null,
                 project.getCreatedAt(),
-                project.getUpdatedAt()
-        );
+                project.getUpdatedAt());
     }
 }

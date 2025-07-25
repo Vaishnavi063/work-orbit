@@ -100,7 +100,7 @@ const BidList: React.FC<BidListProps> = ({
       return;
     }
 
-    if (walletDetails.availableBalance < bidAmount) {
+    if (action === "accept" && walletDetails.availableBalance < bidAmount) {
       toast.error("Insufficient wallet balance to accept bid.");
       return;
     }

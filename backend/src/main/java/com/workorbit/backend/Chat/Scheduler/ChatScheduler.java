@@ -1,3 +1,4 @@
+
 package com.workorbit.backend.Chat.Scheduler;
 
 import com.workorbit.backend.Chat.Entity.ChatRoom;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,7 +63,7 @@ public class ChatScheduler {
      * 
      * @param contractId the ID of the completed or cancelled contract
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markContractChatForArchiving(Long contractId) {
         log.info("Marking contract chat for archiving: {}", contractId);
         
@@ -84,6 +86,7 @@ public class ChatScheduler {
             log.info("Successfully marked chat room {} for archiving", chatRoom.getId());
         } catch (Exception e) {
             log.error("Failed to mark contract chat for archiving: {}", contractId, e);
+            throw e; // Re-throw to ensure this separate transaction fails if needed
         }
     }
 }

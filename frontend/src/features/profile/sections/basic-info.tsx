@@ -1,8 +1,6 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Minus, Plus } from "lucide-react";
 import type { ProfileData } from "@/types";
 
 interface BasicInfoSectionProps {
@@ -13,13 +11,6 @@ interface BasicInfoSectionProps {
 const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ profile, setProfile }) => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setProfile(prev => prev ? { ...prev, name: e.target.value } : null);
-  };
-
-  const handleRatingChange = (delta: number) => {
-    setProfile(prev => prev ? {
-      ...prev,
-      rating: Math.max(0, Math.min(5, +(prev.rating + delta).toFixed(1)))
-    } : null);
   };
 
   return (
@@ -57,11 +48,10 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ profile, setProfile
           Rating
         </Label>
         <Input
-          value={profile.rating}
+          value={profile.rating + " " + "/ 5"}
           readOnly
           className="w-20 text-center bg-gray-50 border-gray-200 text-gray-600"
         />
-        <span className="text-sm text-gray-500">/ 5.0</span>
       </div>
     </div>
   );

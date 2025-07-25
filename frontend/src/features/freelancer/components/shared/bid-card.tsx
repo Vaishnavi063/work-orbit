@@ -144,7 +144,7 @@ const BidCard = ({ bid, onRefetch }: BidCardProps) => {
               </div>
               <p className="text-xs text-gray-500">Budget</p>
               <p className="text-sm font-semibold text-gray-900">
-                ₹{(bid.project.budget / 1000).toFixed(0)}k
+                {(bid.project.budget / 1000).toFixed(0)}k
               </p>
             </div>
 
@@ -154,7 +154,7 @@ const BidCard = ({ bid, onRefetch }: BidCardProps) => {
               </div>
               <p className="text-xs text-gray-500">Your Bid</p>
               <p className="text-sm font-semibold text-green-600">
-                ₹{(bid.bidAmount / 1000).toFixed(0)}k
+                {(bid.bidAmount / 1000).toFixed(0)}k
               </p>
             </div>
 

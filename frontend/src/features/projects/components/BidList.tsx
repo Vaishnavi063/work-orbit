@@ -4,14 +4,14 @@ import { format } from "date-fns";
 import {
   CheckIcon,
   XIcon,
-  DollarSignIcon,
   CalendarIcon,
   UsersIcon,
   FileTextIcon,
   LoaderCircle,
-    ArrowUp,
-    ArrowDown,
-    Eye,
+  ArrowUp,
+  ArrowDown,
+  Eye,
+  IndianRupee,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useErrorHandler } from "@/hooks/use-error-handler";
@@ -48,12 +48,12 @@ import {
 import type { RootState, AppDispatch } from "@/store";
 import { useNavigate } from "react-router-dom";
 
-type SortField = 'bidAmount' | 'durationDays' | 'teamSize';
-type SortOrder = 'asc' | 'desc';
+type SortField = "bidAmount" | "durationDays" | "teamSize";
+type SortOrder = "asc" | "desc";
 
 interface SortConfig {
-    field: SortField;
-    order: SortOrder;
+  field: SortField;
+  order: SortOrder;
 }
 import useGetWalletDetails from "@/features/wallet/client/hooks/use-get-wallet-details";
 import { toast } from "sonner";
@@ -71,10 +71,10 @@ const BidList: React.FC<BidListProps> = ({
   projectId,
   isLoading = false,
 }) => {
-    const [sortConfig, setSortConfig] = useState<SortConfig>({
-        field: 'bidAmount',
-        order: 'asc',
-    });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    field: "bidAmount",
+    order: "asc",
+  });
   const dispatch = useDispatch<AppDispatch>();
   const loading = useSelector(selectProjectsLoading);
   const error = useSelector(selectProjectsError);
@@ -159,43 +159,49 @@ const BidList: React.FC<BidListProps> = ({
     }
   };
 
-    const sortedBids = useMemo(() => {
-        if (!bids) return [];
+  const sortedBids = useMemo(() => {
+    if (!bids) return [];
 
-        return [...bids].sort((a, b) => {
-            const aValue = a[sortConfig.field];
-            const bValue = b[sortConfig.field];
+    return [...bids].sort((a, b) => {
+      const aValue = a[sortConfig.field];
+      const bValue = b[sortConfig.field];
 
-            if (aValue < bValue) {
-                return sortConfig.order === 'asc' ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return sortConfig.order === 'asc' ? 1 : -1;
-            }
-            return 0;
-        });
-    }, [bids, sortConfig]);
+      if (aValue < bValue) {
+        return sortConfig.order === "asc" ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.order === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [bids, sortConfig]);
 
-    const handleSortChange = (field: SortField) => {
-        setSortConfig(prev => ({
-            field,
-            order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc',
-        }));
-    };
+  const handleSortChange = (field: SortField) => {
+    setSortConfig((prev) => ({
+      field,
+      order: prev.field === field && prev.order === "asc" ? "desc" : "asc",
+    }));
+  };
 
-    const SortButton: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
-        <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1"
-            onClick={() => handleSortChange(field)}
-        >
-            {children}
-            {sortConfig.field === field && (
-                sortConfig.order === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-            )}
-        </Button>
-    );
+  const SortButton: React.FC<{
+    field: SortField;
+    children: React.ReactNode;
+  }> = ({ field, children }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="flex items-center gap-1"
+      onClick={() => handleSortChange(field)}
+    >
+      {children}
+      {sortConfig.field === field &&
+        (sortConfig.order === "asc" ? (
+          <ArrowUp className="h-3 w-3" />
+        ) : (
+          <ArrowDown className="h-3 w-3" />
+        ))}
+    </Button>
+  );
 
   if (isLoading) {
     return <BidListSkeleton />;
@@ -205,50 +211,50 @@ const BidList: React.FC<BidListProps> = ({
     return <NoBidsMessage />;
   }
 
-    return (
-        <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h3 className="text-lg font-medium">Bids</h3>
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground">
-                        {bids.length} {bids.length === 1 ? 'bid' : 'bids'} placed
-                    </span>
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Sort by:</span>
-                        <div className="flex items-center gap-1">
-                            <SortButton field="bidAmount">
-                                <DollarSignIcon className="h-4 w-4" />
-                                <span>Amount</span>
-                            </SortButton>
-                            <SortButton field="durationDays">
-                                <CalendarIcon className="h-4 w-4" />
-                                <span>Duration</span>
-                            </SortButton>
-                            <SortButton field="teamSize">
-                                <UsersIcon className="h-4 w-4" />
-                                <span>Team</span>
-                            </SortButton>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h3 className="text-lg font-medium">Bids</h3>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">
+            {bids.length} {bids.length === 1 ? "bid" : "bids"} placed
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Sort by:</span>
+            <div className="flex items-center gap-1">
+              <SortButton field="bidAmount">
+                <IndianRupee className="h-4 w-4" />
+                <span>Amount</span>
+              </SortButton>
+              <SortButton field="durationDays">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Duration</span>
+              </SortButton>
+              <SortButton field="teamSize">
+                <UsersIcon className="h-4 w-4" />
+                <span>Team</span>
+              </SortButton>
             </div>
-            {projectStatus === "CLOSED" && (
-                <Badge variant="secondary">Project Closed</Badge>
-            )}
-            <div className="space-y-4">
-                {sortedBids.map((bid) => (
-                    <BidCard
-                        key={bid.bidId}
-                        bid={bid}
-                        projectStatus={projectStatus}
-                        onBidAction={handleBidAction}
-                        isActioning={actioningBidId === bid.bidId}
-                        isLoading={loading.bidAction}
-                    />
-                ))}
-            </div>
+          </div>
         </div>
-    );
+      </div>
+      {projectStatus === "CLOSED" && (
+        <Badge variant="secondary">Project Closed</Badge>
+      )}
+      <div className="space-y-4">
+        {sortedBids.map((bid) => (
+          <BidCard
+            key={bid.bidId}
+            bid={bid}
+            projectStatus={projectStatus}
+            onBidAction={handleBidAction}
+            isActioning={actioningBidId === bid.bidId}
+            isLoading={loading.bidAction}
+          />
+        ))}
+      </div>
+    </div>
+  );
 };
 
 interface BidCardProps {
@@ -323,7 +329,7 @@ const BidCard: React.FC<BidCardProps> = ({
         {/* Bid Details */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
+            <IndianRupee className="h-4 w-4 text-muted-foreground" />
             <div>
               <span className="font-medium">
                 {bid.bidAmount.toLocaleString()}

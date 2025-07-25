@@ -136,7 +136,7 @@ const BidList = ({ bids }: BidListProps) => {
                     <div className="flex items-center gap-1">
                       <IndianRupee className="h-3 w-3 text-green-600" />
                       <span className="font-semibold text-green-700 text-sm">
-                        ₹{bid.bidAmount.toLocaleString("en-IN")}
+                        {bid.bidAmount.toLocaleString("en-IN")}
                       </span>
                     </div>
                   </div>

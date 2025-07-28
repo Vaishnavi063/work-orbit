@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
 import { chatApis } from "../apis";
+import useAuth from "@/hooks/use-auth";
 import {
     Loader2,
     PlusCircleIcon,
@@ -106,6 +107,11 @@ export const MilestonePanel = ({
     const [editingMilestone, setEditingMilestone] =
         useState<MilestoneResponse | null>(null);
     const authToken = useSelector((state: RootState) => state.auth?.authToken);
+    const { user } = useAuth();
+    
+    // Role-based permissions
+    const isClient = user?.role === "ROLE_CLIENT";
+    const isFreelancer = user?.role === "ROLE_FREELANCER";
 
     // Form setup
     const form = useForm<MilestoneFormValues>({
@@ -418,16 +424,18 @@ export const MilestonePanel = ({
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Project Milestones</h3>
 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button
-                            size="sm"
-                            onClick={() => setEditingMilestone(null)}
-                        >
-                            <PlusCircleIcon className="h-4 w-4 mr-1" />
-                            Add Milestone
-                        </Button>
-                    </DialogTrigger>
+                {/* Only clients can add milestones */}
+                {isClient && (
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                size="sm"
+                                onClick={() => setEditingMilestone(null)}
+                            >
+                                <PlusCircleIcon className="h-4 w-4 mr-1" />
+                                Add Milestone
+                            </Button>
+                        </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>
@@ -513,19 +521,23 @@ export const MilestonePanel = ({
                         </Form>
                     </DialogContent>
                 </Dialog>
+                )}
             </div>
 
             {milestones.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
                     <p>No milestones have been created yet.</p>
-                    <Button
-                        variant="outline"
-                        className="mt-2"
-                        onClick={() => setIsDialogOpen(true)}
-                    >
-                        <PlusCircleIcon className="h-4 w-4 mr-1" />
-                        Add First Milestone
-                    </Button>
+                    {/* Only clients can add the first milestone */}
+                    {isClient && (
+                        <Button
+                            variant="outline"
+                            className="mt-2"
+                            onClick={() => setIsDialogOpen(true)}
+                        >
+                            <PlusCircleIcon className="h-4 w-4 mr-1" />
+                            Add First Milestone
+                        </Button>
+                    )}
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -575,7 +587,8 @@ export const MilestonePanel = ({
 
                                     <div className="flex justify-between items-center pt-1">
                                         <div className="flex gap-2">
-                                            {milestone.status === "PENDING" && (
+                                            {/* Freelancer can only start milestones */}
+                                            {isFreelancer && milestone.status === "PENDING" && (
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
@@ -592,8 +605,8 @@ export const MilestonePanel = ({
                                                 </Button>
                                             )}
 
-                                            {milestone.status ===
-                                                "IN_PROGRESS" && (
+                                            {/* Client can complete milestones */}
+                                            {isClient && milestone.status === "IN_PROGRESS" && (
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
@@ -613,61 +626,67 @@ export const MilestonePanel = ({
                                         </div>
 
                                         <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => {
-                                                    setEditingMilestone(
-                                                        milestone
-                                                    );
-                                                    setIsDialogOpen(true);
-                                                }}
-                                                disabled={isSubmitting}
-                                            >
-                                                Edit
-                                            </Button>
+                                            {/* Only clients can edit milestones */}
+                                            {isClient && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => {
+                                                        setEditingMilestone(
+                                                            milestone
+                                                        );
+                                                        setIsDialogOpen(true);
+                                                    }}
+                                                    disabled={isSubmitting}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            )}
 
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="text-destructive hover:text-destructive"
-                                                        disabled={isSubmitting}
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>
-                                                            Delete Milestone
-                                                        </AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Are you sure you
-                                                            want to delete this
-                                                            milestone? This
-                                                            action cannot be
-                                                            undone.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>
-                                                            Cancel
-                                                        </AlertDialogCancel>
-                                                        <AlertDialogAction
-                                                            className="bg-destructive text-destructive-foreground"
-                                                            onClick={() =>
-                                                                deleteMilestone(
-                                                                    milestone.id
-                                                                )
-                                                            }
+                                            {/* Only clients can delete milestones */}
+                                            {isClient && (
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            className="text-destructive hover:text-destructive"
+                                                            disabled={isSubmitting}
                                                         >
                                                             Delete
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>
+                                                                Delete Milestone
+                                                            </AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Are you sure you
+                                                                want to delete this
+                                                                milestone? This
+                                                                action cannot be
+                                                                undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>
+                                                                Cancel
+                                                            </AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                className="bg-destructive text-destructive-foreground"
+                                                                onClick={() =>
+                                                                    deleteMilestone(
+                                                                        milestone.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Delete
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            )}
                                         </div>
                                     </div>
                                 </CardContent>

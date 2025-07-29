@@ -7,7 +7,6 @@ import {
   User,
   MessageSquare,
   Share2,
-  Bookmark,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -18,11 +17,26 @@ import BidList from "./bid-list";
 import SubmitProposal from "./submit-proposal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const ProjectDetails = () => {
   const navigate = useNavigate();
   const { project, error, isLoading } = useGetProjectDetails();
   const { bids, isLoading: bidIsLoading, refetch } = useGetBids();
+
+  const handleShare = async () => {
+    try {
+      const currentUrl = window.location.href;
+      await navigator.clipboard.writeText(currentUrl);
+      toast.info("Link copied to clipboard!", {
+        description: "You can now share this project with others.",
+      });
+    } catch (err) {
+      toast.error("Failed to copy link", {
+        description: "Please try again or copy the URL manually.",
+      });
+    }
+  };
 
   if (isLoading) return <ProjectDetailsSkeleton />;
 
@@ -96,12 +110,23 @@ const ProjectDetails = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="hidden sm:flex">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hidden sm:flex"
+                onClick={handleShare}
+              >
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button variant="ghost" size="sm">
-                <Bookmark className="h-4 w-4" />
+              {/* Mobile share button */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="sm:hidden"
+                onClick={handleShare}
+              >
+                <Share2 className="h-4 w-4" />
               </Button>
             </div>
           </div>

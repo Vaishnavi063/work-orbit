@@ -11,12 +11,11 @@ import com.workorbit.backend.Repository.ClientRepository;
 import com.workorbit.backend.Repository.ProjectRepository;
 import com.workorbit.backend.Service.contract.ContractService;
 import com.workorbit.backend.Wallet.Service.WalletService;
+import com.workorbit.backend.Chat.Service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
-import java.util.Optional;
-
 
 @Slf4j
 @Service
@@ -28,6 +27,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ContractService contractService;
     private final WalletService walletService;
     private final BidRepository bidRepo;
+    private final ChatService chatService;
 
     @Override
     public ProjectDTO createProject(ProjectDTO dto) {
@@ -61,11 +61,13 @@ public class ProjectServiceImpl implements ProjectService {
             projects = projectRepository.findAll();
         } else {
             String trimmedQuery = query.trim();
-            projects = projectRepository.findByTitleContainingIgnoreCaseOrCategoryContainingIgnoreCase(trimmedQuery, trimmedQuery);
+            projects = projectRepository.findByTitleContainingIgnoreCaseOrCategoryContainingIgnoreCase(trimmedQuery,
+                    trimmedQuery);
         }
 
         return projects.stream().map(this::toDTO).toList();
     }
+
     @Override
     public ProjectDTO getProjectById(Long id) {
         log.info("Fetching project by ID: {}", id);
@@ -154,6 +156,15 @@ public class ProjectServiceImpl implements ProjectService {
                 bid.setStatus(Bids.bidStatus.Accepted);
             } else {
                 bid.setStatus(Bids.bidStatus.Rejected);
+
+                // Close chat rooms for rejected bids
+                try {
+                    chatService.closeBidChat(bid.getId());
+                    log.info("Chat room closed for rejected bid: {}", bid.getId());
+                } catch (Exception e) {
+                    log.error("Failed to close chat room for rejected bid: {}", bid.getId(), e);
+                    // Continue with bid rejection even if chat closure fails
+                }
             }
         }
         bidRepo.saveAll(allBids);
@@ -164,9 +175,17 @@ public class ProjectServiceImpl implements ProjectService {
         log.info("Freezing amount {} for clientId {} on projectId {}", amount, clientId, projectId);
         walletService.freezeAmount(clientId, projectId, amount);
 
-        contractService.createContract(acceptedBid);
-    }
+        Long contractId = contractService.createContract(acceptedBid);
 
+        // Convert bid negotiation chat to contract chat
+        try {
+            chatService.convertToContractChat(bidId, contractId);
+            log.info("Bid chat converted to contract chat for bid: {} and contract: {}", bidId, contractId);
+        } catch (Exception e) {
+            log.error("Failed to convert bid chat to contract chat for bid: {} and contract: {}", bidId, contractId, e);
+            // Don't fail the bid acceptance if chat conversion fails
+        }
+    }
 
     @Override
     public void rejectBid(Long projectId, Long bidId) {
@@ -187,6 +206,24 @@ public class ProjectServiceImpl implements ProjectService {
 
         bid.setStatus(Bids.bidStatus.Rejected);
         bidRepo.save(bid);
+
+        // Send system notification to bid negotiation chat
+        try {
+            chatService.sendBidSystemNotification(bidId, "Bid has been rejected.");
+            log.info("System notification sent for rejected bid: {}", bidId);
+        } catch (Exception e) {
+            log.error("Failed to send system notification for rejected bid: {}", bidId, e);
+        }
+
+        // Close the bid chat room
+        try {
+            chatService.closeBidChat(bidId);
+            log.info("Chat room closed for rejected bid: {}", bidId);
+        } catch (Exception e) {
+            log.error("Failed to close chat room for rejected bid: {}", bidId, e);
+            // Continue with bid rejection even if chat closure fails
+        }
+
         log.info("Bid rejected: {}", bid.getId());
     }
 
@@ -197,8 +234,7 @@ public class ProjectServiceImpl implements ProjectService {
             clientDTO = new ClientDTO(
                     project.getClient().getName(),
                     project.getClient().getAppUser().getEmail(),
-                    null
-            );
+                    null);
         }
 
         return new ProjectDTO(
@@ -213,8 +249,7 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getClient() != null ? project.getClient().getId() : null,
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
-                project.getBids() != null ? project.getBids().size() : 0
-        );
+                project.getBids() != null ? project.getBids().size() : 0);
     }
 
     private BidResponseDTO mapToDTO(Bids bid) {
@@ -237,7 +272,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private ProjectDTO toProjectDTO(Project project) {
-        if (project == null) return null;
+        if (project == null)
+            return null;
 
         ClientDTO clientDTO = null;
 
@@ -245,8 +281,7 @@ public class ProjectServiceImpl implements ProjectService {
             clientDTO = new ClientDTO(
                     project.getClient().getName(),
                     project.getClient().getAppUser().getEmail(),
-                    null
-            );
+                    null);
         }
 
         return new ProjectDTO(
@@ -261,7 +296,6 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getClient() != null ? project.getClient().getId() : null,
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
-                project.getBids() != null ? project.getBids().size() : 0
-        );
+                project.getBids() != null ? project.getBids().size() : 0);
     }
 }

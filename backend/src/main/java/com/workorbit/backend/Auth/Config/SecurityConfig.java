@@ -39,16 +39,19 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // private endpoints
                         .requestMatchers("/api/wallet/add-money").hasRole("CLIENT")
                         .requestMatchers("/api/wallet/withdraw").hasRole("FREELANCER")
                         .requestMatchers("/api/wallet/freeze").hasRole("CLIENT")
-                        .requestMatchers("/api/wallet/release").hasAnyRole("CLIENT", "ADMIN")
+                        .requestMatchers("/api/wallet/release").hasRole("CLIENT")
                         .requestMatchers("/api/wallet/**").hasAnyRole("CLIENT", "FREELANCER")
-                        // private endpoints
-                        .requestMatchers("/client/**").hasRole("CLIENT")
-                        .requestMatchers("/freelancer/**").hasAnyRole("FREELANCER", "CLIENT")
-                        .requestMatchers("/projects/**").hasAnyRole("CLIENT","FREELANCER")
-                        .requestMatchers("/bids/**").hasRole("FREELANCER")
+                        .requestMatchers("/api/chat/**").hasAnyRole("CLIENT", "FREELANCER")
+                        .requestMatchers("/api/milestones/**").hasAnyRole("CLIENT", "FREELANCER")
+                        .requestMatchers("/api/client/**").hasRole("CLIENT")
+                        .requestMatchers("/api/freelancers/**").hasAnyRole("FREELANCER", "CLIENT")
+                        .requestMatchers("/api/freelancer/**").hasAnyRole("FREELANCER", "CLIENT")
+                        .requestMatchers("/api/projects/**").hasAnyRole("CLIENT", "FREELANCER")
+                        .requestMatchers("/api/bids/**").hasRole("FREELANCER")
                         .requestMatchers("/api/contracts/**").hasAnyRole("CLIENT", "FREELANCER")
                         // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()

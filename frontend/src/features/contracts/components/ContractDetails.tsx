@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import ContractStatusTimeline from "./ContractStatusTimeline";
 import ContractStatusUpdateForm from "./ContractStatusUpdateForm";
+import { ContractChatButton } from "@/features/chat/components/ContractChatButton";
 import type { AppDispatch, RootState } from "@/store";
 
 /**
@@ -124,7 +125,14 @@ const ContractDetails: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Project: {contract.projectName}</span>
-            {renderStatusBadge(contract.contractStatus)}
+            <div className="flex items-center gap-2">
+              {renderStatusBadge(contract.contractStatus)}
+              <ContractChatButton 
+                contractId={contract.contractId}
+                variant="outline"
+                size="sm"
+              />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

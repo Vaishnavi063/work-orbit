@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import illustration from "/assets/working-man.png";
+import illustration from "/working-man.png";
 
 import { Button } from "@/components/ui/button";
 

@@ -3,6 +3,7 @@ package com.workorbit.backend.Service.contract;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.workorbit.backend.Auth.Service.EmailService;
 import com.workorbit.backend.Chat.Scheduler.ChatScheduler;
 import com.workorbit.backend.Entity.Client;
 import com.workorbit.backend.Entity.Freelancer;
@@ -31,6 +32,7 @@ public class ContractServiceImpl implements ContractService {
     private final WalletService walletService;
     private final ChatService chatService;
     private final ChatScheduler chatScheduler;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -84,6 +86,14 @@ public class ContractServiceImpl implements ContractService {
                     // Don't fail the contract creation if chat creation fails
                 }
             }
+        }
+
+        // Send email notifications
+        try {
+            emailService.sendContractCreatedNotification(savedContract);
+            log.info("Contract created email notifications sent for contract: {}", savedContract.getContractId());
+        } catch (Exception e) {
+            log.error("Failed to send contract created emails for contract: {}", savedContract.getContractId(), e);
         }
 
         toDTO(savedContract);
@@ -168,6 +178,14 @@ public class ContractServiceImpl implements ContractService {
                         amount, clientId, freelancerId, projectId, updated.getContractId());
 
                 walletService.releasePayment(clientId, freelancerId, projectId, amount);
+
+                // Send contract completion email notifications
+                try {
+                    emailService.sendContractCompletedNotification(updated, freelancerRating);
+                    log.info("Contract completed email notifications sent for contract: {}", updated.getContractId());
+                } catch (Exception e) {
+                    log.error("Failed to send contract completed emails for contract: {}", updated.getContractId(), e);
+                }
             }
 
             // Send system notification to contract chat about status change in a separate

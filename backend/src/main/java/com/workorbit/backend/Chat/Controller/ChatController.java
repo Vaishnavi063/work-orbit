@@ -8,7 +8,6 @@ import com.workorbit.backend.Chat.Entity.ChatRoom;
 import com.workorbit.backend.Chat.DTO.MilestoneRequest;
 import com.workorbit.backend.Chat.DTO.MilestoneResponse;
 import com.workorbit.backend.Chat.DTO.MilestoneStatusRequest;
-import com.workorbit.backend.Chat.Enum.MilestoneStatus;
 import com.workorbit.backend.Chat.Service.MilestoneService;
 import com.workorbit.backend.Chat.Exception.ChatAccessDeniedException;
 import com.workorbit.backend.Chat.Exception.ChatRoomNotFoundException;

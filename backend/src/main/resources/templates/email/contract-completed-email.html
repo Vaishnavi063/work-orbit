@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" xmlns:th="http://www.thymeleaf.org">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Completed - WorkOrbit</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .terminal {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+            overflow: hidden;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        }
+
+        .terminal-header {
+            background: #2a2a2a;
+            padding: 12px 16px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27ca3f; }
+
+        .terminal-title {
+            margin-left: 12px;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .terminal-body {
+            padding: 24px;
+            line-height: 1.6;
+        }
+
+        .prompt {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .command {
+            color: #88c0d0;
+            margin: 8px 0;
+        }
+
+        .output {
+            color: #d8dee9;
+            margin: 12px 0;
+            padding-left: 16px;
+        }
+
+        .success {
+            color: #51cf66;
+            font-weight: 500;
+        }
+
+        .warning {
+            color: #ffd43b;
+            font-weight: 500;
+        }
+
+        .info {
+            color: #74c0fc;
+            font-weight: 500;
+        }
+
+        .completion-box {
+            border: 1px solid #51cf66;
+            padding: 12px;
+            margin: 16px 0;
+            background: rgba(81, 207, 102, 0.05);
+        }
+
+        .rating-stars {
+            color: #ffd43b;
+            font-size: 16px;
+            margin: 8px 0;
+        }
+
+        .ascii-art {
+            color: #00ff88;
+            font-size: 10px;
+            line-height: 1;
+            margin: 20px 0;
+            text-align: center;
+            white-space: pre;
+        }
+
+        .footer-terminal {
+            background: #111;
+            padding: 16px 24px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .terminal-body {
+                padding: 16px;
+            }
+            .ascii-art {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="terminal">
+    <div class="terminal-header">
+        <div class="terminal-dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+        </div>
+        <div class="terminal-title">workorbit-completion@terminal</div>
+    </div>
+
+    <div class="terminal-body">
+        <pre class="ascii-art">
+   ██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗ ██████╗ ██████╗ ██████╗ ██╗████████╗
+   ██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝██╔═══██╗██╔══██╗██╔══██╗██║╚══██╔══╝
+██║ █╗ ██║██║   ██║██████╔╝█████╔╝ ██║   ██║██████╔╝██████╔╝██║   ██║
+██║███╗██║██║   ██║██╔══██╗██╔═██╗ ██║   ██║██╔══██╗██╔══██╗██║   ██║
+╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗╚██████╔╝██║  ██║██████╔╝██║   ██║
+ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝   ╚═╝
+        </pre>
+
+        <div class="prompt">workorbit@completion:~$ <span class="command">cat contract-completed.log</span></div>
+        <div class="output">
+            <div class="success">🎉 CONTRACT COMPLETED SUCCESSFULLY</div>
+            <div style="margin: 12px 0;">
+                Hi <span class="success" th:text="${userName}">User Name</span>,<br><br>
+                Congratulations! Your contract has been completed successfully.
+            </div>
+        </div>
+
+        <div class="prompt">workorbit@completion:~$ <span class="command">display-completion-summary</span></div>
+        <div class="output">
+            <div class="completion-box">
+                <div class="success">✓ Project Completion Summary</div>
+                <div style="margin: 8px 0; font-size: 13px;">
+                    <strong>Project:</strong> <span th:text="${projectName}">Sample Project</span><br>
+                    <strong>Client:</strong> <span th:text="${clientName}">Client Name</span><br>
+                    <strong>Freelancer:</strong> <span th:text="${freelancerName}">Freelancer Name</span><br>
+                    <strong>Final Amount:</strong> Rs.<span th:text="${#numbers.formatDecimal(bidAmount, 0, 2)}">5000.00</span><br>
+                    <strong>Duration:</strong> <span th:text="${contractDuration}">7 days</span><br>
+                    <div th:if="${freelancerRating != null}">
+                        <strong>Rating:</strong> 
+                        <span class="rating-stars">
+                            <span th:each="star : ${#numbers.sequence(1, freelancerRating)}">★</span><span th:each="star : ${#numbers.sequence(freelancerRating + 1, 5)}">☆</span>
+                        </span>
+                        (<span th:text="${freelancerRating}">5</span>/5)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prompt">workorbit@completion:~$ <span class="command">execute-payment-release</span></div>
+        <div class="output">
+            <div class="success">✓ Payment released successfully</div>
+            <div style="margin: 8px 0; color: #d8dee9;">
+                <div th:if="${userRole == 'CLIENT'}">
+                    → Payment of Rs.<span th:text="${#numbers.formatDecimal(bidAmount, 0, 2)}">5000.00</span> has been released to freelancer<br>
+                    → Transaction is now complete
+                </div>
+                <div th:if="${userRole == 'FREELANCER'}">
+                    → You've received Rs.<span th:text="${#numbers.formatDecimal(bidAmount, 0, 2)}">5000.00</span> in your wallet<br>
+                    → Congratulations on completing the project!
+                </div>
+            </div>
+        </div>
+
+        <div class="prompt">workorbit@completion:~$ <span class="command">show-next-opportunities</span></div>
+        <div class="output">
+            <div th:if="${userRole == 'CLIENT'}">
+                <div class="info">What's next:</div>
+                <div style="margin: 8px 0; color: #d8dee9;">
+                    → Rate the freelancer to help the community<br>
+                    → Post your next project to find more talent<br>
+                    → Build your reputation as a great client
+                </div>
+            </div>
+            <div th:if="${userRole == 'FREELANCER'}">
+                <div class="info">What's next:</div>
+                <div style="margin: 8px 0; color: #d8dee9;">
+                    → Update your portfolio with this achievement<br>
+                    → Find your next exciting opportunity<br>
+                    → Withdraw earnings or reinvest in skills
+                </div>
+            </div>
+        </div>
+
+        <div class="prompt">workorbit@completion:~$ <span class="command">echo "Thank you for using WorkOrbit!"</span></div>
+        <div class="output">
+            <div style="color: #d8dee9;">
+                Thank you for using WorkOrbit!
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-terminal">
+        <div class="prompt" style="display: inline;">workorbit@completion:~$ </div>
+        <span style="color: #666;">Visit <span th:text="${frontendUrl}">workorbit.com</span> for more opportunities</span>
+    </div>
+</div>
+</body>
+</html>

@@ -14,6 +14,7 @@ import com.workorbit.backend.Wallet.Service.WalletService;
 import com.workorbit.backend.Chat.Service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -53,19 +54,67 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectDTO> getAllProjects(String query) {
-        log.info("Fetching all projects");
+    public List<ProjectDTO> getAllProjects(String query, String sortBy, String sortDirection) {
+        log.info("Fetching all projects with query: '{}', sortBy: '{}', sortDirection: '{}'",
+                query, sortBy, sortDirection);
+
+        // Validate and set default sorting parameters
+        String validatedSortBy = validateSortField(sortBy);
+        Sort.Direction direction = validateSortDirection(sortDirection);
+
+        // Create Sort object
+        Sort sort = Sort.by(direction, validatedSortBy);
+
         List<Project> projects;
 
         if (query == null || query.trim().isEmpty()) {
-            projects = projectRepository.findAll();
+            // No search query - get all projects with sorting
+            projects = projectRepository.findAll(sort);
         } else {
-            String trimmedQuery = query.trim();
-            projects = projectRepository.findByTitleContainingIgnoreCaseOrCategoryContainingIgnoreCase(trimmedQuery,
-                    trimmedQuery);
+            // Search with sorting
+            projects = projectRepository.findProjectsWithSearch(query.trim(), sort);
         }
 
+        log.info("Found {} projects", projects.size());
         return projects.stream().map(this::toDTO).toList();
+    }
+
+    /**
+     * Validates the sort field and returns a valid field name
+     */
+    private String validateSortField(String sortBy) {
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            return "createdAt"; // Default sort field
+        }
+
+        // Map of allowed sort fields
+        Map<String, String> allowedSortFields = Map.of(
+                "budget", "budget",
+                "deadline", "deadline",
+                "title", "title",
+                "category", "category",
+                "created", "createdAt",
+                "updated", "updatedAt"
+        );
+
+        String normalizedSortBy = sortBy.toLowerCase().trim();
+        return allowedSortFields.getOrDefault(normalizedSortBy, "createdAt");
+    }
+
+    /**
+     * Validates the sort direction and returns a valid Sort.Direction
+     */
+    private Sort.Direction validateSortDirection(String sortDirection) {
+        if (sortDirection == null || sortDirection.trim().isEmpty()) {
+            return Sort.Direction.DESC; // Default direction
+        }
+
+        String normalizedDirection = sortDirection.toLowerCase().trim();
+        return switch (normalizedDirection) {
+            case "asc", "ascending" -> Sort.Direction.ASC;
+            case "desc", "descending" -> Sort.Direction.DESC;
+            default -> Sort.Direction.DESC;
+        };
     }
 
     @Override

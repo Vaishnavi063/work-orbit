@@ -181,6 +181,18 @@ export interface ChatRoom {
     updatedAt: string;
 }
 
+// Project count types for dynamic category loading
+export interface ProjectCountResponse {
+    categoryId: number;
+    activeProjectCount: number;
+    lastUpdated: string;
+}
+
+export interface ProjectCountsResponse {
+    counts: ProjectCountResponse[];
+    totalActiveProjects: number;
+}
+
 // Export new feature types
 export * from "./contact";
 export * from "./api";

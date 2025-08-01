@@ -1,8 +1,10 @@
 package com.workorbit.backend.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import java.time.LocalDate;
 
 @Data
 @Schema(description = "Request object for updating or managing past work items in freelancer portfolio")
@@ -39,9 +41,34 @@ public class PastWorkUpdateDTO {
     private String description;
     
     @Schema(
+        description = "Start date of the project. Optional field to indicate when the work began",
+        example = "2023-01-15",
+        type = "string",
+        format = "date"
+    )
+    private LocalDate startDate;
+
+    @Schema(
+        description = "End date of the project. Optional field to indicate when the work was completed. If null while startDate is provided, the project is considered ongoing",
+        example = "2023-06-30",
+        type = "string",
+        format = "date"
+    )
+    private LocalDate endDate;
+    
+    @Schema(
         description = "Flag to indicate if this past work item should be deleted. Set to true to remove the item from portfolio",
         example = "false",
         defaultValue = "false"
     )
     private Boolean toDelete;
+
+    @AssertTrue(message = "End date cannot be before start date")
+    @Schema(hidden = true)
+    private boolean isValidDateRange() {
+        if (startDate == null || endDate == null) {
+            return true;
+        }
+        return !startDate.isAfter(endDate);
+    }
 }

@@ -10,7 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Save, X } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Save, X, Calendar as CalendarIcon } from "lucide-react";
+import { cn, formatDate, isValidDateRange } from "@/lib/utils";
 import type { PastWork } from "@/types";
 
 interface EditPastWorkDialogProps {
@@ -25,18 +32,60 @@ const EditPastWorkDialog: React.FC<EditPastWorkDialogProps> = ({
   onCancel
 }) => {
   const [editedWork, setEditedWork] = useState<PastWork>(work);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  const [dateValidationError, setDateValidationError] = useState("");
 
   useEffect(() => {
     setEditedWork(work);
+    setDateValidationError(""); // Clear validation errors when work changes
   }, [work]);
 
   const handleSave = () => {
-    if (editedWork.title && editedWork.link && editedWork.description) {
-      onSave(editedWork);
+    // Validate required fields
+    if (!editedWork.title || !editedWork.link || !editedWork.description) {
+      return;
+    }
+
+    // Validate date range if both dates are provided
+    if (!isValidDateRange(editedWork.startDate, editedWork.endDate)) {
+      setDateValidationError("End date cannot be before start date");
+      return;
+    }
+
+    // Clear any previous validation errors
+    setDateValidationError("");
+    onSave(editedWork);
+  };
+
+  // Handle date selection
+  const handleStartDateSelect = (date: Date | undefined) => {
+    const dateString = date ? date.toISOString().split("T")[0] : undefined;
+    setEditedWork({ ...editedWork, startDate: dateString });
+    setStartDateOpen(false);
+
+    // Clear validation error when dates change
+    if (dateValidationError) {
+      setDateValidationError("");
     }
   };
 
-  const isFormValid = editedWork.title && editedWork.link && editedWork.description;
+  const handleEndDateSelect = (date: Date | undefined) => {
+    const dateString = date ? date.toISOString().split("T")[0] : undefined;
+    setEditedWork({ ...editedWork, endDate: dateString });
+    setEndDateOpen(false);
+
+    // Clear validation error when dates change
+    if (dateValidationError) {
+      setDateValidationError("");
+    }
+  };
+
+  const isFormValid = 
+    editedWork.title && 
+    editedWork.link && 
+    editedWork.description && 
+    !dateValidationError;
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
@@ -90,6 +139,100 @@ const EditPastWorkDialog: React.FC<EditPastWorkDialogProps> = ({
               className="border-gray-300 focus:border-purple-500 min-h-[100px]"
               rows={4}
             />
+          </div>
+
+          {/* Timeline Section */}
+          <div className="space-y-4 pt-4 border-t border-gray-200">
+            <h5 className="text-sm font-medium text-gray-700">
+              Project Timeline (Optional)
+            </h5>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Start Date */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Start Date</Label>
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal border-gray-300 focus:border-purple-500",
+                        !editedWork.startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editedWork.startDate
+                        ? formatDate(editedWork.startDate)
+                        : "Select start date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        editedWork.startDate
+                          ? new Date(editedWork.startDate)
+                          : undefined
+                      }
+                      onSelect={handleStartDateSelect}
+                      disabled={(date) => date > new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* End Date */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">End Date</Label>
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal border-gray-300 focus:border-purple-500",
+                        !editedWork.endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editedWork.endDate
+                        ? formatDate(editedWork.endDate)
+                        : "Select end date (leave empty if ongoing)"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        editedWork.endDate
+                          ? new Date(editedWork.endDate)
+                          : undefined
+                      }
+                      onSelect={handleEndDateSelect}
+                      disabled={(date) => {
+                        const today = new Date();
+                        const startDate = editedWork.startDate
+                          ? new Date(editedWork.startDate)
+                          : null;
+                        return date > today || (startDate ? date < startDate : false);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* Date Validation Error */}
+            {dateValidationError && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">
+                {dateValidationError}
+              </div>
+            )}
+
+            {/* Helper Text */}
+            <p className="text-xs text-gray-500">
+              Leave end date empty for ongoing projects. Start date cannot be in
+              the future.
+            </p>
           </div>
         </div>
 

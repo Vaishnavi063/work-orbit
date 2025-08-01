@@ -7,6 +7,8 @@ interface PastWork {
   title: string;
   link: string;
   description: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface FreelancerProfile {

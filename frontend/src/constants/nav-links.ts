@@ -1,5 +1,5 @@
 import type { NavLinkType } from "@/types";
-import { HomeIcon, LayoutGridIcon } from "lucide-react";
+import { HomeIcon, LayoutGridIcon, MessageSquareIcon } from "lucide-react";
 
 export const NAV_LINKS: NavLinkType[] = [
   {
@@ -15,5 +15,12 @@ export const NAV_LINKS: NavLinkType[] = [
     isProtected: true,
     path: "/dashboard/profile",
     icon: LayoutGridIcon,
+  },
+  {
+    id: 3,
+    title: "Contact Us",
+    isProtected: false,
+    icon: MessageSquareIcon,
+    // action will be set dynamically in the component
   },
 ];

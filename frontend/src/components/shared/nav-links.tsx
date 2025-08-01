@@ -8,10 +8,15 @@ interface NavLinksProps {
 }
 const NavLinks = ({ links }: NavLinksProps) => {
   const { isAuth } = useAuth();
-  if (!isAuth) return null;
+  
   return (
     <div className="items-center justify-center space-x-4 hidden md:flex">
       {links.map((link) => {
+        // Skip protected links if user is not authenticated
+        if (link.isProtected && !isAuth) {
+          return null;
+        }
+
         if (link.action && !link.path) {
           return (
             <button

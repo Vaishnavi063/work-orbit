@@ -45,41 +45,52 @@ export const PastWorksList = ({ pastWorks }: PastWorksListProps) => {
                   </CardTitle>
 
                   {/* Timeline Information */}
-                  {hasTimeline && (
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      {/* Date Range Badge */}
-                      {timeline.formattedRange && (
-                        <Badge
-                          variant="outline"
-                          className="text-slate-600 border-slate-300 bg-slate-50"
-                        >
-                          <Calendar className="w-3 h-3" />
-                          {timeline.formattedRange}
-                        </Badge>
-                      )}
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    {hasTimeline ? (
+                      <>
+                        {/* Date Range Badge */}
+                        {timeline.formattedRange && (
+                          <Badge
+                            variant="outline"
+                            className="text-slate-600 border-slate-300 bg-slate-50"
+                          >
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {timeline.formattedRange}
+                          </Badge>
+                        )}
 
-                      {/* Duration Badge */}
-                      {timeline.duration && (
-                        <Badge
-                          variant="outline"
-                          className="text-slate-600 border-slate-300 bg-slate-50"
-                        >
-                          <Clock className="w-3 h-3" />
-                          {timeline.duration}
-                        </Badge>
-                      )}
+                        {/* Duration Badge */}
+                        {timeline.duration && (
+                          <Badge
+                            variant="outline"
+                            className="text-slate-600 border-slate-300 bg-slate-50"
+                          >
+                            <Clock className="w-3 h-3 mr-1" />
+                            {timeline.duration}
+                          </Badge>
+                        )}
 
-                      {/* Ongoing Indicator */}
-                      {timeline.isOngoing && (
-                        <Badge
-                          variant="default"
-                          className="bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
-                        >
-                          Ongoing
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                        {/* Ongoing Indicator */}
+                        {timeline.isOngoing && (
+                          <Badge
+                            variant="default"
+                            className="bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
+                          >
+                            Ongoing
+                          </Badge>
+                        )}
+                      </>
+                    ) : (
+                      /* Show placeholder when no timeline data is available */
+                      <Badge
+                        variant="outline"
+                        className="text-slate-400 border-slate-200 bg-slate-50"
+                      >
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Timeline not specified
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 <a

@@ -250,7 +250,7 @@ const AddPastWorkForm: React.FC<AddPastWorkFormProps> = ({
                         const startDate = newPastWork.startDate
                           ? new Date(newPastWork.startDate)
                           : null;
-                        return date > today || (startDate && date < startDate);
+                        return date > today || (startDate ? date < startDate : false);
                       }}
                       initialFocus
                     />

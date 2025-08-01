@@ -2,9 +2,10 @@ package com.workorbit.backend.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import java.time.LocalDate;
 
 @Data
-@Schema(description = "Past work or portfolio item of a freelancer")
+@Schema(description = "Past work or portfolio item of a freelancer with optional timeline information")
 public class PastWorkDTO {
     
     @Schema(
@@ -34,4 +35,31 @@ public class PastWorkDTO {
         required = true
     )
     private String description;
+    
+    @Schema(
+        description = "Start date of the project or work period",
+        example = "2023-01-15",
+        required = false
+    )
+    private LocalDate startDate;
+    
+    @Schema(
+        description = "End date of the project or work period. If null, the project is considered ongoing",
+        example = "2023-06-30",
+        required = false
+    )
+    private LocalDate endDate;
+    
+    /**
+     * Computed method to determine if the project is currently ongoing
+     * @return true if the project has a start date but no end date, false otherwise
+     */
+    @Schema(
+        description = "Indicates whether the project is currently ongoing (has start date but no end date)",
+        example = "false",
+        accessMode = Schema.AccessMode.READ_ONLY
+    )
+    public boolean isOngoing() {
+        return startDate != null && endDate == null;
+    }
 }

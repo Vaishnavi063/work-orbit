@@ -135,6 +135,8 @@ export interface PastWork {
   title: string;
   link: string;
   description: string;
+  startDate?: string; // ISO date string
+  endDate?: string;   // ISO date string
 }
 
 export interface ProfileData {
@@ -143,6 +145,15 @@ export interface ProfileData {
   rating: number;
   skills: string[];
   pastWorks: PastWork[];
+}
+
+// Utility interface for timeline display information
+export interface TimelineInfo {
+  isOngoing: boolean;
+  duration: string;
+  formattedStartDate: string;
+  formattedEndDate: string;
+  formattedRange: string;
 }
 // Chat-related types
 

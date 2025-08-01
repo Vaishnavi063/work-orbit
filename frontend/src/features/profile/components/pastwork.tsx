@@ -1,6 +1,8 @@
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Briefcase, Calendar, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, Briefcase, Calendar, Clock, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { getTimelineInfo } from "@/lib/utils";
 
 interface PastWork {
@@ -16,7 +18,71 @@ interface PastWorksListProps {
   pastWorks?: PastWork[];
 }
 
+type SortOrder = "none" | "newest" | "oldest";
+
 export const PastWorksList = ({ pastWorks }: PastWorksListProps) => {
+  const [sortOrder, setSortOrder] = useState<SortOrder>("none");
+
+  // Sorting logic with graceful handling of null dates
+  const sortedPastWorks = useMemo(() => {
+    if (!pastWorks || sortOrder === "none") {
+      return pastWorks || [];
+    }
+
+    const sorted = [...pastWorks].sort((a, b) => {
+      const aStartDate = a.startDate ? new Date(a.startDate) : null;
+      const bStartDate = b.startDate ? new Date(b.startDate) : null;
+
+      // Handle null dates gracefully - put entries without dates at the end
+      if (!aStartDate && !bStartDate) return 0;
+      if (!aStartDate) return 1;
+      if (!bStartDate) return -1;
+
+      const timeDiff = aStartDate.getTime() - bStartDate.getTime();
+
+      return sortOrder === "newest" ? -timeDiff : timeDiff;
+    });
+
+    return sorted;
+  }, [pastWorks, sortOrder]);
+
+  const handleSortToggle = () => {
+    setSortOrder((prev) => {
+      switch (prev) {
+        case "none":
+          return "newest";
+        case "newest":
+          return "oldest";
+        case "oldest":
+          return "none";
+        default:
+          return "none";
+      }
+    });
+  };
+
+  const getSortIcon = () => {
+    switch (sortOrder) {
+      case "newest":
+        return <ArrowDown className="h-4 w-4" />;
+      case "oldest":
+        return <ArrowUp className="h-4 w-4" />;
+      default:
+        return <ArrowUpDown className="h-4 w-4" />;
+    }
+  };
+
+  const getSortLabel = () => {
+    switch (sortOrder) {
+      case "newest":
+        return "Most Recent First";
+      case "oldest":
+        return "Oldest First";
+      default:
+        return "Sort by Date";
+    }
+  };
+
   if (!pastWorks || pastWorks.length === 0) {
     return (
       <div className="text-center py-12">
@@ -27,8 +93,25 @@ export const PastWorksList = ({ pastWorks }: PastWorksListProps) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-      {pastWorks.map((work) => {
+    <div className="space-y-6">
+      {/* Sort Controls */}
+      {pastWorks.length > 1 && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSortToggle}
+            className="text-sm text-slate-600 hover:text-slate-800 border-slate-200 hover:border-slate-300"
+          >
+            {getSortIcon()}
+            <span className="ml-2">{getSortLabel()}</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Past Work Items */}
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+        {sortedPastWorks.map((work) => {
         const timeline = getTimelineInfo(work.startDate, work.endDate);
         const hasTimeline = work.startDate || work.endDate;
 
@@ -122,7 +205,8 @@ export const PastWorksList = ({ pastWorks }: PastWorksListProps) => {
             </CardContent>
           </Card>
         );
-      })}
+        })}
+      </div>
     </div>
   );
 };

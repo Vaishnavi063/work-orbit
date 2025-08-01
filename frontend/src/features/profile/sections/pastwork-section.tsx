@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { PastWork, ProfileData } from "@/types";
 import EditPastWorkDialog from "./edir-pastwork-dialog";
 import AddPastWorkForm from "./add-pastwork";
@@ -13,20 +13,90 @@ interface PastWorkSectionProps {
   setDeletedPastWorkIds: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
+type SortOrder = "none" | "newest" | "oldest";
+
 const PastWorkSection: React.FC<PastWorkSectionProps> = ({
   profile,
   setProfile,
-  setDeletedPastWorkIds
+  setDeletedPastWorkIds,
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editWork, setEditWork] = useState<{ work: PastWork; index: number } | null>(null);
+  const [editWork, setEditWork] = useState<{
+    work: PastWork;
+    index: number;
+  } | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("none");
+
+  // Sorting logic with graceful handling of null dates
+  const sortedPastWorks = useMemo(() => {
+    if (sortOrder === "none") {
+      return profile.pastWorks;
+    }
+
+    const sorted = [...profile.pastWorks].sort((a, b) => {
+      const aStartDate = a.startDate ? new Date(a.startDate) : null;
+      const bStartDate = b.startDate ? new Date(b.startDate) : null;
+
+      // Handle null dates gracefully - put entries without dates at the end
+      if (!aStartDate && !bStartDate) return 0;
+      if (!aStartDate) return 1;
+      if (!bStartDate) return -1;
+
+      const timeDiff = aStartDate.getTime() - bStartDate.getTime();
+
+      return sortOrder === "newest" ? -timeDiff : timeDiff;
+    });
+
+    return sorted;
+  }, [profile.pastWorks, sortOrder]);
+
+  const handleSortToggle = () => {
+    setSortOrder((prev) => {
+      switch (prev) {
+        case "none":
+          return "newest";
+        case "newest":
+          return "oldest";
+        case "oldest":
+          return "none";
+        default:
+          return "none";
+      }
+    });
+  };
+
+  const getSortIcon = () => {
+    switch (sortOrder) {
+      case "newest":
+        return <ArrowDown className="h-4 w-4" />;
+      case "oldest":
+        return <ArrowUp className="h-4 w-4" />;
+      default:
+        return <ArrowUpDown className="h-4 w-4" />;
+    }
+  };
+
+  const getSortLabel = () => {
+    switch (sortOrder) {
+      case "newest":
+        return "Most Recent First";
+      case "oldest":
+        return "Oldest First";
+      default:
+        return "Sort by Date";
+    }
+  };
 
   const handleRemovePastWork = (id: number) => {
-    setProfile(prev => prev ? {
-      ...prev,
-      pastWorks: prev.pastWorks.filter((w: any) => w.id !== id)
-    } : null);
-    setDeletedPastWorkIds(prev => [...prev, id]);
+    setProfile((prev) =>
+      prev
+        ? {
+            ...prev,
+            pastWorks: prev.pastWorks.filter((w: any) => w.id !== id),
+          }
+        : null
+    );
+    setDeletedPastWorkIds((prev) => [...prev, id]);
   };
 
   const handleEditPastWork = (work: PastWork, index: number) => {
@@ -35,7 +105,7 @@ const PastWorkSection: React.FC<PastWorkSectionProps> = ({
 
   const handleSaveEdit = (updatedWork: PastWork) => {
     if (editWork) {
-      setProfile(prev => {
+      setProfile((prev) => {
         if (!prev) return null;
         const updatedPastWorks = [...prev.pastWorks];
         updatedPastWorks[editWork.index] = updatedWork;
@@ -47,17 +117,39 @@ const PastWorkSection: React.FC<PastWorkSectionProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Sort Controls */}
+      {profile.pastWorks.length > 1 && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleSortToggle}
+            className="text-sm text-gray-600 hover:text-gray-800"
+          >
+            {getSortIcon()}
+            <span className="ml-2">{getSortLabel()}</span>
+          </Button>
+        </div>
+      )}
+
       {/* Past Work Items */}
       <div className="space-y-3">
-        {profile.pastWorks.map((work: PastWork, index: number) => (
-          <PastWorkItem
-            key={work.id}
-            work={work}
-            onEdit={() => handleEditPastWork(work, index)}
-            onDelete={() => handleRemovePastWork(work.id)}
-          />
-        ))}
-        
+        {sortedPastWorks.map((work: PastWork) => {
+          // Find the original index for editing purposes
+          const originalIndex = profile.pastWorks.findIndex(
+            (w) => w.id === work.id
+          );
+          return (
+            <PastWorkItem
+              key={work.id}
+              work={work}
+              onEdit={() => handleEditPastWork(work, originalIndex)}
+              onDelete={() => handleRemovePastWork(work.id)}
+            />
+          );
+        })}
+
         {profile.pastWorks.length === 0 && (
           <div className="text-center py-8 text-gray-400">
             No past work added yet

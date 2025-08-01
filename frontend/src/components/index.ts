@@ -6,18 +6,20 @@ import ModeToggle from "./shared/mode-toggle";
 import AuthButtons from "./shared/auth-buttons";
 import ListComponent from "./shared/list-component";
 import DashboardSidebar from "./shared/dashboard-sidebar/dashboard-sidebar";
+import { ContactFormModal } from "./shared/contact-form-modal";
 import type LogoLink from "./shared/logo-link";
 import type Logo from "./shared/logo";
 
 export {
-  SignInIcon,
-  SignUpIcon,
-  DashboardSidebar,
-  ModeToggle,
-  AuthButtons,
-  SiteFooter,
-  SiteHeader,
-  ListComponent
+    SignInIcon,
+    SignUpIcon,
+    DashboardSidebar,
+    ModeToggle,
+    AuthButtons,
+    SiteFooter,
+    SiteHeader,
+    ListComponent,
+    ContactFormModal,
 };
 
 export type { Logo, LogoLink };

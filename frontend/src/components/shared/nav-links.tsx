@@ -11,20 +11,36 @@ const NavLinks = ({ links }: NavLinksProps) => {
   if (!isAuth) return null;
   return (
     <div className="items-center justify-center space-x-4 hidden md:flex">
-      {links.map((link) => (
-        <NavLink
-          key={link.id}
-          to={link.path}
-          className={({ isActive }) =>
-            cn(
-              "hover:text-primary transition-all space-x-1 flex items-center text-muted-foreground justify-center",
-              isActive && "text-primary font-semibold"
-            )
-          }
-        >
-          <span className="text-sm">{link.title}</span>
-        </NavLink>
-      ))}
+      {links.map((link) => {
+        if (link.action && !link.path) {
+          return (
+            <button
+              key={link.id}
+              onClick={link.action}
+              className={cn(
+                "hover:text-primary transition-all space-x-1 flex items-center text-muted-foreground justify-center"
+              )}
+            >
+              <span className="text-sm">{link.title}</span>
+            </button>
+          );
+        }
+        
+        return (
+          <NavLink
+            key={link.id}
+            to={link.path!}
+            className={({ isActive }) =>
+              cn(
+                "hover:text-primary transition-all space-x-1 flex items-center text-muted-foreground justify-center",
+                isActive && "text-primary font-semibold"
+              )
+            }
+          >
+            <span className="text-sm">{link.title}</span>
+          </NavLink>
+        );
+      })}
     </div>
   );
 };

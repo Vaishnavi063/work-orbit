@@ -30,9 +30,10 @@ export interface User {
 export interface NavLinkType {
     id: number;
     title: string;
-    path: string;
+    path?: string;
     isProtected: boolean;
     icon: LucideIcon;
+    action?: () => void; // For contact form trigger and other action-based navigation
 }
 
 export interface ApiError {
@@ -179,3 +180,8 @@ export interface ChatRoom {
     createdAt: string;
     updatedAt: string;
 }
+
+// Export new feature types
+export * from "./contact";
+export * from "./api";
+export * from "./workflow";

@@ -8,7 +8,6 @@ import com.workorbit.backend.Wallet.DTO.AddMoneyOrderRequest;
 import com.workorbit.backend.Wallet.DTO.RazorpayOrderResponse;
 import com.workorbit.backend.Wallet.DTO.VerifyPaymentRequest;
 import com.workorbit.backend.Wallet.DTO.WalletResponseDTO;
-import com.workorbit.backend.Wallet.Entity.WalletTransaction;
 import com.workorbit.backend.Wallet.Repository.WalletTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

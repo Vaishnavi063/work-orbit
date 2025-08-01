@@ -12,7 +12,7 @@ export interface WorkflowStep {
 
 // Workflow diagram component props
 export interface WorkflowDiagramProps {
-    steps: WorkflowStep[];
+    steps?: WorkflowStep[];
     className?: string;
 }
 

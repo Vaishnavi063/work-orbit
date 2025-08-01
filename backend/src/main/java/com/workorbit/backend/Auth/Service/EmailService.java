@@ -1,5 +1,6 @@
 package com.workorbit.backend.Auth.Service;
 
+import com.workorbit.backend.Entity.ContactRequest;
 import com.workorbit.backend.Entity.Contract;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -17,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Service
@@ -119,6 +121,37 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Failed to send contract completed notifications for contract {}: {}", 
                 contract.getContractId(), e.getMessage());
+        }
+    }
+
+    @Async
+    public void sendContactConfirmationEmail(ContactRequest contactRequest) {
+        try {
+            log.info("Sending contact confirmation email to: {}", contactRequest.getEmail());
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(contactRequest.getEmail());
+            helper.setSubject("Contact Request Received - WorkOrbit");
+            helper.setFrom(fromAddress, "WorkOrbit Team");
+
+            Context context = new Context();
+            context.setVariable("userEmail", contactRequest.getEmail());
+            context.setVariable("subject", contactRequest.getSubject());
+            context.setVariable("message", contactRequest.getMessage());
+            context.setVariable("requestId", contactRequest.getId());
+            context.setVariable("submissionDate", contactRequest.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+            String htmlContent = templateEngine.process("email/contact-confirmation-email", context);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("Contact confirmation email sent successfully to: {}", contactRequest.getEmail());
+
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            log.error("Failed to send contact confirmation email to: {}", contactRequest.getEmail(), e);
+            throw new RuntimeException("Failed to send confirmation email", e);
         }
     }
 

@@ -50,11 +50,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/client/**").hasRole("CLIENT")
                         .requestMatchers("/api/freelancers/**").hasAnyRole("FREELANCER", "CLIENT")
                         .requestMatchers("/api/freelancer/**").hasAnyRole("FREELANCER", "CLIENT")
+                        .requestMatchers("/api/projects/counts-by-category").permitAll()
                         .requestMatchers("/api/projects/**").hasAnyRole("CLIENT", "FREELANCER")
                         .requestMatchers("/api/bids/**").hasRole("FREELANCER")
                         .requestMatchers("/api/contracts/**").hasAnyRole("CLIENT", "FREELANCER")
                         // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/contact/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().permitAll()
                 )

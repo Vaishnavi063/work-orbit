@@ -2,6 +2,8 @@ package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.BidResponseDTO;
 import com.workorbit.backend.DTO.ClientDTO;
+import com.workorbit.backend.DTO.ProjectCountResponse;
+import com.workorbit.backend.DTO.ProjectCountsResponse;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Entity.Bids;
 import com.workorbit.backend.Entity.Client;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -266,6 +269,47 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         log.info("Bid rejected: {}", bid.getId());
+    }
+
+    @Override
+    public ProjectCountsResponse getProjectCountsByCategory() {
+        log.info("Fetching project counts by category");
+        
+        List<Object[]> categoryCountsRaw = projectRepository.countActiveProjectsByCategory();
+        Long totalActiveProjects = projectRepository.countTotalActiveProjects();
+        
+        LocalDateTime now = LocalDateTime.now();
+        List<ProjectCountResponse> counts = categoryCountsRaw.stream()
+                .map(row -> {
+                    String category = (String) row[0];
+                    Long count = (Long) row[1];
+                    Long categoryId = getCategoryIdFromName(category);
+                    return new ProjectCountResponse(category, categoryId, count, now);
+                })
+                .toList();
+        
+        log.info("Found {} categories with active projects, total: {}", counts.size(), totalActiveProjects);
+        return new ProjectCountsResponse(counts, totalActiveProjects);
+    }
+
+    private Long getCategoryIdFromName(String categoryName) {
+        return switch (categoryName.toLowerCase()) {
+            case "web development" -> 1L;
+            case "graphic design" -> 2L;
+            case "photography" -> 3L;
+            case "marketing" -> 4L;
+            case "video editing" -> 5L;
+            case "content writing" -> 6L;
+            case "it & networking" -> 7L;
+            case "translation" -> 8L;
+            case "swe" -> 9L;
+            case "ai-ml" -> 10L;
+            case "mobile development" -> 11L;
+            case "ui-ux designer" -> 12L;
+            case "app development" -> 11L; // Map app development to mobile development
+            case "data analysis" -> 10L; // Map data analysis to AI-ML
+            default -> 0L; // Default ID for unknown categories
+        };
     }
 
     private ProjectDTO toDTO(Project project) {

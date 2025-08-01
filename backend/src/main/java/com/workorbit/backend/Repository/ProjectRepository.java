@@ -18,5 +18,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             "LOWER(p.category) LIKE LOWER(CONCAT('%', :query, '%')))")
     List<Project> findProjectsWithSearch(@Param("query") String query, Sort sort);
 
-    List<Project> findByTitleContainingIgnoreCaseOrCategoryContainingIgnoreCase(String titlePart, String categoryPart);
+    @Query("SELECT p.category, COUNT(p) FROM Project p WHERE p.status = 'OPEN' GROUP BY p.category")
+    List<Object[]> countActiveProjectsByCategory();
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE p.status = 'OPEN'")
+    Long countTotalActiveProjects();
 }

@@ -51,15 +51,20 @@ const Categories = () => {
       <div className="grid sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
         <ListComponent
           data={CATEGORIES}
-          renderItem={(item: CategoryType) => (
-            <CategoryCard 
-              key={item.id} 
-              item={item}
-              activeProjectCount={getCountForCategory(item.id)}
-              isCountLoading={isLoading}
-              hasCountError={!!error}
-            />
-          )}
+          renderItem={(item: CategoryType) => {
+            // Get the actual count from backend data
+            const actualCount = getCountForCategory(item.id);
+            
+            return (
+              <CategoryCard 
+                key={item.id} 
+                item={item}
+                activeProjectCount={actualCount} // This will be 0 if no data found
+                isCountLoading={isLoading}
+                hasCountError={!!error}
+              />
+            );
+          }}
         />
       </div>
     </section>

@@ -41,7 +41,7 @@ export function ContactFormModal({
     const { user, authToken } = useAuth();
 
     // Determine user type based on whether userEmail is provided or user is authenticated
-    const userType = userEmail || user ? "logged_in" : "guest";
+    const userType = userEmail || user ? "LOGGED_IN" : "GUEST";
     const effectiveUserEmail = userEmail || user?.email;
 
     const form = useForm<ContactFormSchema>({

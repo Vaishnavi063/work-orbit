@@ -1,6 +1,7 @@
 package com.workorbit.backend.Controller;
 
 import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.DTO.ProjectCountsResponse;
 import com.workorbit.backend.DTO.ProjectDTO;
 import com.workorbit.backend.Service.project.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,6 +72,34 @@ public class ProjectController {
     ) {
         ProjectDTO created = projectService.createProject(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(com.workorbit.backend.DTO.ApiResponse.success(created));
+    }
+
+    @Operation(
+        summary = "Get project counts by category",
+        description = "Retrieves the count of active projects grouped by category. Public endpoint."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Project counts retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = com.workorbit.backend.DTO.ApiResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = com.workorbit.backend.DTO.ApiResponse.class)
+            )
+        )
+    })
+    @GetMapping("/counts-by-category")
+    public ResponseEntity<com.workorbit.backend.DTO.ApiResponse<ProjectCountsResponse>> getProjectCountsByCategory() {
+        ProjectCountsResponse counts = projectService.getProjectCountsByCategory();
+        return ResponseEntity.ok(com.workorbit.backend.DTO.ApiResponse.success(counts));
     }
 
     @Operation(

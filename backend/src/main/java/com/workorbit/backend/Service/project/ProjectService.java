@@ -1,6 +1,7 @@
 package com.workorbit.backend.Service.project;
 
 import com.workorbit.backend.DTO.BidResponseDTO;
+import com.workorbit.backend.DTO.ProjectCountsResponse;
 import com.workorbit.backend.DTO.ProjectDTO;
 
 import java.util.List;
@@ -14,4 +15,5 @@ public interface ProjectService {
      boolean deleteProjectById(Long id);
      void acceptBid(Long projectId, Long bidId);
      void rejectBid(Long projectId, Long bidId);
+     ProjectCountsResponse getProjectCountsByCategory();
 }

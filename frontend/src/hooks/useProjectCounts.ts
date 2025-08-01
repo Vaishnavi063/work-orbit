@@ -63,10 +63,12 @@ export const useProjectCounts = () => {
 
   /**
    * Get project count for a specific category ID
+   * Returns the actual count from backend or 0 if not found
    */
-  const getCountForCategory = useCallback((categoryId: number): number | undefined => {
+  const getCountForCategory = useCallback((categoryId: number): number => {
     const categoryCount = state.counts.find(count => count.categoryId === categoryId);
-    return categoryCount?.activeProjectCount;
+    // Return the actual count or 0 if not found
+    return categoryCount?.activeProjectCount || 0;
   }, [state.counts]);
 
   // Fetch project counts on component mount (single API call as specified)

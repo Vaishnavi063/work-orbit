@@ -5,7 +5,7 @@ export interface ContactFormData {
   email: string;
   subject: string;
   message: string;
-  userType: 'logged_in' | 'guest';
+  userType: 'LOGGED_IN' | 'GUEST';
 }
 
 // Contact request interface for API
@@ -13,7 +13,7 @@ export interface ContactRequest {
   email: string;
   subject: string;
   message: string;
-  userType: 'logged_in' | 'guest';
+  userType: 'LOGGED_IN' | 'GUEST';
   userId?: number;
   submittedAt: Date;
 }
@@ -46,7 +46,7 @@ export const contactFormSchema = z.object({
     .min(10, "Message must be at least 10 characters")
     .max(1000, "Message must be less than 1000 characters"),
   userType: z
-    .enum(['logged_in', 'guest']),
+    .enum(['LOGGED_IN', 'GUEST']),
 });
 
 export type ContactFormSchema = z.infer<typeof contactFormSchema>;
@@ -56,7 +56,7 @@ export const contactRequestSchema = z.object({
   email: z.email(),
   subject: z.string().min(3).max(100),
   message: z.string().min(10).max(1000),
-  userType: z.enum(['logged_in', 'guest']),
+  userType: z.enum(['LOGGED_IN', 'GUEST']),
   userId: z.number().optional(),
 });
 

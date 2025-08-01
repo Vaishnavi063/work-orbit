@@ -21,12 +21,13 @@ const CategoryCard = ({
       return <Skeleton className="h-4 w-8 inline-block" />;
     }
     
-    if (hasCountError || activeProjectCount === undefined) {
-      // Fallback to original static count when API fails
+    if (hasCountError) {
+      console.log(`Using fallback count for ${item.title}: ${item.available}`);
       return item.available;
     }
     
-    return activeProjectCount;
+  console.log(`Displaying actual count for ${item.title}: ${activeProjectCount}`);
+  return activeProjectCount || 0; // Ensure we always return a number
   };
 
   return (

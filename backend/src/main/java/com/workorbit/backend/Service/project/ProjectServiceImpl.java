@@ -58,20 +58,18 @@ public class ProjectServiceImpl implements ProjectService {
         log.info("Fetching all projects with query: '{}', sortBy: '{}', sortDirection: '{}'",
                 query, sortBy, sortDirection);
 
-        // Validate and set default sorting parameters
         String validatedSortBy = validateSortField(sortBy);
         Sort.Direction direction = validateSortDirection(sortDirection);
 
-        // Create Sort object
+
         Sort sort = Sort.by(direction, validatedSortBy);
 
         List<Project> projects;
 
         if (query == null || query.trim().isEmpty()) {
-            // No search query - get all projects with sorting
             projects = projectRepository.findAll(sort);
         } else {
-            // Search with sorting
+
             projects = projectRepository.findProjectsWithSearch(query.trim(), sort);
         }
 
@@ -79,12 +77,9 @@ public class ProjectServiceImpl implements ProjectService {
         return projects.stream().map(this::toDTO).toList();
     }
 
-    /**
-     * Validates the sort field and returns a valid field name
-     */
     private String validateSortField(String sortBy) {
         if (sortBy == null || sortBy.trim().isEmpty()) {
-            return "createdAt"; // Default sort field
+            return "createdAt";
         }
 
         // Map of allowed sort fields
@@ -101,12 +96,9 @@ public class ProjectServiceImpl implements ProjectService {
         return allowedSortFields.getOrDefault(normalizedSortBy, "createdAt");
     }
 
-    /**
-     * Validates the sort direction and returns a valid Sort.Direction
-     */
     private Sort.Direction validateSortDirection(String sortDirection) {
         if (sortDirection == null || sortDirection.trim().isEmpty()) {
-            return Sort.Direction.DESC; // Default direction
+            return Sort.Direction.DESC;
         }
 
         String normalizedDirection = sortDirection.toLowerCase().trim();

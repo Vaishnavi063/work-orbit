@@ -1,5 +1,6 @@
 package com.workorbit.backend.Wallet.Entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -22,7 +23,16 @@ public class WalletTransaction {
     private Double balanceAfter;
     private Long projectId;
     private String description;
+    // ADD these fields to your existing WalletTransaction entity
 
+    @Schema(description = "Razorpay payment ID for tracking")
+    private String razorpayPaymentId;
+
+    @Schema(description = "Razorpay order ID for tracking")
+    private String razorpayOrderId;
+
+    @Schema(description = "Payment method used")
+    private String paymentMethod; // "RAZORPAY", "MANUAL", "BANK_TRANSFER", etc.
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

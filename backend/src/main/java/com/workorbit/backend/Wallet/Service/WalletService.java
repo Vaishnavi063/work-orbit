@@ -13,6 +13,7 @@ import com.workorbit.backend.Wallet.Entity.WalletTransaction;
 import com.workorbit.backend.Wallet.Repository.WalletFreezeRepository;
 import com.workorbit.backend.Wallet.Repository.WalletRepository;
 import com.workorbit.backend.Wallet.Repository.WalletTransactionRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -247,6 +248,51 @@ public class WalletService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    // ADD this method to your existing WalletService class
+
+    /**
+     * Add money to wallet after Razorpay payment verification
+     */
+    @Transactional
+    public WalletResponseDTO addMoneyAfterVerification(Long userId, String role, Double amount,
+                                                       String razorpayPaymentId, String razorpayOrderId) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        String normalizedRole = normalizeRole(role);
+
+        // Get or create wallet
+        Wallet wallet = walletRepository.findByUserIdAndRole(userId, normalizedRole)
+                .orElseThrow(() -> new RuntimeException("Wallet not found. Please contact support."));
+
+        // Update wallet balance
+        Double balanceBefore = wallet.getAvailableBalance() != null ? wallet.getAvailableBalance() : 0.0;
+        Double newBalance = balanceBefore + amount;
+        wallet.setAvailableBalance(newBalance);
+        walletRepository.save(wallet);
+
+        // Create transaction record with Razorpay details
+        WalletTransaction transaction = WalletTransaction.builder()
+                .userId(userId)
+                .userRole(normalizedRole)
+                .transactionType("CREDIT")
+                .amount(amount)
+                .balanceBefore(balanceBefore)
+                .balanceAfter(newBalance)
+                .razorpayPaymentId(razorpayPaymentId)
+                .razorpayOrderId(razorpayOrderId)
+                .paymentMethod("RAZORPAY")
+                .description("Money added via Razorpay payment")
+                .build();
+        transactionRepository.save(transaction);
+
+        log.info("✅ Money added to wallet successfully. UserId: {}, Amount: {}, New Balance: {}",
+                userId, amount, newBalance);
+
+        return toResponse(wallet);
     }
 
     private Wallet createWalletEntity(Long userId, String role) {

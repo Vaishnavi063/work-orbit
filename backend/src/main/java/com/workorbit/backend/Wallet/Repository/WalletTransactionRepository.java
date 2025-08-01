@@ -24,4 +24,6 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     @Query("SELECT COUNT(DISTINCT wt.projectId) FROM WalletTransaction wt WHERE wt.userId = :userId AND wt.userRole = 'FREELANCER' AND wt.transactionType = 'CREDIT'")
     Integer getCompletedProjectsCount(@Param("userId") Long userId);
+
+    boolean existsByRazorpayPaymentId(String razorpayPaymentId);
 }

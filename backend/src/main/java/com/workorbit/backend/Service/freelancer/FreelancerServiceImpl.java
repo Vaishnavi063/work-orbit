@@ -67,6 +67,9 @@ public class FreelancerServiceImpl implements FreelancerService {
                 dto.setTitle(p.getTitle());
                 dto.setLink(p.getLink());
                 dto.setDescription(p.getDescription());
+                // Map timeline fields with null-safe handling for legacy entries
+                dto.setStartDate(p.getStartDate());
+                dto.setEndDate(p.getEndDate());
                 return dto;
             }).toList()
         );
@@ -151,6 +154,9 @@ public class FreelancerServiceImpl implements FreelancerService {
                 pw.setTitle(pwDto.getTitle());
                 pw.setLink(pwDto.getLink());
                 pw.setDescription(pwDto.getDescription());
+                // Map timeline fields from DTO to entity with null-safe handling
+                pw.setStartDate(pwDto.getStartDate());
+                pw.setEndDate(pwDto.getEndDate());
                 pw.setFreelancer(freelancer);
                 newPastWorksList.add(pw);
             }

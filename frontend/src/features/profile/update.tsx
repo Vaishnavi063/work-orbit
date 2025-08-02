@@ -8,6 +8,7 @@ import useGetFreelancerProfile from "@/features/freelancer/hooks/use-get-freelan
 import apis from "@/features/freelancer/apis";
 import ProfileForm from "./components/profile-form";
 import type { ProfileData } from "@/types";
+import { handleTimelineApiError } from "@/utils/timeline-api-utils";
 
 const ProfileUpdate = () => {
   const { user } = useAuth();
@@ -21,16 +22,19 @@ const ProfileUpdate = () => {
     return (
       <div className="flex items-center justify-center py-20">
         <Alert className="max-w-md">
-          <AlertDescription>User not found or not authenticated.</AlertDescription>
+          <AlertDescription>
+            User not found or not authenticated.
+          </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  const { data: freelancerData, isLoading, error } = useGetFreelancerProfile(
-    user.id.toString(),
-    user.token
-  );
+  const {
+    data: freelancerData,
+    isLoading,
+    error,
+  } = useGetFreelancerProfile(user.id.toString(), user.token);
 
   useEffect(() => {
     if (freelancerData) setProfile(freelancerData);
@@ -76,7 +80,7 @@ const ProfileUpdate = () => {
     setSaveLoading(true);
     try {
       const pastWorksPayload = preparePastWorksPayload();
-      
+
       await apis.updateFreelancerProfile({
         authToken: user.token,
         id: user.id!,
@@ -84,17 +88,18 @@ const ProfileUpdate = () => {
           name: profile.name,
           rating: profile.rating,
           skills: profile.skills,
-          pastWorks: pastWorksPayload
-        }
+          pastWorks: pastWorksPayload,
+        },
       });
-      
+
       setSaveSuccess(true);
       setDeletedPastWorkIds([]);
-      
+
       // Auto-hide success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      setSaveError("Failed to update profile. Please try again.");
+    } catch (err: any) {
+      // Use the timeline API error handler for better error messages
+      setSaveError(handleTimelineApiError(err));
     } finally {
       setSaveLoading(false);
     }
@@ -102,78 +107,92 @@ const ProfileUpdate = () => {
 
   const preparePastWorksPayload = () => {
     const isRealBackendId = (id: any) => typeof id === "number" && id < 1e6;
-    
-    return [
-      // Updated existing works
-      ...profile.pastWorks
-        .filter((w: any) => isRealBackendId(w.id) && !deletedPastWorkIds.includes(w.id))
-        .map((w: any) => ({ id: w.id, title: w.title, link: w.link, description: w.description })),
-      
-      // New works
-      ...profile.pastWorks
-        .filter((w: any) => !isRealBackendId(w.id))
-        .map((w: any) => ({ title: w.title, link: w.link, description: w.description })),
-      
-      // Deleted works
-      ...deletedPastWorkIds.map((id) => ({
-        id,
-        toDelete: true,
-        title: "deleted",
-        link: "deleted",
-        description: "deleted"
-      }))
-    ];
+
+    const updatedExisting = profile.pastWorks
+      .filter(
+        (w: any) => isRealBackendId(w.id) && !deletedPastWorkIds.includes(w.id)
+      )
+      .map((w: any) => ({
+        id: w.id,
+        title: w.title,
+        link: w.link,
+        description: w.description,
+        startDate: w.startDate || null,
+        endDate: w.endDate || null,
+      }));
+
+    const newWorks = profile.pastWorks
+      .filter((w: any) => !isRealBackendId(w.id))
+      .map((w: any) => ({
+        title: w.title,
+        link: w.link,
+        description: w.description,
+        startDate: w.startDate || null,
+        endDate: w.endDate || null,
+      }));
+
+    const deletedWorks = deletedPastWorkIds.map((id) => ({
+      id,
+      toDelete: true,
+      title: "deleted",
+      link: "deleted",
+      description: "deleted",
+      startDate: null,
+      endDate: null,
+    }));
+
+    return [...updatedExisting, ...newWorks, ...deletedWorks];
   };
 
   return (
-      <Card className="border-none">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            ✏️ Edit Profile
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProfileForm
-            profile={profile}
-            setProfile={setProfile}
-            deletedPastWorkIds={deletedPastWorkIds}
-            setDeletedPastWorkIds={setDeletedPastWorkIds}
-          />
-          
-          {/* Status Messages */}
-          {saveError && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{saveError}</AlertDescription>
-            </Alert>
-          )}
-          
-          {saveSuccess && (
-            <Alert className="mt-4 border-green-200 bg-green-50">
-              <AlertDescription className="text-green-800">
-                ✅ Profile updated successfully!
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {/* Save Button */}
-          <div className="flex justify-end mt-6">
-            <Button
-              onClick={handleSave}
-              disabled={saveLoading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-2 shadow-md"
-            >
-              {saveLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "💾 Save Changes"
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <Card className="border-none">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          ✏️ Edit Profile
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ProfileForm
+          profile={profile}
+          setProfile={setProfile}
+          deletedPastWorkIds={deletedPastWorkIds}
+          setDeletedPastWorkIds={setDeletedPastWorkIds}
+        />
+
+        {/* Status Messages */}
+        {saveError && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertDescription>{saveError}</AlertDescription>
+          </Alert>
+        )}
+
+        {saveSuccess && (
+          <Alert className="mt-4 border-green-200 bg-green-50">
+            <AlertDescription className="text-green-800">
+              ✅ Profile updated successfully!
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Save Button */}
+        <div className="flex justify-end mt-6">
+          <Button
+            onClick={handleSave}
+            disabled={saveLoading}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-2 shadow-md"
+          >
+            {saveLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "💾 Save Changes"
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

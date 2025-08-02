@@ -30,9 +30,10 @@ export interface User {
 export interface NavLinkType {
     id: number;
     title: string;
-    path: string;
+    path?: string;
     isProtected: boolean;
     icon: LucideIcon;
+    action?: () => void; // For contact form trigger and other action-based navigation
 }
 
 export interface ApiError {
@@ -179,3 +180,20 @@ export interface ChatRoom {
     createdAt: string;
     updatedAt: string;
 }
+
+// Project count types for dynamic category loading
+export interface ProjectCountResponse {
+    categoryId: number;
+    activeProjectCount: number;
+    lastUpdated: string;
+}
+
+export interface ProjectCountsResponse {
+    counts: ProjectCountResponse[];
+    totalActiveProjects: number;
+}
+
+// Export new feature types
+export * from "./contact";
+export * from "./api";
+export * from "./workflow";

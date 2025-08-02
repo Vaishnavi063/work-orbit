@@ -50,7 +50,7 @@ const Hero = () => {
 
         <div className="space-x-3 flex items-center mt-6 z-50">
           <Link
-            to="/find-work"
+            to="/dashboard/browse-projects"
             className="inline-flex text-primary-foreground items-center rounded-full px-5 py-2 text-sm font-light 
             bg-primary hover:bg-primary/80 transition-all"
           >

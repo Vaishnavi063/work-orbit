@@ -1,8 +1,6 @@
 import { FilePlus, PencilLine, Handshake } from "lucide-react";
 
-import { WorkFlow } from "@/constants";
-import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardHeader } from "@/components/ui/card";
+import WorkflowDiagram from "./workflow-diagram";
 
 const WorkSection = () => {
   return (
@@ -47,36 +45,9 @@ const WorkSection = () => {
           </div>
         </div>
       </div>
-      <div className="grid md:grid-cols-3 gap-10 px-4 md:px-0">
-        {WorkFlow.map((flow) => (
-          <div key={flow.name} className="flex">
-            <Card className="relative flex flex-col w-full transition-all duration-300 hover:shadow-xl hover:scale-105 dark:bg-slate-800 dark:border-gray-700">
-              <CardHeader>
-                <div className="flex flex-col items-center justify-center text-center">
-                  {flow.icon && (
-                    <flow.icon
-                      className={`w-10 h-10 mb-4 ${
-                        flow.color ??
-                        "text-primary dark:text-primary-foreground"
-                      }`}
-                    />
-                  )}
-                  <p className="text-lg font-medium mb-2 text-gray-900 dark:text-white">
-                    {flow.name}
-                  </p>
-                </div>
-                <p className="text-muted-foreground dark:text-gray-400 mt-4 text-sm">
-                  {flow.description}
-                </p>
-              </CardHeader>
-              <CardFooter>
-                <Button variant="default" className="w-full" size="lg">
-                  {flow.button.text}
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        ))}
+      {/* New workflow diagram component */}
+      <div className="px-4 md:px-0">
+        <WorkflowDiagram className="mt-8" />
       </div>
     </section>
   );

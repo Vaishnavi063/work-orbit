@@ -1,11 +1,35 @@
 import { cn } from "@/lib/utils";
 import type { CategoryType } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CategoryCardProps {
   item: CategoryType;
+  activeProjectCount?: number;
+  isCountLoading?: boolean;
+  hasCountError?: boolean;
 }
 
-const CategoryCard = ({ item }: CategoryCardProps) => {
+const CategoryCard = ({ 
+  item, 
+  activeProjectCount, 
+  isCountLoading = false,
+  hasCountError = false 
+}: CategoryCardProps) => {
+  // Determine what count to display
+  const getDisplayCount = () => {
+    if (isCountLoading) {
+      return <Skeleton className="h-4 w-8 inline-block" />;
+    }
+    
+    if (hasCountError) {
+      console.log(`Using fallback count for ${item.title}: ${item.available}`);
+      return item.available;
+    }
+    
+  console.log(`Displaying actual count for ${item.title}: ${activeProjectCount}`);
+  return activeProjectCount || 0; // Ensure we always return a number
+  };
+
   return (
     <div
       className={cn(
@@ -23,7 +47,7 @@ const CategoryCard = ({ item }: CategoryCardProps) => {
           {item.title}
         </h2>
         <p className="text-sm text-muted-foreground dark:text-gray-400 mt-1">
-          {item.available} jobs available
+          {getDisplayCount()} projects available
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
 const siteConfigs = {
-  name: "Works Orbit",
+  name: "Work Orbit",
   links: {
     github: "https://github.com/Vaishnavi063/work-orbit"
   },

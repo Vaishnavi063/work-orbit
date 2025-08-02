@@ -1,10 +1,9 @@
 package com.workorbit.backend.Wallet.Controller;
 
+import com.razorpay.RazorpayException;
 import com.workorbit.backend.DTO.ApiResponse;
-import com.workorbit.backend.Wallet.DTO.FrozenAmountDTO;
-import com.workorbit.backend.Wallet.DTO.WalletRequestDTO;
-import com.workorbit.backend.Wallet.DTO.WalletResponseDTO;
-import com.workorbit.backend.Wallet.DTO.WithdrawRequestDTO;
+import com.workorbit.backend.Wallet.DTO.*;
+import com.workorbit.backend.Wallet.Service.RazorpayService;
 import com.workorbit.backend.Wallet.Service.WalletService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +24,7 @@ import java.util.List;
 public class WalletController {
 
     private final WalletService walletService;
+    private final RazorpayService razorpayService;
 
     @Operation(
         summary = "Create new wallet",
@@ -61,35 +61,69 @@ public class WalletController {
     }
 
     @Operation(
-        summary = "Add money to wallet",
-        description = "Add funds to a user's wallet - typically used by clients to fund their accounts"
+            summary = "Create payment order for adding money",
+            description = "Create Razorpay order for wallet top-up - returns order details for frontend payment integration"
     )
     @ApiResponses(value = {
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200", 
-            description = "Money added successfully - returns updated wallet balance"
-        ),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "400", 
-            description = "Invalid request - validation errors or negative amount"
-        ),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "404", 
-            description = "Wallet not found for the specified user and role"
-        ),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "500", 
-            description = "Internal server error - transaction failed"
-        )
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Payment order created successfully - use order details to open Razorpay checkout"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request - validation errors or invalid amount"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Wallet not found for the specified user"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "Payment gateway error - failed to create order"
+            )
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/add-money")
-    public ResponseEntity<ApiResponse<WalletResponseDTO>> addMoney(
-            @Parameter(description = "Wallet funding request containing user ID, role, and amount")
-            @Valid @RequestBody WalletRequestDTO request) {
-        WalletResponseDTO response = walletService.addMoney(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<RazorpayOrderResponse>> createAddMoneyOrder(
+            @Parameter(description = "Payment order request containing user details and amount")
+            @Valid @RequestBody AddMoneyOrderRequest request) throws RazorpayException {
+
+        RazorpayOrderResponse orderResponse = razorpayService.createWalletTopupOrder(request);
+        return ResponseEntity.ok(ApiResponse.success(orderResponse));
     }
+
+    @Operation(
+            summary = "Verify payment and add money to wallet",
+            description = "Verify Razorpay payment signature and add money to user's wallet upon successful verification"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Payment verified and money added successfully"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid payment signature or verification failed"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "Duplicate payment - payment already processed"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error - payment processing failed"
+            )
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/verify-payment")
+    public ResponseEntity<ApiResponse<WalletResponseDTO>> verifyPaymentAndAddMoney(
+            @Parameter(description = "Payment verification request with Razorpay response details")
+            @Valid @RequestBody VerifyPaymentRequest request) {
+
+        WalletResponseDTO walletResponse = razorpayService.verifyAndAddToWallet(request);
+        return ResponseEntity.ok(ApiResponse.success(walletResponse));
+    }
+
 
     @Operation(
         summary = "Get wallet details",

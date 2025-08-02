@@ -20,12 +20,6 @@ import { toast } from "sonner";
 import type { AddMoneyOrderRequest, VerifyPaymentRequest } from "../apis";
 import apis from "../apis";
 
-interface RazorpayResponse {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-}
-
 declare global {
   interface Window {
     Razorpay: any;

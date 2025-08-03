@@ -23,10 +23,10 @@ type Project = {
 
 const statusConfig = {
   OPEN: {
-    className: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    className: "bg-emerald-100 text-emerald-700 border-emerald-200",
   },
   CLOSED: {
-    className: "bg-gray-50 text-gray-600 border-gray-200",
+    className: "bg-red-100 text-red-700 border-red-200",
   },
 };
 
@@ -59,38 +59,35 @@ const ProjectCard = ({ project }: { project: Project }) => {
   const statusInfo = statusConfig[project.status as keyof typeof statusConfig];
 
   return (
-    <Card className="w-full max-w-sm flex flex-col bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
-      <CardHeader className="p-4 pb-3 space-y-3">
+    <Card className="w-full max-w-sm flex flex-col border border-blue-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-50 via-white to-sky-50">
+      <CardHeader className="p-5 pb-3 space-y-3">
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-base font-semibold text-gray-900 leading-tight line-clamp-2 flex-1">
+          <CardTitle className="text-lg font-semibold text-gray-900 leading-snug line-clamp-2 flex-1">
             {project.title}
           </CardTitle>
           <Badge
             className={cn(
-              "text-xs font-medium px-2.5 py-0.5 rounded-full border",
+              "text-xs font-semibold px-3 py-0.5 rounded-full border shadow-sm",
               statusInfo?.className
             )}
           >
             {project.status}
           </Badge>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Tag className="h-3.5 w-3.5 text-gray-400" />
-          <span className="text-xs text-gray-600 font-medium">
-            {project.category}
-          </span>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Tag className="h-4 w-4 text-gray-400" />
+          {project.category}
         </div>
       </CardHeader>
 
-      <CardContent className="px-4 flex-1 space-y-3">
+      <CardContent className="px-5 flex-1 space-y-4">
         {/* Budget Section */}
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-md border border-emerald-100">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-white rounded-md shadow-sm">
-              <IndianRupee className="h-3.5 w-3.5 text-gray-600" />
+            <div className="p-1.5 bg-white rounded-md shadow">
+              <IndianRupee className="h-4 w-4 text-emerald-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">Budget</span>
+            <span className="text-sm font-medium text-emerald-800">Budget</span>
           </div>
           <span className="text-base font-bold text-gray-900">
             ₹{project.budget.toLocaleString()}
@@ -98,28 +95,28 @@ const ProjectCard = ({ project }: { project: Project }) => {
         </div>
 
         {/* Deadline Section */}
-        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-md border border-blue-100">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-white rounded-md shadow-sm">
-              <Calendar className="h-3.5 w-3.5 text-blue-600" />
+            <div className="p-1.5 bg-white rounded-md shadow">
+              <Calendar className="h-4 w-4 text-blue-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">Deadline</span>
+            <span className="text-sm font-medium text-blue-800">Deadline</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-gray-900">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-800">
               {formatDate(project.deadline)}
             </span>
             {daysLeft > 0 && (
               <Badge
                 variant="outline"
                 className={cn(
-                  "text-xs px-1.5 py-0.5 rounded-full font-medium border",
+                  "text-xs px-2 py-0.5 rounded-full font-medium border",
                   isUrgent
-                    ? "bg-orange-50 text-orange-600 border-orange-200"
-                    : "bg-blue-50 text-blue-600 border-blue-200"
+                    ? "bg-orange-100 text-orange-700 border-orange-300 animate-pulse"
+                    : "bg-blue-100 text-blue-700 border-blue-300"
                 )}
               >
-                <Timer className="h-2.5 w-2.5 mr-0.5" />
+                <Timer className="h-3 w-3 mr-1" />
                 {daysLeft}d
               </Badge>
             )}
@@ -127,14 +124,14 @@ const ProjectCard = ({ project }: { project: Project }) => {
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-3 mt-auto">
+      <CardFooter className="p-5 pt-3 mt-auto">
         <Button
-          className="w-full h-9 font-semibold cursor-pointer text-xs bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 group rounded-lg"
+          className="w-full h-10 font-medium text-sm bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white group rounded-lg shadow-sm"
           onClick={handleViewAndBid}
           aria-label="View and bid on project"
         >
           <span>View & Bid</span>
-          <ArrowRight className="h-3.5 w-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform duration-200" />
+          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
         </Button>
       </CardFooter>
     </Card>

@@ -28,8 +28,8 @@ const BrowseProjects = () => {
   }
 
   return (
-    <section className="space-y-6 p-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-100 border border-gray-200 rounded-lg px-4 py-3">
+    <section className="space-y-6 p-4 min-h-screen">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-blue-100 rounded-lg px-4 py-3 shadow-sm">
         <h1 className="text-lg font-semibold text-gray-800">Browse Projects</h1>
         <ProjectFilters
           onSearch={setSearchText}
@@ -38,9 +38,8 @@ const BrowseProjects = () => {
         />
       </div>
 
-      {/* Results Summary */}
       {!error && (
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-gray-700 px-1">
           <span>
             {openProjects.length} open project
             {openProjects.length !== 1 ? "s" : ""} found

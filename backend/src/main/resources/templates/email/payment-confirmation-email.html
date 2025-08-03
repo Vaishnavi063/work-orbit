@@ -39,7 +39,12 @@
             gap: 6px;
         }
 
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
         .dot.red { background: #ff5f56; }
         .dot.yellow { background: #ffbd2e; }
         .dot.green { background: #27ca3f; }
@@ -53,6 +58,15 @@
         .terminal-body {
             padding: 24px;
             line-height: 1.6;
+        }
+
+        .ascii-art {
+            color: #00ff88;
+            font-size: 10px;
+            line-height: 1;
+            margin: 20px 0;
+            text-align: center;
+            white-space: pre;
         }
 
         .prompt {
@@ -104,6 +118,7 @@
         @media (max-width: 640px) {
             body { padding: 10px; }
             .terminal-body { padding: 16px; }
+            .ascii-art { font-size: 8px; }
         }
     </style>
 </head>
@@ -119,6 +134,16 @@
     </div>
 
     <div class="terminal-body">
+
+        <pre class="ascii-art">
+   ██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗ ██████╗ ██████╗ ██████╗ ██╗████████╗
+   ██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝██╔═══██╗██╔══██╗██╔══██╗██║╚══██╔══╝
+██║ █╗ ██║██║   ██║██████╔╝█████╔╝ ██║   ██║██████╔╝██████╔╝██║   ██║
+██║███╗██║██║   ██║██╔══██╗██╔═██╗ ██║   ██║██╔══██╗██╔══██╗██║   ██║
+╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗╚██████╔╝██║  ██║██████╔╝██║   ██║
+ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝   ╚═╝
+        </pre>
+
         <div class="prompt">workorbit@wallet:~$</div>
         <div class="command">confirm-payment --txn=<span th:text="${transactionId}">txn_ABC123</span></div>
         <div class="output">

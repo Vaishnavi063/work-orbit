@@ -11,12 +11,10 @@ const useResetPassword = () => {
   const { mutate, isLoading } = useMutation({
     mutationFn: ({ data }: { data: { token: string; password: string } }) =>
       apis.resetPassword({ data }),
-    onSuccess: ({ data: response }) => {
+    onSuccess: () => {
       toast.success("Password reset successful", {
         description: "You can now sign in with your new password"
       });
-      console.log("RESET PASSWORD DATA -> ", response);
-      // Redirect to sign-in page after successful reset
       setTimeout(() => {
         navigate("/auth/sign-in");
       }, 2000);

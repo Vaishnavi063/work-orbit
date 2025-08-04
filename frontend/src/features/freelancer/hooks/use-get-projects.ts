@@ -3,9 +3,8 @@ import useAuth from "@/hooks/use-auth";
 import { useQuery } from "react-query";
 import apis from "../apis";
 import { toast } from "sonner";
-import type { SortConfig } from "../components/projects-filters";
 
-const useGetProjects = (searchText = "", sortConfig: SortConfig) => {
+const useGetProjects = (searchText = "") => {
   const { authToken } = useAuth();
 
   const {
@@ -14,15 +13,11 @@ const useGetProjects = (searchText = "", sortConfig: SortConfig) => {
     data: response,
     error,
   } = useQuery({
-    queryKey: ["GET_PROJECTS", searchText, sortConfig.sortBy, sortConfig.sortDir],
+    queryKey: ["GET_PROJECTS", searchText],
     queryFn: () =>
       apis.getProjects({
         authToken,
-        params: { 
-          q: searchText,
-          sortBy: sortConfig.sortBy,
-          sortDir: sortConfig.sortDir
-        },
+        params: { q: searchText },
       }),
     onError: (err: any) => {
       toast.error("ERROR", {

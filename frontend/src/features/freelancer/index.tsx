@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useGetProjects from "./hooks/use-get-projects";
 import ProjectCard from "./components/project-card";
 import ProjectFilters, { type SortConfig } from "./components/projects-filters";
@@ -12,12 +12,29 @@ const BrowseProjects = () => {
     sortDir: "desc",
   });
 
-  const { projects, isLoading, error } = useGetProjects(searchText, sortConfig);
+  const { projects, isLoading, error } = useGetProjects(searchText);
 
   const safeProjects = Array.isArray(projects) ? projects : [];
   const openProjects = safeProjects.filter(
     (project) => project.status === "OPEN"
   );
+
+  const sortedProjects = useMemo(() => {
+    const sorted = [...openProjects];
+    const { sortBy, sortDir } = sortConfig;
+
+    return sorted.sort((a, b) => {
+      let valA = a[sortBy];
+      let valB = b[sortBy];
+
+      if (typeof valA === "string") valA = valA.toLowerCase();
+      if (typeof valB === "string") valB = valB.toLowerCase();
+
+      if (valA < valB) return sortDir === "asc" ? -1 : 1;
+      if (valA > valB) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [openProjects, sortConfig]);
 
   const handleSortChange = (newSortConfig: SortConfig) => {
     setSortConfig(newSortConfig);
@@ -41,8 +58,8 @@ const BrowseProjects = () => {
       {!error && (
         <div className="flex items-center justify-between text-sm text-gray-700 px-1">
           <span>
-            {openProjects.length} open project
-            {openProjects.length !== 1 ? "s" : ""} found
+            {sortedProjects.length} open project
+            {sortedProjects.length !== 1 ? "s" : ""} found
           </span>
           <span className="hidden sm:inline">
             Sorted by {sortConfig.sortBy} (
@@ -55,7 +72,7 @@ const BrowseProjects = () => {
         <div className="w-full text-red-500 font-medium text-center py-8">
           Failed to load projects. Please try again.
         </div>
-      ) : openProjects.length === 0 ? (
+      ) : sortedProjects.length === 0 ? (
         <div className="w-full text-gray-500 text-center py-8">
           {searchText
             ? `No open projects found for "${searchText}".`
@@ -63,7 +80,7 @@ const BrowseProjects = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          {openProjects.map((project: Project) => (
+          {sortedProjects.map((project: Project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>

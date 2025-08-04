@@ -1,31 +1,42 @@
 package com.workorbit.backend.Chat.Service;
 
-import com.workorbit.backend.Chat.DTO.*;
-import com.workorbit.backend.Chat.Entity.ChatMessage;
-import com.workorbit.backend.Chat.Entity.ChatRoom;
-import com.workorbit.backend.Chat.Repository.ChatMessageRepository;
-import com.workorbit.backend.Chat.Repository.ChatRoomRepository;
-import com.workorbit.backend.Entity.*;
-import com.workorbit.backend.Repository.*;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Propagation;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.workorbit.backend.Chat.DTO.BidDetailsResponse;
+import com.workorbit.backend.Chat.DTO.ChatMessageRequest;
+import com.workorbit.backend.Chat.DTO.ChatMessageResponse;
+import com.workorbit.backend.Chat.DTO.ChatRoomResponse;
+import com.workorbit.backend.Chat.DTO.ContractDetailsResponse;
+import com.workorbit.backend.Chat.Entity.ChatMessage;
+import com.workorbit.backend.Chat.Entity.ChatRoom;
+import com.workorbit.backend.Chat.Repository.ChatMessageRepository;
+import com.workorbit.backend.Chat.Repository.ChatRoomRepository;
+import com.workorbit.backend.Entity.Bids;
+import com.workorbit.backend.Entity.Client;
+import com.workorbit.backend.Entity.Contract;
+import com.workorbit.backend.Entity.Freelancer;
+import com.workorbit.backend.Entity.Project;
+import com.workorbit.backend.Repository.BidRepository;
+import com.workorbit.backend.Repository.ClientRepository;
+import com.workorbit.backend.Repository.ContractRepository;
+import com.workorbit.backend.Repository.FreelancerRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Implementation of ChatService for managing chat operations including room
- * creation,
- * message handling, and real-time communication integration.
+ * creation, message handling, and real-time communication integration.
  */
 @Slf4j
 @Service
@@ -140,7 +151,6 @@ public class ChatServiceImpl implements ChatService {
         chatRoomRepository.save(chatRoom);
 
         // Real-time message delivery will be handled by polling mechanism
-
         return mapToMessageResponse(savedMessage);
     }
 
@@ -359,8 +369,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     /**
-     * Legacy method maintained for backward compatibility.
-     * Now delegates to convertToContractChat.
+     * Legacy method maintained for backward compatibility. Now delegates to
+     * convertToContractChat.
      */
     @Override
     @Transactional
@@ -388,9 +398,9 @@ public class ChatServiceImpl implements ChatService {
 
         // Determine if user can accept/reject (only clients can, and only for pending
         // bids)
-        boolean canAccept = "CLIENT".equals(userType) &&
-                bid.getStatus() == Bids.bidStatus.Pending &&
-                bid.getProject().getClient().getId().equals(userId);
+        boolean canAccept = "CLIENT".equals(userType)
+                && bid.getStatus() == Bids.bidStatus.Pending
+                && bid.getProject().getClient().getId().equals(userId);
         boolean canReject = canAccept; // Same conditions for reject
 
         return BidDetailsResponse.builder()

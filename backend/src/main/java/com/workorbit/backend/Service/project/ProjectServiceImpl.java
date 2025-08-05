@@ -56,24 +56,17 @@ public class ProjectServiceImpl implements ProjectService {
         return toDTO(saved);
     }
 
+    // ProjectServiceImpl.java
+
     @Override
-    public List<ProjectDTO> getAllProjects(String query, String sortBy, String sortDirection) {
-        log.info("Fetching all projects with query: '{}', sortBy: '{}', sortDirection: '{}'",
-                query, sortBy, sortDirection);
-
-        String validatedSortBy = validateSortField(sortBy);
-        Sort.Direction direction = validateSortDirection(sortDirection);
-
-
-        Sort sort = Sort.by(direction, validatedSortBy);
+    public List<ProjectDTO> getAllProjects(String query) {
+        log.info("Fetching all projects with query: '{}'", query);
 
         List<Project> projects;
-
         if (query == null || query.trim().isEmpty()) {
-            projects = projectRepository.findAll(sort);
+            projects = projectRepository.findAll();
         } else {
-
-            projects = projectRepository.findProjectsWithSearch(query.trim(), sort);
+            projects = projectRepository.findProjectsWithSearch(query.trim());
         }
 
         log.info("Found {} projects", projects.size());

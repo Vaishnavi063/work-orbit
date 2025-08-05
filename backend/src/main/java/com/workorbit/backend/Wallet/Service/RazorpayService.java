@@ -4,6 +4,9 @@ import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
+import com.workorbit.backend.Auth.Service.EmailService;
+import com.workorbit.backend.Entity.Client;
+import com.workorbit.backend.Repository.ClientRepository;
 import com.workorbit.backend.Wallet.DTO.AddMoneyOrderRequest;
 import com.workorbit.backend.Wallet.DTO.RazorpayOrderResponse;
 import com.workorbit.backend.Wallet.DTO.VerifyPaymentRequest;
@@ -37,6 +40,8 @@ public class RazorpayService {
 
     private final WalletService walletService;
     private final WalletTransactionRepository transactionRepository;
+    private final EmailService emailService;
+    private final ClientRepository clientRepository;
 
     public RazorpayOrderResponse createWalletTopupOrder(AddMoneyOrderRequest request) throws RazorpayException {
         log.info("Creating Razorpay order for userId: {}, amount: {}", request.getUserId(), request.getAmount());
@@ -58,7 +63,6 @@ public class RazorpayService {
             notes.put("purpose", "wallet_topup");
             orderRequest.put("notes", notes);
 
-            // Create order
             Order order = razorpayClient.orders.create(orderRequest);
 
             log.info("✅ Razorpay order created successfully: {}", (String) order.get("id"));
@@ -101,6 +105,21 @@ public class RazorpayService {
                     request.getAmount(),
                     request.getRazorpayPaymentId(),
                     request.getRazorpayOrderId()
+            );
+
+            Client client = clientRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Client not found with ID: " + request.getUserId()));
+
+            String email = client.getAppUser().getEmail();
+            String fullName = client.getName(); // or getName()
+
+            // 5. ✅ Trigger payment confirmation email
+            emailService.sendPaymentConfirmationEmail(
+                    email,
+                    fullName,
+                    request.getAmount(),
+                    request.getRazorpayPaymentId(),
+                    "Razorpay"
             );
 
             log.info("✅ Payment verified and money added successfully for userId: {}", request.getUserId());

@@ -38,8 +38,6 @@ const UpdateProposalDialog = ({
 
   const { user, authToken } = useAuth();
 
-  console.log("FREELancer");
-
   const { mutate: updateBid, isLoading } = useMutation({
     mutationFn: (updateData: {
       projectId: string;

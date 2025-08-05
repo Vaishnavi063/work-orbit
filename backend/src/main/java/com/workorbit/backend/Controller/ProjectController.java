@@ -126,30 +126,9 @@ public class ProjectController {
     })
     @GetMapping
     public ResponseEntity<com.workorbit.backend.DTO.ApiResponse<List<ProjectDTO>>> getAllProjects(
-            @Parameter(
-                    description = "Search query to filter projects by title or description",
-                    required = false,
-                    example = "web development"
-            )
-            @RequestParam(value = "q", required = false) String query,
-
-            @Parameter(
-                    description = "Sort field - budget or deadline",
-                    required = false,
-                    example = "budget",
-                    schema = @Schema(allowableValues = {"budget", "deadline"})
-            )
-            @RequestParam(value = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
-
-            @Parameter(
-                    description = "Sort direction - asc or desc",
-                    required = false,
-                    example = "desc",
-                    schema = @Schema(allowableValues = {"asc", "desc"})
-            )
-            @RequestParam(value = "sortDir", required = false, defaultValue = "desc") String sortDirection
+            @RequestParam(value = "q", required = false) String query
     ) {
-        List<ProjectDTO> projects = projectService.getAllProjects(query, sortBy, sortDirection);
+        List<ProjectDTO> projects = projectService.getAllProjects(query);
         return ResponseEntity.status(HttpStatus.OK).body(com.workorbit.backend.DTO.ApiResponse.success(projects));
     }
 

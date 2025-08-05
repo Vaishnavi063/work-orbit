@@ -48,13 +48,10 @@ export const AddMoneyDialog = ({ userId, refetchDetails }: Props) => {
   const [amount, setAmount] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  // Mutation for creating Razorpay order
   const { isLoading: isCreatingOrder, mutate: createOrder } = useMutation({
-    mutationFn: (data: AddMoneyOrderRequest) => 
+    mutationFn: (data: AddMoneyOrderRequest) =>
       apis.createAddMoneyOrder({ data, authToken: authToken as string }),
     onSuccess: (response: any) => {
-      console.log('🔍 Full API response:', response);
-
       openRazorpayPayment(response.data.data);
     },
     onError: (error: any) => {
@@ -63,9 +60,8 @@ export const AddMoneyDialog = ({ userId, refetchDetails }: Props) => {
     },
   });
 
-  // Mutation for verifying payment
   const { isLoading: isVerifyingPayment, mutate: verifyPayment } = useMutation({
-    mutationFn: (data: VerifyPaymentRequest) => 
+    mutationFn: (data: VerifyPaymentRequest) =>
       apis.verifyPayment({ data, authToken: authToken as string }),
     onSuccess: () => {
       toast.success("🎉 Money added successfully!");
@@ -80,41 +76,25 @@ export const AddMoneyDialog = ({ userId, refetchDetails }: Props) => {
   });
 
   const openRazorpayPayment = (orderData: RazorpayOrderResponse) => {
-    console.log('📦 Received order data:', orderData);
-    console.log('📦 Order data type:', typeof orderData);
-    console.log('📦 Order data keys:', Object.keys(orderData));
-    
-    // Check each required field
-    console.log('🔍 Validation check:');
-    console.log('- orderId:', orderData.orderId, typeof orderData.orderId);
-    console.log('- razorpayKey:', orderData.razorpayKey, typeof orderData.razorpayKey);
-    console.log('- amount:', orderData.amount, typeof orderData.amount);
-    console.log('- userId:', orderData.userId, typeof orderData.userId);
-
-    // Your existing validation code...
     if (!orderData.orderId || !orderData.razorpayKey || !orderData.amount) {
-      console.error('❌ Missing required order data:', {
+      console.error("❌ Missing required order data:", {
         orderId: !!orderData.orderId,
         razorpayKey: !!orderData.razorpayKey,
         amount: !!orderData.amount,
-        userId: !!orderData.userId
+        userId: !!orderData.userId,
       });
       toast.error("Invalid order data received");
       return;
     }
-  
-    // Use the EXACT same pattern as your working test
+
     const options = {
       key: orderData.razorpayKey,
-      amount: Math.round(orderData.amount * 100), // Ensure it's an integer
-      currency: orderData.currency || 'INR',
+      amount: Math.round(orderData.amount * 100),
+      currency: orderData.currency || "INR",
       order_id: orderData.orderId,
-      name: orderData.companyName || 'WorkOrbit',
-      description: orderData.description || 'Add money to wallet',
-      handler: function(response: any) {
-        console.log('✅ Payment successful:', response);
-        
-        // Payment successful, now verify
+      name: orderData.companyName || "WorkOrbit",
+      description: orderData.description || "Add money to wallet",
+      handler: function (response: any) {
         const verificationData: VerifyPaymentRequest = {
           razorpayOrderId: response.razorpay_order_id,
           razorpayPaymentId: response.razorpay_payment_id,
@@ -123,7 +103,7 @@ export const AddMoneyDialog = ({ userId, refetchDetails }: Props) => {
           role: "CLIENT",
           amount: orderData.amount,
         };
-        
+
         verifyPayment(verificationData);
       },
       prefill: {
@@ -134,28 +114,17 @@ export const AddMoneyDialog = ({ userId, refetchDetails }: Props) => {
         color: "#3B82F6",
       },
       modal: {
-        ondismiss: function() {
-          console.log('❌ Payment cancelled by user');
+        ondismiss: function () {
           toast.info("Payment cancelled");
         },
       },
     };
-  
-    console.log('🚀 Creating Razorpay with options:', {
-      key: options.key,
-      amount: options.amount,
-      order_id: options.order_id,
-      name: options.name
-    });
-  
+
     try {
-      // Use the exact same approach as your working test
       const razorpay = new window.Razorpay(options);
-      console.log('✅ Razorpay instance created:', razorpay);
       razorpay.open();
-      console.log('✅ Razorpay opened successfully');
     } catch (error) {
-      console.error('❌ Error creating/opening Razorpay:', error);
+      console.error("❌ Error creating/opening Razorpay:", error);
       toast.error("Failed to open payment gateway. Please try again.");
     }
   };

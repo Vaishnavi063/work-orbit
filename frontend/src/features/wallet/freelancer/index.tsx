@@ -48,7 +48,6 @@ const RevenueDetail = () => {
     async (amount: number) => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        console.log(`Withdrawing ${formatCurrency(amount)}`);
 
         setRevenueData((prev) =>
           prev

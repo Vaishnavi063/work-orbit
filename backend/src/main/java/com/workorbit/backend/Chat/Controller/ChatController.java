@@ -34,10 +34,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * REST controller for managing chat operations including message sending,
- * chat history retrieval, and real-time communication setup.
- */
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
@@ -49,12 +45,6 @@ public class ChatController {
     private final MilestoneService milestoneService;
     private final ChatRoomRepository chatRoomRepository;
 
-    /**
-     * Sends a message in a chat room.
-     * 
-     * @param request the message request containing chat room ID and content
-     * @return the created message response with actual message ID
-     */
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
             @Valid @RequestBody ChatMessageRequest request) {
@@ -69,7 +59,6 @@ public class ChatController {
             log.info("Message sent successfully by user {} in chat room {} with ID {}", 
                 userDetails.getProfileId(), request.getChatRoomId(), response.getId());
             
-            // Return the actual message ID immediately for client-side tracking
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
                 
@@ -88,13 +77,7 @@ public class ChatController {
         }
     }
 
-    /**
-     * Retrieves chat history for a specific chat room with pagination.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @param pageable pagination parameters
-     * @return paginated list of chat messages
-     */
+
     @GetMapping("/rooms/{chatRoomId}/messages")
     public ResponseEntity<ApiResponse<Page<ChatMessageResponse>>> getChatHistory(
             @PathVariable Long chatRoomId,
@@ -123,13 +106,6 @@ public class ChatController {
         }
     }
     
-    /**
-     * Retrieves new messages since a specific timestamp for polling.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @param since the timestamp to retrieve messages from
-     * @return list of new messages since the specified timestamp
-     */
     @GetMapping("/rooms/{chatRoomId}/messages/since")
     public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getNewMessages(
             @PathVariable Long chatRoomId,
@@ -158,11 +134,6 @@ public class ChatController {
         }
     }
 
-    /**
-     * Retrieves all chat rooms for the current user.
-     * 
-     * @return list of chat rooms with metadata
-     */
     @GetMapping("/rooms/user")
     public ResponseEntity<ApiResponse<List<ChatRoomResponse>>> getUserChatRooms() {
         
@@ -185,11 +156,6 @@ public class ChatController {
         }
     }
 
-    /**
-     * Retrieves active chat rooms for the current user.
-     * 
-     * @return list of active chat rooms
-     */
     @GetMapping("/rooms/active")
     public ResponseEntity<ApiResponse<List<ChatRoomResponse>>> getActiveChatRooms() {
         
@@ -212,12 +178,6 @@ public class ChatController {
         }
     }
 
-    /**
-     * Marks all unread messages in a chat room as read.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @return success response with count of messages marked as read
-     */
     @PostMapping("/rooms/{chatRoomId}/read")
     public ResponseEntity<ApiResponse<String>> markAsRead(@PathVariable Long chatRoomId) {
         
@@ -241,12 +201,6 @@ public class ChatController {
         }
     }
 
-    /**
-     * Creates or retrieves a chat room for bid negotiation.
-     * 
-     * @param request the bid chat room creation request
-     * @return the chat room response
-     */
     @PostMapping("/rooms/bid")
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createBidChatRoom(
             @RequestBody Map<String, Long> request) {
@@ -275,12 +229,7 @@ public class ChatController {
         }
     }
 
-    /**
-     * Creates or retrieves a chat room for contract management.
-     * 
-     * @param request the contract chat room creation request
-     * @return the chat room response
-     */
+
     @PostMapping("/rooms/contract")
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createContractChatRoom(
             @RequestBody Map<String, Long> request) {
@@ -310,13 +259,6 @@ public class ChatController {
     }
 
 
-
-    /**
-     * Accepts a bid through the chat interface and transitions the chat to contract mode.
-     * 
-     * @param bidId the ID of the bid to accept
-     * @return success response with chat transition details
-     */
     @PostMapping("/bid/{bidId}/accept")
     public ResponseEntity<ApiResponse<ChatRoomResponse>> acceptBidInChat(@PathVariable Long bidId) {
         
@@ -324,24 +266,20 @@ public class ChatController {
             AppUserDetails userDetails = getCurrentUserDetails();
             String userType = getUserType(userDetails);
             
-            // Validate that only clients can accept bids
             if (!"CLIENT".equals(userType)) {
                 throw new ChatAccessDeniedException("Only clients can accept bids");
             }
             
             log.info("Accepting bid {} through chat interface by client {}", bidId, userDetails.getProfileId());
             
-            // This will create the contract and handle chat conversion automatically
             Long contractId = bidService.acceptBid(bidId, userDetails.getProfileId());
             
             log.info("Bid {} accepted successfully, contract {} created", bidId, contractId);
             
-            // Find the converted contract chat room
             ChatRoom contractChatRoom = chatRoomRepository.findByChatTypeAndReferenceId(
                 ChatRoom.ChatType.CONTRACT, contractId)
                 .orElseThrow(() -> new RuntimeException("Contract chat room not found after bid acceptance"));
             
-            // Get the updated chat room response
             ChatRoomResponse chatRoomResponse = chatService.getChatRoomResponse(
                 contractChatRoom, userDetails.getProfileId(), userType);
             
@@ -365,12 +303,7 @@ public class ChatController {
         }
     }
 
-    /**
-     * Rejects a bid through the chat interface and closes the chat.
-     * 
-     * @param bidId the ID of the bid to reject
-     * @return success response with chat closure confirmation
-     */
+
     @PostMapping("/bid/{bidId}/reject")
     public ResponseEntity<ApiResponse<String>> rejectBidInChat(@PathVariable Long bidId) {
         
@@ -378,15 +311,12 @@ public class ChatController {
             AppUserDetails userDetails = getCurrentUserDetails();
             String userType = getUserType(userDetails);
             
-            // Validate that only clients can reject bids
             if (!"CLIENT".equals(userType)) {
                 throw new ChatAccessDeniedException("Only clients can reject bids");
             }
             
-            // Delegate to BidService for bid rejection
             bidService.rejectBid(bidId, userDetails.getProfileId());
             
-            // Close the bid chat
             chatService.closeBidChat(bidId);
             
             log.info("Bid {} rejected by client {} and chat closed", 
@@ -413,12 +343,7 @@ public class ChatController {
         }
     }
 
-    /**
-     * Gets bid details for a bid negotiation chat room.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @return bid details response
-     */
+
     @GetMapping("/rooms/{chatRoomId}/bid-details")
     public ResponseEntity<ApiResponse<BidDetailsResponse>> getBidDetailsForChat(@PathVariable Long chatRoomId) {
         
@@ -441,12 +366,6 @@ public class ChatController {
         }
     }
 
-    /**
-     * Gets contract details for a contract chat room.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @return contract details response
-     */
     @GetMapping("/rooms/{chatRoomId}/contract-details")
     public ResponseEntity<ApiResponse<ContractDetailsResponse>> getContractDetailsForChat(@PathVariable Long chatRoomId) {
         
@@ -469,12 +388,7 @@ public class ChatController {
         }
     }
     
-    /**
-     * Gets milestone details for a contract chat room.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @return list of milestone responses
-     */
+
     @GetMapping("/rooms/{chatRoomId}/milestones")
     public ResponseEntity<ApiResponse<List<MilestoneResponse>>> getMilestonesForChat(@PathVariable Long chatRoomId) {
         
@@ -549,12 +463,7 @@ public class ChatController {
         }
     }
     
-    /**
-     * Gets overdue milestones for a contract chat room.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @return list of overdue milestone responses
-     */
+
     @GetMapping("/rooms/{chatRoomId}/overdue-milestones")
     public ResponseEntity<ApiResponse<List<MilestoneResponse>>> getOverdueMilestonesForChat(@PathVariable Long chatRoomId) {
         
@@ -589,14 +498,7 @@ public class ChatController {
         }
     }
     
-    /**
-     * Sends a milestone-related notification to a contract chat.
-     * This endpoint allows direct milestone notifications from the frontend.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @param request the notification request containing the message
-     * @return success response
-     */
+
     @PostMapping("/rooms/{chatRoomId}/milestone-notification")
     public ResponseEntity<ApiResponse<String>> sendMilestoneNotification(
             @PathVariable Long chatRoomId,
@@ -606,10 +508,8 @@ public class ChatController {
             AppUserDetails userDetails = getCurrentUserDetails();
             String userType = getUserType(userDetails);
             
-            // Validate chat room access
             ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
             
-            // Validate that this is a contract chat
             if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Milestone notifications can only be sent in contract chats"));
@@ -621,7 +521,6 @@ public class ChatController {
                     .body(ApiResponse.error("Notification message is required"));
             }
             
-            // Send the milestone notification
             chatService.sendSystemNotification(chatRoomId, notification, ChatMessage.MessageType.MILESTONE_UPDATE);
             
             log.info("Milestone notification sent to chat room {} by user {}: {}", 
@@ -635,14 +534,7 @@ public class ChatController {
                 .body(ApiResponse.error("Failed to send milestone notification: " + e.getMessage()));
         }
     }
-    
-    /**
-     * Creates a milestone directly from the chat interface.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @param request the milestone creation request
-     * @return the created milestone response
-     */
+
     @PostMapping("/rooms/{chatRoomId}/create-milestone")
     public ResponseEntity<ApiResponse<MilestoneResponse>> createMilestoneFromChat(
             @PathVariable Long chatRoomId,
@@ -652,19 +544,15 @@ public class ChatController {
             AppUserDetails userDetails = getCurrentUserDetails();
             String userType = getUserType(userDetails);
             
-            // Validate chat room access
             ChatRoom chatRoom = chatService.findChatRoomById(chatRoomId, userDetails.getProfileId(), userType);
             
-            // Validate that this is a contract chat
             if (chatRoom.getChatType() != ChatRoom.ChatType.CONTRACT) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Milestones can only be created in contract chats"));
             }
             
-            // Get contract ID from chat room
             Long contractId = chatRoom.getReferenceId();
             
-            // Create the milestone
             MilestoneResponse response = milestoneService.createMilestone(contractId, request);
             
             log.info("Milestone created from chat room {} for contract {} by user {}: {}", 
@@ -680,14 +568,7 @@ public class ChatController {
         }
     }
     
-    /**
-     * Updates a milestone status directly from the chat interface.
-     * 
-     * @param chatRoomId the ID of the chat room
-     * @param milestoneId the ID of the milestone
-     * @param request the milestone status update request
-     * @return the updated milestone response
-     */
+
     @PutMapping("/rooms/{chatRoomId}/milestones/{milestoneId}/status")
     public ResponseEntity<ApiResponse<MilestoneResponse>> updateMilestoneStatusFromChat(
             @PathVariable Long chatRoomId,
@@ -722,12 +603,7 @@ public class ChatController {
         }
     }
 
-    /**
-     * Gets the current authenticated user details.
-     * 
-     * @return the current user details
-     * @throws RuntimeException if user is not authenticated
-     */
+
     private AppUserDetails getCurrentUserDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
@@ -739,12 +615,7 @@ public class ChatController {
         return (AppUserDetails) authentication.getPrincipal();
     }
 
-    /**
-     * Determines the user type based on user authorities.
-     * 
-     * @param userDetails the user details
-     * @return "CLIENT" or "FREELANCER"
-     */
+
     private String getUserType(AppUserDetails userDetails) {
         return userDetails.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals(Role.ROLE_CLIENT.toString())) 

@@ -83,8 +83,6 @@ const BidList: React.FC<BidListProps> = ({
   const { handleError, handleSuccess } = useErrorHandler();
   const { walletDetails } = useGetWalletDetails();
 
-  console.log("BIDS: ", bids);
-
   const [actioningBidId, setActioningBidId] = useState<number | null>(null);
 
   const handleBidAction = async (
@@ -323,12 +321,12 @@ const BidCard: React.FC<BidCardProps> = ({
             <Eye className="w-4 h-4 text-green-700" />
             View Freelancer
           </Button>
-                    <ChatButton 
-                        bidId={bid.bidId}
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-foreground"
-                    />
+          <ChatButton
+            bidId={bid.bidId}
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+          />
         </div>
       </CardHeader>
 

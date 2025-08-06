@@ -1,12 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { ChatList } from './ChatList';
 import { ChatDetail } from './ChatDetail';
-import { fetchUserChatRooms } from '@/store/slices/chat-slice';
-import type { AppDispatch, RootState } from '@/store';
+import { useChatPolling } from '@/hooks/use-chat-polling';
 
 const ChatPage: React.FC = () => {
   return (
@@ -20,14 +18,13 @@ const ChatPage: React.FC = () => {
 };
 
 const ChatListPage: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { authToken } = useSelector((state: RootState) => state.auth);
-  
-  useEffect(() => {
-    if (authToken) {
-      dispatch(fetchUserChatRooms({ authToken }));
-    }
-  }, [authToken, dispatch]);
+  // Use centralized chat polling service for initial data loading
+  useChatPolling({
+    fetchType: 'all',
+    visibleInterval: 10000,
+    hiddenInterval: 30000,
+    enabled: true
+  });
   
   return (
     <div className="h-full flex flex-col">

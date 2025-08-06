@@ -1,6 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 
 import {
@@ -13,19 +12,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useAuth from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { ChatNotification } from "@/components/shared/chat-notification";
-import { fetchUserChatRooms } from "@/store/slices/chat-slice";
-import type { AppDispatch } from "@/store";
+import { useChatPolling } from "@/hooks/use-chat-polling";
 
 const Header = () => {
   const { user } = useAuth();
-  const dispatch = useDispatch<AppDispatch>();
   const { authToken } = useSelector((state: RootState) => state.auth);
   
-  useEffect(() => {
-    if (authToken) {
-      dispatch(fetchUserChatRooms({ authToken }));
-    }
-  }, [authToken, dispatch]);
+  // Use centralized chat polling service for initial chat data loading
+  useChatPolling({
+    fetchType: 'all',
+    visibleInterval: 10000,
+    hiddenInterval: 30000,
+    enabled: !!authToken
+  });
 
   return (
     <header className="flex h-16 shrink-0 px-4 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-16 border-b w-full print:hidden">

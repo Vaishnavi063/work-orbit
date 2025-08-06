@@ -1,42 +1,28 @@
-import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchUserChatRooms, selectTotalUnreadCount } from '@/store/slices/chat-slice';
-import type { RootState, AppDispatch } from '@/store';
+import { useSelector } from 'react-redux';
+import { selectTotalUnreadCount } from '@/store/slices/chat-slice';
+import { useChatPolling } from '@/hooks/use-chat-polling';
 
 interface UseUnreadMessagesProps {
   pollingInterval?: number;
 }
 
 /**
- * Hook for managing unread message counts with polling
+ * Hook for managing unread message counts with centralized polling
+ * Now uses the centralized ChatPollingService for efficient polling
  */
 export const useUnreadMessages = ({ 
   pollingInterval = 30000 // Default to 30 seconds
 }: UseUnreadMessagesProps = {}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { authToken } = useSelector((state: RootState) => state.auth);
   const totalUnreadCount = useSelector(selectTotalUnreadCount);
-  const [isPolling, setIsPolling] = useState<boolean>(false);
   
-  // Start polling for unread messages
-  useEffect(() => {
-    if (!authToken) return;
-    
-    // Initial fetch
-    dispatch(fetchUserChatRooms({ authToken }));
-    setIsPolling(true);
-    
-    // Set up polling interval
-    const intervalId = setInterval(() => {
-      dispatch(fetchUserChatRooms({ authToken }));
-    }, pollingInterval);
-    
-    // Clean up on unmount
-    return () => {
-      clearInterval(intervalId);
-      setIsPolling(false);
-    };
-  }, [authToken, dispatch, pollingInterval]);
+  // Use centralized chat polling service
+  // Convert pollingInterval to visible/hidden intervals for backward compatibility
+  const { isPolling } = useChatPolling({
+    fetchType: 'all',
+    visibleInterval: pollingInterval,
+    hiddenInterval: pollingInterval,
+    enabled: true
+  });
   
   return {
     totalUnreadCount,

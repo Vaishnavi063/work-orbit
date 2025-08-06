@@ -1,90 +1,79 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery } from "react-query";
 import { getProjectCounts } from "@/apis";
-import type { ProjectCountResponse } from "@/types";
-
-interface ProjectCountsState {
-  counts: ProjectCountResponse[];
-  totalActiveProjects: number;
-  isLoading: boolean;
-  error: string | null;
-}
+import { CATEGORIES } from "@/constants/categories";
+import type { CategoryType } from "@/types";
+import type { ProjectCountResponse } from "@/types/api";
 
 /**
- * Custom hook to manage project counts loading state and data fetching
- * Implements single API call on component mount with error handling and retry logic
+ * Custom hook to manage project counts using React Query
+ * Implements automatic deduplication, caching, and refetching
  */
 export const useProjectCounts = () => {
-  const [state, setState] = useState<ProjectCountsState>({
-    counts: [],
-    totalActiveProjects: 0,
-    isLoading: true,
-    error: null,
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery('projectCounts', getProjectCounts, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    retry: false, // Don't retry on failure
+    refetchOnMount: false // Don't refetch when component mounts again
   });
 
   /**
-   * Fetches project counts with error handling and state management
-   */
-  const fetchProjectCounts = useCallback(async () => {
-    setState(prev => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-    }));
-
-    try {
-      const response = await getProjectCounts();
-      
-      setState({
-        counts: response.counts || [],
-        totalActiveProjects: response.totalActiveProjects || 0,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Failed to fetch project counts";
-
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage,
-      }));
-
-    }
-  }, []);
-
-  /**
-   * Manual retry function for failed requests
-   */
-  const retry = useCallback(() => {
-    fetchProjectCounts();
-  }, [fetchProjectCounts]);
-
-  /**
    * Get project count for a specific category ID
-   * Returns the actual count from backend or 0 if not found
+   * Returns the actual count from backend or fallback data if error/not found
    */
   const getCountForCategory = useCallback((categoryId: number): number => {
-    const categoryCount = state.counts.find(count => count.categoryId === categoryId);
-    // Return the actual count or 0 if not found
+    // If there was an error, use fallback data from CATEGORIES
+    if (error) {
+      const category = CATEGORIES.find((cat: CategoryType) => cat.id === categoryId);
+      return category?.available || 0;
+    }
+    
+    // Otherwise use actual data from API
+    const categoryCount = data?.counts?.find(count => count.categoryId === categoryId);
     return categoryCount?.activeProjectCount || 0;
-  }, [state.counts]);
+  }, [data?.counts, error]);
 
-  // Fetch project counts on component mount (single API call as specified)
-  useEffect(() => {
-    fetchProjectCounts();
-  }, []); // Empty dependency array ensures single call on mount
-
+  // Calculate fallback data for when API fails
+  const getFallbackData = () => {
+    if (error) {
+      // Create a structure similar to the API response using CATEGORIES data
+      const fallbackCounts: ProjectCountResponse[] = CATEGORIES.map((cat: CategoryType) => ({
+        categoryId: cat.id,
+        activeProjectCount: cat.available,
+        lastUpdated: new Date()
+      }));
+      
+      // Sum up all available projects for total
+      const fallbackTotal: number = CATEGORIES.reduce((sum: number, cat: CategoryType) => sum + cat.available, 0);
+      
+      return {
+        counts: fallbackCounts,
+        totalActiveProjects: fallbackTotal
+      };
+    }
+    
+    return {
+      counts: data?.counts || [],
+      totalActiveProjects: data?.totalActiveProjects || 0
+    };
+  };
+  
+  const { counts, totalActiveProjects } = getFallbackData();
+  
   return {
     // State data
-    counts: state.counts,
-    totalActiveProjects: state.totalActiveProjects,
-    isLoading: state.isLoading,
-    error: state.error,
+    counts,
+    totalActiveProjects,
+    isLoading,
+    error: error ? (error instanceof Error ? error.message : 'Error fetching counts') : null,
     
     // Utility functions
-    retry,
+    retry: refetch,
     getCountForCategory,
   };
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { format, formatDistanceToNow } from "date-fns";
@@ -15,11 +15,11 @@ import { toast } from "sonner";
 
 import {
   fetchUserChatRooms,
-  fetchActiveChatRooms,
   selectChatRooms,
   selectChatLoading,
   selectChatError,
 } from "@/store/slices/chat-slice";
+import { useChatPolling } from "@/hooks/use-chat-polling";
 import type { AppDispatch, RootState } from "@/store";
 import type { ChatRoom } from "@/types";
 
@@ -47,7 +47,6 @@ interface ExtendedChatRoom extends ChatRoom {
 
 export const ChatList = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const chatRooms = useSelector(selectChatRooms);
   const loading = useSelector(selectChatLoading);
   const error = useSelector(selectChatError);
@@ -56,51 +55,13 @@ export const ChatList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("active");
 
-  // Fetch chat rooms based on active tab
-  const fetchChatRooms = useCallback(() => {
-    if (!authToken) return;
-
-    if (activeTab === "all") {
-      dispatch(fetchUserChatRooms({ authToken }));
-    } else {
-      dispatch(fetchActiveChatRooms({ authToken }));
-    }
-  }, [authToken, dispatch, activeTab]);
-
-  // Use ref to keep track of the interval ID
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Initial fetch and set up polling
-  useEffect(() => {
-    if (!authToken) return;
-
-    // Initial fetch
-    fetchChatRooms();
-
-    // Set up polling interval with adaptive frequency
-    // Poll more frequently when the tab is visible, less when hidden
-    const pollingInterval = document.hidden ? 30000 : 10000; // 10s when visible, 30s when hidden
-
-    intervalIdRef.current = setInterval(fetchChatRooms, pollingInterval);
-
-    // Update polling frequency when visibility changes
-    const handleVisibilityChange = () => {
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
-      }
-      const newPollingInterval = document.hidden ? 30000 : 10000;
-      intervalIdRef.current = setInterval(fetchChatRooms, newPollingInterval);
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
-      }
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [authToken, fetchChatRooms]);
+  // Use centralized chat polling service with configuration based on active tab
+  const { isPolling, error: pollingError } = useChatPolling({
+    fetchType: activeTab === "all" ? "all" : "active",
+    visibleInterval: 10000,  // 10 seconds when visible
+    hiddenInterval: 30000,   // 30 seconds when hidden
+    enabled: !!authToken,    // Only enable when authenticated
+  });
 
   const handleChatRoomClick = (chatRoomId: number) => {
     navigate(`/dashboard/chats/${chatRoomId}`);
@@ -167,7 +128,11 @@ export const ChatList = () => {
       <Tabs
         defaultValue="active"
         className="flex-1 flex flex-col"
-        onValueChange={setActiveTab}
+        onValueChange={(value) => {
+          setActiveTab(value);
+          // The useChatPolling hook will automatically update its configuration
+          // when activeTab changes due to the dependency in the fetchType prop
+        }}
       >
         <div className="px-4 pt-2 flex-shrink-0">
           <TabsList className="w-full">
@@ -189,7 +154,8 @@ export const ChatList = () => {
               (room) => room.status === "ACTIVE"
             )}
             isLoading={loading.chatRooms}
-            error={error.chatRooms}
+            error={error.chatRooms || pollingError}
+            isPolling={isPolling}
             onChatRoomClick={handleChatRoomClick}
             formatTime={formatTime}
             formatLastActive={formatLastActive}
@@ -200,7 +166,8 @@ export const ChatList = () => {
           <ChatRoomsList
             chatRooms={filteredChatRooms}
             isLoading={loading.chatRooms}
-            error={error.chatRooms}
+            error={error.chatRooms || pollingError}
+            isPolling={isPolling}
             onChatRoomClick={handleChatRoomClick}
             formatTime={formatTime}
             formatLastActive={formatLastActive}
@@ -215,6 +182,7 @@ interface ChatRoomsListProps {
   chatRooms: ExtendedChatRoom[];
   isLoading: boolean;
   error: string | null;
+  isPolling: boolean;
   onChatRoomClick: (chatRoomId: number) => void;
   formatTime: (dateString: string) => string;
   formatLastActive: (dateString: string) => string;
@@ -224,6 +192,7 @@ const ChatRoomsList = ({
   chatRooms,
   isLoading,
   error,
+  isPolling,
   onChatRoomClick,
   formatTime,
   formatLastActive,
@@ -279,8 +248,8 @@ const ChatRoomsList = ({
             }
           }}
         >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Retry
+          <RefreshCw className={`mr-2 h-4 w-4 ${isPolling ? 'animate-spin' : ''}`} />
+          {isPolling ? 'Connecting...' : 'Retry'}
         </Button>
       </div>
     );

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,57 +11,29 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchUserChatRooms, selectChatRooms, selectTotalUnreadCount, selectChatLoading } from '@/store/slices/chat-slice';
+import { selectChatRooms, selectTotalUnreadCount, selectChatLoading } from '@/store/slices/chat-slice';
 import { formatDistanceToNow } from 'date-fns';
-import type { AppDispatch, RootState } from '@/store';
+import { useChatPolling } from '@/hooks/use-chat-polling';
+import type { RootState } from '@/store';
 
 
 export const ChatNotification = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const chatRooms = useSelector(selectChatRooms);
   const totalUnreadCount = useSelector(selectTotalUnreadCount);
   const loading = useSelector(selectChatLoading);
   const { authToken } = useSelector((state: RootState) => state.auth);
   const [open, setOpen] = useState(false);
   
-  // Poll for chat updates when the popover is open
-  useEffect(() => {
-    let pollingInterval: NodeJS.Timeout | null = null;
-    
-    if (open && authToken) {
-      // Initial fetch
-      dispatch(fetchUserChatRooms({ authToken }));
-      
-      // Set up polling
-      pollingInterval = setInterval(() => {
-        dispatch(fetchUserChatRooms({ authToken }));
-      }, 10000); // Poll every 10 seconds when open
-    }
-    
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-    };
-  }, [open, authToken, dispatch]);
-  
-  // Background polling for notifications (less frequent)
-  useEffect(() => {
-    let backgroundInterval: NodeJS.Timeout | null = null;
-    
-    if (authToken) {
-      backgroundInterval = setInterval(() => {
-        dispatch(fetchUserChatRooms({ authToken }));
-      }, 30000); // Poll every 30 seconds in the background
-    }
-    
-    return () => {
-      if (backgroundInterval) {
-        clearInterval(backgroundInterval);
-      }
-    };
-  }, [authToken, dispatch]);
+  // Use centralized chat polling service with adaptive behavior
+  // When popover is open: 10-second polling
+  // When popover is closed: 30-second background polling
+  useChatPolling({
+    fetchType: 'all',
+    visibleInterval: open ? 10000 : 30000, // 10s when open, 30s when closed
+    hiddenInterval: 30000, // 30s when tab is hidden
+    enabled: !!authToken
+  });
   
   const handleChatRoomClick = (chatRoomId: number) => {
     navigate(`/dashboard/chats/${chatRoomId}`);

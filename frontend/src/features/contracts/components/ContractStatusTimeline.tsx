@@ -3,17 +3,11 @@ import { format } from "date-fns";
 import { CheckCircle, Clock } from "lucide-react";
 import { ContractStatus } from "@/features/contracts/types";
 
-/**
- * Interface for status history entry
- */
 interface StatusHistoryEntry {
   status: ContractStatus;
   timestamp: string;
 }
 
-/**
- * Props for ContractStatusTimeline component
- */
 interface ContractStatusTimelineProps {
   statusHistory?: StatusHistoryEntry[];
   createdAt: string;
@@ -21,22 +15,17 @@ interface ContractStatusTimelineProps {
   currentStatus: ContractStatus;
 }
 
-/**
- * Component for displaying contract status history timeline
- */
 const ContractStatusTimeline: React.FC<ContractStatusTimelineProps> = ({
   statusHistory,
   createdAt,
   updatedAt,
   currentStatus,
 }) => {
-  // If no status history is provided, create a basic timeline based on available data
   const timeline = statusHistory || [
     {
       status: ContractStatus.IN_PROGRESS,
       timestamp: createdAt,
     },
-    // Only add completed status if the contract is completed
     ...(currentStatus === ContractStatus.COMPLETED
       ? [
           {
@@ -47,7 +36,6 @@ const ContractStatusTimeline: React.FC<ContractStatusTimelineProps> = ({
       : []),
   ];
 
-  // Format date to readable format
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "MMM d, yyyy, h:mm a");
   };
@@ -71,7 +59,9 @@ const ContractStatusTimeline: React.FC<ContractStatusTimelineProps> = ({
                   ? "Contract Created"
                   : "Contract Completed"}
               </p>
-              <p className="text-sm text-gray-500">{formatDate(entry.timestamp)}</p>
+              <p className="text-sm text-gray-500">
+                {formatDate(entry.timestamp)}
+              </p>
             </div>
           </div>
         ))}

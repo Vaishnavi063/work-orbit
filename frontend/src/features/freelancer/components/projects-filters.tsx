@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import SearchInput from "@/components/shared/search-input";
 import {
   Select,
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { debounce } from "@/lib/utils";
 
 export interface SortConfig {
   sortBy: string;
@@ -32,6 +34,15 @@ const ProjectFilters = ({
     { value: "title", label: "Title" },
     { value: "category", label: "Category" },
   ];
+
+  const debouncedSearch = useMemo(() => debounce(onSearch, 400), [onSearch]);
+
+  const handleSearch = useCallback(
+    (text: string) => {
+      debouncedSearch(text);
+    },
+    [debouncedSearch]
+  );
 
   const handleSortFieldChange = (sortBy: string) => {
     onSort({ ...currentSort, sortBy });
@@ -60,7 +71,7 @@ const ProjectFilters = ({
     <div className="flex items-center space-x-3 flex-col sm:flex-row gap-3 w-full sm:w-auto">
       <SearchInput
         className="lg:w-[350px] w-full sm:w-auto rounded-md border border-gray-200 shadow-sm"
-        fn={onSearch}
+        fn={handleSearch}
         text=""
         placeholder="Search all projects"
       />
